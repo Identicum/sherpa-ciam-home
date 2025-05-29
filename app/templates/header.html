@@ -1,0 +1,49 @@
+<header>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo">
+    </div>
+    <nav>
+        <ul>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Links</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                    <a href="{{ url_for('links.links', env=env) }}">{{ env }}</a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Check clients</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                    <a href="#">{{ env }}</a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Clients Activity</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                    <a href="#">{{ env }}</a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Client Info</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                    <a href="#">{{ env }}</a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Terraform check</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                    <a href="#">{{ env }}</a>
+                    {% endfor %}
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>

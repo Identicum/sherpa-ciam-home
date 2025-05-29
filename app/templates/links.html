@@ -1,0 +1,71 @@
+{% extends "index.html" %}
+
+{% block title %}Links for {{ env }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Links for {{ env }}</h1>
+
+    {# Check if links is a dictionary (mapping) #}
+    {% if links and links is mapping %}
+        {# Admin Links Section #}
+        {% if links.admin and links.admin is iterable and links.admin | length > 0 %}
+            <table class="admin-links-table">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link_item in links.admin %}
+                        <tr>
+                            <td><a href="{{ link_item.url if link_item.url else '#' }}" target="_blank">{{ link_item.displayText }}</a></td>
+                            <td>
+                                {% if link_item.comment %}
+                                    {{ link_item.comment }}
+                                {% endif %}
+                                {% if link_item.credentials %}
+                                    <br><small>[Credentials: {{ link_item.credentials }}]</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No admin links found for this environment.</p>
+        {% endif %}
+
+        {# Use Cases Links Section #}
+        {% if links.useCases and links.useCases is iterable and links.useCases | length > 0 %}
+            <table class="use-cases-links-table">
+                <thead>
+                    <tr>
+                        <th>Use case</th>
+                        <th>Realm</th>
+                        <th>App</th>
+                        <th>Credentials</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link_item in links.useCases %}
+                        <tr>
+                            <td>{{ link_item.comments if link_item.comments else '' }}</td>
+                            <td>{{ link_item.realm if link_item.realm else '' }}</td>
+                            <td><a href="{{ link_item.url if link_item.url else '#' }}" target="_blank">{{ link_item.displayText }}</a></td>
+                            <td>{{ link_item.credentials if link_item.credentials else '' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No use cases links found for this environment.</p>
+        {% endif %}
+    {% else %}
+        <p>No link data found for the environment: {{ env }}. Please check if the environment exists in links.json or if the data is structured correctly.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('index') }}">Back to Home</a></p>
+</div>
+{% endblock %}

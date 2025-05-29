@@ -1,0 +1,137 @@
+/* Basic CSS for the application */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Add styles for the header */
+header {
+    background: #333;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+    border-bottom: #0779e4 3px solid;
+}
+
+header .logo img {
+    height: 50px; /* Adjust as needed */
+    vertical-align: middle;
+}
+
+header nav ul {
+    padding: 0;
+    list-style: none;
+    text-align: center;
+}
+
+header nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 16px;
+}
+
+/* Dropdown menu styles from header.html - you might want to consolidate these */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Admin Links Table Styling */
+.admin-links-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: lightyellow;
+}
+
+.admin-links-table th, .admin-links-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.admin-links-table th {
+    background-color: #f2f2f2; /* Light grey for header */
+}
+
+.admin-links-table a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.admin-links-table a:hover {
+    text-decoration: underline;
+}
+
+.admin-links-table small {
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* Use Cases Links Table Styling */
+.use-cases-links-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: lightblue;
+}
+
+.use-cases-links-table th, .use-cases-links-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.use-cases-links-table th {
+    background-color: #e0f2f7; /* Lighter blue for header */
+}
+
+.use-cases-links-table a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.use-cases-links-table a:hover {
+    text-decoration: underline;
+}

@@ -48,6 +48,7 @@ services:
         volumes:
             - ../app/:/app/
             - ./data/:/data/
+            - ./local.properties:/local.properties
         depends_on:
             idp_setup:
                 condition: service_completed_successfully

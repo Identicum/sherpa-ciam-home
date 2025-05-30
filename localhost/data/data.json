@@ -5,9 +5,19 @@
         "employees": {}
     },
     "environments": {
-        "local": {},
-        "dev": {},
-        "test": {},
-        "prod": {}
+        "local": {
+            "keycloak_url": "http://idp:8080",
+            "client_id": "sherpaciamhome_client_id",
+            "client_secret": "sherpaciamhome_client_secret"
+        },
+        "dev": {
+            "keycloak_url": "https://dev.identicum.com"
+        },
+        "test": {
+            "keycloak_url": "https://test-idp.identicum.com"
+        },
+        "prod": {
+            "keycloak_url": "https://idp.identicum.com"
+        }
     }
 }

@@ -42,7 +42,17 @@
             <tr><th>Root URL</th><td>{{ client.rootUrl or client.root_url or '' }}</td></tr>
             <tr><th>Base URL</th><td>{{ client.baseUrl or client.base_url or '' }}</td></tr>
             <tr><th>Redirect URIs</th><td>{% if client.redirectUris %}<ul style="margin:0; padding-left:18px;">{% for uri in client.redirectUris %}<li>{{ uri }}</li>{% endfor %}</ul>{% else %}-{% endif %}</td></tr>
-            <tr><th>Post Logout Redirect URIs</th><td>{% if client.attributes['post.logout.redirect.uris'] %}<ul style="margin:0; padding-left:18px;">{% for uri in client.attributes['post.logout.redirect.uris'] %}<li>{{ uri }}</li>{% endfor %}</ul>{% else %}-{% endif %}</td></tr>
+            <tr><th>Post Logout Redirect URIs</th>
+                <td>
+                    {% if client.attributes and client.attributes['post.logout.redirect.uris'] %}
+                        <ul style="margin:0; padding-left:18px;">
+                        {% for uri in client.attributes['post.logout.redirect.uris'].split('##') %}
+                            <li>{{ uri }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}-{% endif %}
+                </td>
+            </tr>
             <tr><th>Web Origins</th><td>{% if client.webOrigins %}<ul style="margin:0; padding-left:18px;">{% for origin in client.webOrigins %}<li>{{ origin }}</li>{% endfor %}</ul>{% else %}-{% endif %}</td></tr>
             <tr><th>Access Token Lifespan</th><td>{{ client.attributes['access.token.lifespan'] if client.attributes and 'access.token.lifespan' in client.attributes else '-' }}</td></tr>
             <tr><th>SSO Session Idle Timeout</th><td>{{ client.attributes['sso.session.idle.timeout'] if client.attributes and 'sso.session.idle.timeout' in client.attributes else '-' }}</td></tr>

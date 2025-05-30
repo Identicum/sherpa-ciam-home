@@ -2,8 +2,8 @@
     "local": {
         "admin": [
             {
-                "url": "https://idp-localhost.claro.amx/auth/admin/",
-                "displayText": "Consola Administrativa",
+                "url": "https://idp-localhost.identicum.com/auth/admin/",
+                "displayText": "Admin console",
                 "comment": "(admin/admin)"
             },
             {
@@ -18,554 +18,94 @@
             {
                 "url": "http://localhost:8082/",
                 "displayText": "Mmock"
-            },
-            {
-                "url": "http://localhost:5601/",
-                "displayText": "Kibana"
-            },
-            {
-                "url": "http://localhost:9080/",
-                "displayText": "Kafka UI"
             }
         ],
         "useCases": [
-            {
-                "url": "http://demoapp0/",
-                "displayText": "demoapp0",
-                "realm": "corporativos",
-                "comments": "SAML Demoapp Java",
-                "credentials": "idptesting_corp@claro.amx / Claro.2023"
-            },
             {
                 "url": "http://demoapp1",
                 "displayText": "demoapp1",
-                "realm": "claro",
-                "comments": "Mi Claro / Mi Usuario",
-                "credentials": "ar_localhost@local.com / Claro.2022"
+                "realm": "customers",
+                "comments": "Demo app 1",
+                "credentials": "jdoe / Sherpa.2025"
             },
             {
-                "url": "http://demoapp4/",
-                "displayText": "Demoapp4",
-                "realm": "claro",
-                "comments": "Mi Claro / Mi Usuario - UY",
-                "credentials": "uy_localhost@local.com / Claro.2022"
-            },
-            {
-                "url": "http://demoapp5",
-                "displayText": "demoapp5",
-                "realm": "claro",
-                "comments": "Mi Claro / Mi Usuario - PY",
-                "credentials": "py_localhost@local.com / Claro.2022"
-            },
-            {
-                "url": "http://demoapp3/",
-                "displayText": "demoapp3",
-                "realm": "claro",
-                "comments": "Claro Pay Consent",
-                "credentials": "ar_localhost@local.com / Claro.2022"
-            },
-            {
-                "url": "",
-                "displayText": "",
-                "realm": "claro",
-                "comments": "Falla envio SMS (SMS_ERROR)",
-                "credentials": "1122223334"
-            },
-            {
-                "url": "",
-                "displayText": "",
-                "realm": "claro",
-                "comments": "Falla Linea Invalida (INVALID_LINE)",
-                "credentials": "1122223335"
-            },
-            {
-                "url": "",
-                "displayText": "",
-                "realm": "claro",
-                "comments": "Falla No Autorizado (ACCESS_DENIED)",
-                "credentials": "1122223336"
-            },
-            {
-                "url": "",
-                "displayText": "",
-                "realm": "claro",
-                "comments": "Falla Acceso Denegado (ACCESS_DENIED)",
-                "credentials": "1122223337"
-            },
-            {
-                "url": "",
-                "displayText": "",
-                "realm": "claro",
-                "comments": "Falla por Timeout (BACKEND_AUTHENTICATION_ERROR)",
-                "credentials": "1122223338"
-            },
-            {
-                "url": "https://idp-localhost.claro.amx/auth/realms/claro/account/#/",
-                "displayText": "My account",
-                "realm": "claro",
-                "comments": "Autentica por EMAIL",
-                "credentials": "ar_localhost@local.com / Claro.2022"
-            },
-            {
-                "url": "",
-                "displayText": "",
-                "realm": "claro",
-                "comments": "Falla por timeout a UMS (BACKEND_AUTHENTICATION_ERROR)",
-                "credentials": "claro.timeout@gmail.com"
-            },
-            {
-                "url": "",
-                "displayText": "",
-                "realm": "claro",
-                "comments": "Falla por timeout a Base de Datos de UMS (TEMPORARY_DATABASE_ERROR",
-                "credentials": "db.timeout@gmail.com"
-            },
-            {
-                "url": "https://idp-localhost.claro.amx/auth/realms/claro-py/account/",
-                "displayText": "My account",
-                "realm": "claro-py",
-                "comments": "Autentica por EMAIL",
-                "credentials": "py_localhost@local.com / Claro.2022"
-            },
-            {
-                "url": "https://idp-localhost.claro.amx/auth/realms/claro-uy/account/",
-                "displayText": "My account",
-                "realm": "claro-uy",
-                "comments": "Autentica por EMAIL",
-                "credentials": "uy_localhost@local.com / Claro.2022"
-            },
-            {
-                "url": "http://demoapp6/",
-                "displayText": "demoapp6",
-                "realm": "claro-ad",
-                "comments": "Autentica por EMAIL",
-                "credentials": "local1 / Claro.2022"
-            },
-            {
-                "url": "https://idp-localhost.claro.amx/auth/realms/corporativos/account/#/",
-                "displayText": "Account AR",
-                "realm": "corporativos",
-                "comments": "",
-                "credentials": "corp-py-cypress-local@claro.amx / Claro.2022"
-            },
-            {
-                "url": "https://idp-localhost.claro.amx/auth/realms/corporativos-uy/account/#/",
-                "displayText": "Account",
-                "realm": "corporativos-uy",
-                "comments": "",
-                "credentials": "corp-uy-cypress-local@claro.amx / Claro.2022"
-            },
-            {
-                "url": "https://idp-localhost.claro.amx/auth/realms/corporativos-py/account/#/",
-                "displayText": "Account",
-                "realm": "corporativos-py",
-                "comments": "",
-                "credentials": ""
-            },
-            {
-                "url": "http://demoapp8/",
-                "displayText": "demoapp8",
-                "realm": "hub-ar",
-                "comments": "",
-                "credentials": "2222222222 / 1234"
-            },
-            {
-                "url": "https://idp-localhost.claro.amx/auth/realms/loadtest/account/",
-                "displayText": "My account",
-                "realm": "loadtest",
-                "comments": "Autentica por EMAIL"
-            },
-            {
-                "url": "http://demoapp8",
-                "displayText": "demoapp8",
-                "realm": "pretups-ar",
-                "comments": "",
-                "credentials": "1111111111 / 1234"
-            },
-            {
-                "url": "http://demoapp9",
-                "displayText": "demoapp9",
-                "realm": "pretups-ur",
-                "comments": "",
-                "credentials": "1111112345 / 7028"
-            },
-            {
-                "url": "http://demoapp15",
-                "displayText": "demoapp15",
-                "realm": "pretups-py",
-                "comments": "",
-                "credentials": "1111112345 / 7028"
-            },
-            {
-                "url": "http://demoapp11",
-                "displayText": "demoapp11",
-                "realm": "mobile-ar",
-                "comments": "CAMARA Number Verification AR",
-                "credentials": "SSO con 1122223333"
-            },
-            {
-                "url": "http://demoapp12",
-                "displayText": "demoapp12",
-                "realm": "mobile-uy",
-                "comments": "CAMARA Number Verification UY",
-                "credentials": "SSO con 1122223333"
-            },
-            {
-                "url": "http://demoapp13",
-                "displayText": "demoapp13",
-                "realm": "mobile-py",
-                "comments": "CAMARA Number Verification PY",
-                "credentials": "SSO con 1122223333"
+                "url": "http://demoapp2/",
+                "displayText": "demoapp2",
+                "realm": "employees",
+                "comments": "Demo app 2",
+                "credentials": "jsmith / Sherpa.2025"
             }
         ]
     },
-    "desa": {
+    "dev": {
         "admin": [
             {
-                "url": "https://desa-login.claro.amx/auth/admin/master/console/",
-                "displayText": "Consola Administrativa"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8199/",
-                "displayText": "IAM CRUD",
-                "comment": "(xxxxx / xxxxx)"
-            },
-            {
-                "url": "http://desa-kibana.claro.com.ar:5601/s/idp/app/discover#/",
-                "displayText": "Kibana"
-            },
-            {
-                "url": "http://bitbucket.claro.amx/projects/idp",
-                "displayText": "Bitbucket"
+                "url": "https://dev-idp.identicum.com/admin/master/console/",
+                "displayText": "Admin console"
             }
         ],
         "useCases": [
             {
-                "url": "http://idpr-apl01.claro.amx:8101/",
-                "displayText": "Demoapp101",
-                "realm": "claro",
-                "comments": "Mi Claro / Mi Usuario",
-                "credentials": "cypress_prueba_masivos_ar@claro.amx / Claro.2022"
+                "url": "http://demoapp11",
+                "displayText": "demoapp11",
+                "realm": "customers",
+                "comments": "Demo app 11",
+                "credentials": "jdoe / Sherpa.2025"
             },
             {
-                "url": "http://idpr-apl01.claro.amx:8103/",
-                "displayText": "Demoapp103",
-                "realm": "claro",
-                "comments": "Claro Pay Consent",
-                "credentials": "cypress_prueba_masivos_ar@claro.amx / Claro.2022"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8104/",
-                "displayText": "Demoapp104",
-                "realm": "claro-uy",
-                "comments": "Claro Email O Linea",
-                "credentials": "cypress_prueba_masivos_uy@claro.amx / Claro.2022"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8105/",
-                "displayText": "Demoapp105",
-                "realm": "claro-py",
-                "comments": "Claro Email O Linea",
-                "credentials": "cypress_prueba_masivos_@claro.amx / Claro.2022"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8106/",
-                "displayText": "Demoapp106",
-                "realm": "claro-ad",
-                "comments": "",
-                "credentials": "Credenciales de tu usuario AD"
-            },
-            {
-                "url": "https://desa-login.claro.com.ar/auth/realms/corporativos/account/#/",
-                "displayText": "Account",
-                "realm": "corporativos",
-                "comments": "",
-                "credentials": "pruebas_cml-c@claro.com.ar / Stella.2023$"
-            },
-            {
-                "url": "https://desa-login.claro.com.ar/auth/realms/corporativos-uy/account/#/",
-                "displayText": "Account",
-                "realm": "corporativos-uy",
-                "comments": "",
-                "credentials": "corp-uy-cypress-local@claro.amx / Claro.2022"
-            },
-            {
-                "url": "https://desa-login.claro.com.ar/auth/realms/corporativos-py/account/#/",
-                "displayText": "Account",
-                "realm": "corporativos-py",
-                "comments": "",
-                "credentials": ""
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8108/",
-                "displayText": "Demoapp108",
-                "realm": "pretups-ar",
-                "comments": "",
-                "credentials": "1150437028 / 7028"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8109/",
-                "displayText": "Demoapp109",
-                "realm": "pretups-uy",
-                "comments": "",
-                "credentials": "1111112345 / 7028"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8111/",
-                "displayText": "Demoapp111",
-                "realm": "mobile-ar",
-                "comments": "",
-                "credentials": "SSO con 1122223333"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8112/",
-                "displayText": "Demoapp112",
-                "realm": "mobile-uy",
-                "comments": "",
-                "credentials": "SSO con 1122223333"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8113/",
-                "displayText": "Demoapp113",
-                "realm": "mobile-py",
-                "comments": "",
-                "credentials": "SSO con 1122223333"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8115/",
-                "displayText": "Demoapp115",
-                "realm": "pretups-py",
-                "comments": "",
-                "credentials": "1111112345 / 7028"
-            },
-            {
-                "url": "https://desa-login.claro.com.ar/auth/realms/hub-ar/account/#/",
-                "displayText": "Account",
-                "realm": "hub-ar",
-                "comments": "",
-                "credentials": "cypress@claro.amx / iden.2006"
+                "url": "http://demoapp12/",
+                "displayText": "demoapp12",
+                "realm": "employees",
+                "comments": "Demo app 12",
+                "credentials": "jsmith / Sherpa.2025"
             }
         ]
     },
     "test": {
         "admin": [
             {
-                "url": "https://test-login.claro.amx/auth/admin/master/console/",
-                "displayText": "Consola Administrativa"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8299/",
-                "displayText": "IAM CRUD",
-                "comment": "(xxxxx / xxxxx)"
-            },
-            {
-                "url": "http://test-kibana.claro.com.ar:5601/s/idp/app/discover#/",
-                "displayText": "Kibana"
+                "url": "https://test-idp.identicum.com/admin/master/console/",
+                "displayText": "Admin console"
             }
         ],
         "useCases": [
             {
-                "url": "http://idpr-apl01.claro.amx:8201/",
-                "displayText": "Demoapp201",
-                "realm": "claro",
-                "comments": "Mi Claro / Mi Usuario",
-                "credentials": "cypress_prueba_masivos_ar@claro.amx / Claro.2022"
+                "url": "http://demoapp21",
+                "displayText": "demoapp21",
+                "realm": "customers",
+                "comments": "Demo app 21",
+                "credentials": "jdoe / Sherpa.2025"
             },
             {
-                "url": "http://idpr-apl01.claro.amx:8203/",
-                "displayText": "Demoapp203",
-                "realm": "claro",
-                "comments": "Claro Pay Consent",
-                "credentials": "cypress_prueba_masivos_ar@claro.amx / Claro.2022"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8204/",
-                "displayText": "Demoapp204",
-                "realm": "claro-uy",
-                "comments": "Claro Email O Linea",
-                "credentials": "cypress_prueba_masivos_uy@claro.amx / Claro.2022"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8205/",
-                "displayText": "Demoapp205",
-                "realm": "claro-py",
-                "comments": "Claro Email O Linea",
-                "credentials": "cypress_prueba_masivos_py@claro.amx / Claro.2022"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8206/",
-                "displayText": "Demoapp206",
-                "realm": "claro-ad",
-                "comments": "",
-                "credentials": "Credenciales de tu usuario AD"
-                
-            },
-            {
-                "url": "https://test-login.claro.com.ar/auth/realms/corporativos/account/#/",
-                "displayText": "Account - AR",
-                "realm": "corporativos",
-                "comments": "",
-                "credentials": "pruebas_cml-c@claro.com.ar / Stella.2023$"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8208/",
-                "displayText": "Demoapp208",
-                "realm": "pretups-ar",
-                "comments": "",
-                "credentials": "1150437028 / 7028"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8209/",
-                "displayText": "Demoapp209",
-                "realm": "pretups-uy",
-                "comments": "",
-                "credentials": "96620152 / 0152"
-            },
-            {
-                "url": "https://test-login.claro.com.ar/auth/realms/corporativos-uy/account/#/",
-                "displayText": "Account - UY",
-                "realm": "corporativos-uy",
-                "comments": "",
-                "credentials": "corp-uy-cypress-local@claro.amx / Claro.2022"
-            },
-            {
-                "url": "https://test-login.claro.com.ar/auth/realms/corporativos-py/account/#/",
-                "displayText": "Account - PY",
-                "realm": "corporativos-py",
-                "comments": "",
-                "credentials": "corp-py-cypress-local@claro.amx / Claro.2022"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8211/",
-                "displayText": "Demoapp211",
-                "realm": "mobile-ar",
-                "comments": "",
-                "credentials": "SSO con 1199887766"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8212/",
-                "displayText": "Demoapp212",
-                "realm": "mobile-uy",
-                "comments": "",
-                "credentials": "SSO con 1199887766"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8213/",
-                "displayText": "Demoapp213",
-                "realm": "mobile-py",
-                "comments": "",
-                "credentials": "SSO con 1199887766"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8215/",
-                "displayText": "Demoapp215",
-                "realm": "pretups-py",
-                "comments": ""
-            },
-            {
-                "url": "https://test-login.claro.com.ar/auth/realms/hub-ar/account/#/",
-                "displayText": "Account",
-                "realm": "hub-ar",
-                "comments": "",
-                "credentials": "cypress_hub_test@claro.amx / iden.2006"
+                "url": "http://demoapp22/",
+                "displayText": "demoapp22",
+                "realm": "employees",
+                "comments": "Demo app 22",
+                "credentials": "jsmith / Sherpa.2025"
             }
         ]
     },
     "prod": {
         "admin": [
             {
-                "url": "https://ingreso.claro.amx/auth/admin/master/console/",
-                "displayText": "Consola Administrativa"
-            },
-            {
-                "url": "http://elkkibana02xpl.claro.amx:5602/s/idp/login?next=%2Fs%2Fidp%2Fapp%2Fdiscover#/",
-                "displayText": "Kibana"
+                "url": "https://idp.identicum.com/admin/master/console/",
+                "displayText": "Admin console"
             }
         ],
         "useCases": [
             {
-                "url": "http://idpr-apl01.claro.amx:8301/",
-                "displayText": "Demoapp301",
-                "realm": "claro",
-                "comments": "Mi Claro / Mi Usuario",
-                "credentials": "monitoreo-idp@claro.com.ar / IDPprodAR-1"
+                "url": "http://demoapp31",
+                "displayText": "demoapp31",
+                "realm": "customers",
+                "comments": "Demo app 31",
+                "credentials": "jdoe / Sherpa.2025"
             },
             {
-                "url": "http://idpr-apl01.claro.amx:8303/",
-                "displayText": "Demoapp303",
-                "realm": "claro",
-                "comments": "Claro Pay Consent",
-                "credentials": "monitoreo-idp@claro.com.ar / IDPprodAR-1"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8304/",
-                "displayText": "Demoapp304",
-                "realm": "claro-uy",
-                "comments": "Claro Email O Linea",
-                "credentials": "monitoreo-idp@claro.com.uy / IDPprodUY-1"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8305/",
-                "displayText": "Demoapp305",
-                "realm": "claro-py",
-                "comments": "Claro Email O Linea",
-                "credentials": "monitoreo-idp@claro.com.py / IDPprodPY-1"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8306/",
-                "displayText": "Demoapp306",
-                "realm": "claro-ad",
-                "comments": "",
-                "credentials": "Credenciales de tu usuario AD"
-            },
-            {
-                "url": "https://ingreso.claro.com.ar/auth/realms/corporativos/account/#/",
-                "displayText": "Account - AR",
-                "realm": "corporativos",
-                "comments": "",
-                "credentials": "idptesting_corp@claro.amx / Claro.2023"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8308/",
-                "displayText": "Demoapp308",
-                "realm": "pretups-ar",
-                "comments": "",
-                "credentials": "1150437028 / 7028"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8309/",
-                "displayText": "Demoapp309",
-                "realm": "pretups-uy",
-                "comments": "",
-                "credentials": "96620152 / 0152"
-            },
-            {
-                "url": "http://idpr-apl01.claro.amx:8315/",
-                "displayText": "Demoapp315",
-                "realm": "pretups-py",
-                "comments": "",
-                "credentials": " - "
-            },
-            {
-                "url": "https://ingreso.claro.com.uy/auth/realms/corporativos-uy/account/#/",
-                "displayText": "Account - UY",
-                "realm": "corporativos-uy",
-                "comments": "",
-                "credentials": "atarallo@claro.com.uy / Corpo2023"
-            },
-            {
-                "url": "https://ingreso.claro.com.py/auth/realms/corporativos-py/account/#/",
-                "displayText": "Demoapp311",
-                "realm": "corporativos-py",
-                "comments": "",
-                "credentials": "pruebasmktpy@gmail.com / Test1234"
-            },
-            {
-                "url": "https://ingreso.claro.com.ar/auth/realms/hub-ar/account/#/",
-                "displayText": "Account",
-                "realm": "hub-ar",
-                "comments": "",
-                "credentials": "2222222222 / 1234"
+                "url": "http://demoapp32/",
+                "displayText": "demoapp32",
+                "realm": "employees",
+                "comments": "Demo app 32",
+                "credentials": "jsmith / Sherpa.2025"
             }
         ]
     }

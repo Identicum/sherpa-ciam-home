@@ -17,8 +17,12 @@
         <tbody>
             {% for client in clients %}
             <tr>
-                <td>{{ client.clientId or client.client_id }}</td>
-                <td>{{ client.name or client.client_name }}</td>
+                <td>
+                    <a href="{{ url_for('clientinfo.clientinfo_detail', env=env, realm=realm, client_id=client.clientId or client.client_id) }}">
+                        {{ client.clientId }}
+                    </a>
+                </td>
+                <td>{{ client.name }}</td>
                 <td style="text-align:center;">
                     {% if client.enabled %}
                         <span title="Enabled" style="color:green;">&#x2714;</span>

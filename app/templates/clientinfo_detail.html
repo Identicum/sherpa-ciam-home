@@ -1,10 +1,57 @@
 {% extends "index.html" %}
 
-{% block title %}Client Info for {{ env }}{% endblock %}
+{% block title %}Client Info for {{ env }} - {{ realm }} - {{ client.clientId }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Client Info for {{ env }}</h1>
-    <p>This is a placeholder for client information for the <b>{{ env }}</b> environment.</p>
+    <h1>Client Info for {{ env }} - {{ realm }} - {{ client.clientId }}</h1>
+    {% if client %}
+    <table class="admin-links-table" style="max-width:700px;">
+        <tbody>
+            <tr><th>Client ID</th><td>{{ client.clientId }}</td></tr>
+            <tr><th>Name</th><td>{{ client.name }}</td></tr>
+            <tr><th>Status</th>
+                <td>
+                    {% if client.enabled %}
+                        <span title="Enabled" style="color:green;">&#x2714;</span>
+                    {% else %}
+                        <span title="Disabled" style="color:red;">&#x2716;</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr><th>Description</th><td>{{ client.description or '' }}</td></tr>
+            <tr><th>Access Type</th>
+                <td>{% if client.publicClient %}
+                        PUBLIC
+                    {% else %}
+                        CONFIDENTIAL
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Flows</th>
+                <td>
+                    <ul style="margin:0; padding-left:18px;">
+                        <li>Authorization Code: {% if client.standardFlowEnabled %}<span style="color:green;">Enabled</span>{% else %}<span style="color:red;">Disabled</span>{% endif %}</li>
+                        <li>Implicit: {% if client.implicitFlowEnabled %}<span style="color:green;">Enabled</span>{% else %}<span style="color:red;">Disabled</span>{% endif %}</li>
+                        <li>Direct Access Grants (ROPC): {% if client.directAccessGrantsEnabled %}<span style="color:green;">Enabled</span>{% else %}<span style="color:red;">Disabled</span>{% endif %}</li>
+                        <li>Service Accounts (client_credentials): {% if client.serviceAccountsEnabled %}<span style="color:green;">Enabled</span>{% else %}<span style="color:red;">Disabled</span>{% endif %}</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr><th>Root URL</th><td>{{ client.rootUrl or client.root_url or '' }}</td></tr>
+            <tr><th>Base URL</th><td>{{ client.baseUrl or client.base_url or '' }}</td></tr>
+            <tr><th>Redirect URIs</th><td>{% if client.redirectUris %}<ul style="margin:0; padding-left:18px;">{% for uri in client.redirectUris %}<li>{{ uri }}</li>{% endfor %}</ul>{% else %}-{% endif %}</td></tr>
+            <tr><th>Post Logout Redirect URIs</th><td>{% if client.attributes['post.logout.redirect.uris'] %}<ul style="margin:0; padding-left:18px;">{% for uri in client.attributes['post.logout.redirect.uris'] %}<li>{{ uri }}</li>{% endfor %}</ul>{% else %}-{% endif %}</td></tr>
+            <tr><th>Web Origins</th><td>{% if client.webOrigins %}<ul style="margin:0; padding-left:18px;">{% for origin in client.webOrigins %}<li>{{ origin }}</li>{% endfor %}</ul>{% else %}-{% endif %}</td></tr>
+            <tr><th>Access Token Lifespan</th><td>{{ client.attributes['access.token.lifespan'] if client.attributes and 'access.token.lifespan' in client.attributes else '-' }}</td></tr>
+            <tr><th>SSO Session Idle Timeout</th><td>{{ client.attributes['sso.session.idle.timeout'] if client.attributes and 'sso.session.idle.timeout' in client.attributes else '-' }}</td></tr>
+            <tr><th>SSO Session Max Lifespan</th><td>{{ client.attributes['sso.session.max.lifespan'] if client.attributes and 'sso.session.max.lifespan' in client.attributes else '-' }}</td></tr>
+            <tr><th>Client Session Idle Timeout</th><td>{{ client.attributes['client.session.idle.timeout'] if client.attributes and 'client.session.idle.timeout' in client.attributes else '-' }}</td></tr>
+        </tbody>
+    </table>
+    {% else %}
+        <p>No client data found.</p>
+    {% endif %}
 </div>
 {% endblock %}

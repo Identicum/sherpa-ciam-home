@@ -11,4 +11,5 @@ def clientinfo_list(env, realm):
 @clientinfo_bp.route('/clientinfo/<env>/<realm>/<client_id>', methods=["GET"])
 def clientinfo_detail(env, realm, client_id):
     client = getClient(env, realm, client_id)
-    return render_template('clientinfo_list.html', realms=getRealms(), environments=getEnvironments(), env=env, realm=realm, client_id=client_id, client=client)
+    logger.trace("client: {}", client)
+    return render_template('clientinfo_detail.html', realms=getRealms(), environments=getEnvironments(), env=env, realm=realm, client=client)

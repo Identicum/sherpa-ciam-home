@@ -36,8 +36,9 @@ def getKeycloakAdmin(env, realm):
             logger=logger, 
             local_properties=properties, 
             server_url=data.get("environments", {}).get(env, {}).get("keycloak_url", ""), 
-            client_id=data.get("environments", {}).get(env, {}).get("client_id", ""), 
-            client_secret_key=data.get("environments", {}).get(env, {}).get("client_secret", ""), 
+            username=data.get("environments", {}).get(env, {}).get("username", ""), 
+            password=data.get("environments", {}).get(env, {}).get("password", ""), 
+            user_realm_name="master",
             realm_name=realm, 
             verify=False
         )

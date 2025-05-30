@@ -28,11 +28,11 @@ terraform_apply () {
 
 cd ./objects
 
-terraform_init master
-terraform_apply master
-
 terraform_init customers
 terraform_apply customers
 
 terraform_init employees
 terraform_apply employees
+
+terraform_init master
+terraform_apply master

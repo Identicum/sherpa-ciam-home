@@ -23,3 +23,14 @@ resource "keycloak_openid_client_optional_scopes" "sherpaciamhome_optionalscopes
   client_id = keycloak_openid_client.sherpaciamhome.id
   optional_scopes = [ ]
 }
+
+data "keycloak_openid_client_service_account_user" "sherpaciamhome_sa" {
+  realm_id  = data.keycloak_realm.realm.id
+  client_id = keycloak_openid_client.sherpaciamhome.id
+}
+
+resource "keycloak_user_roles" "sherpaciamhome_service_account_roles" {
+  realm_id = data.keycloak_realm.realm.id
+  user_id  = data.keycloak_openid_client_service_account_user.sherpaciamhome_sa.id
+  role_ids = [ keycloak_role.idp_readonly.id ]
+}

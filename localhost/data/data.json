@@ -7,8 +7,8 @@
     "environments": {
         "local": {
             "keycloak_url": "http://idp:8080",
-            "client_id": "sherpaciamhome_client_id",
-            "client_secret": "sherpaciamhome_client_secret"
+            "username": "sherpaciamhome",
+            "password": "Sherpa.2025"
         },
         "dev": {
             "keycloak_url": "https://dev.identicum.com"

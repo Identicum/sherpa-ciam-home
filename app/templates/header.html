@@ -16,7 +16,14 @@
                 <a href="javascript:void(0)" class="dropbtn">Check clients</a>
                 <div class="dropdown-content">
                     {% for env in environments %}
-                    <a href="#">{{ env }}</a>
+                        <div class="submenu-parent">
+                            <a href="#">{{ env }} &raquo;</a>
+                            <div class="dropdown-submenu">
+                                {% for realm in realms %}
+                                    <a href="#">{{ realm }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
             </li>
@@ -32,7 +39,14 @@
                 <a href="javascript:void(0)" class="dropbtn">Client Info</a>
                 <div class="dropdown-content">
                     {% for env in environments %}
-                    <a href="#">{{ env }}</a>
+                        <div class="submenu-parent">
+                            <a href="#">{{ env }} &raquo;</a>
+                            <div class="dropdown-submenu">
+                                {% for realm in realms %}
+                                    <a href="{{ url_for('clientinfo.clientinfo_list', env=env, realm=realm) }}">{{ realm }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
             </li>

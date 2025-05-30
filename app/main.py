@@ -1,4 +1,5 @@
 from blueprints.links import links_bp
+from blueprints.clientinfo import clientinfo_bp
 from flask import Flask, render_template
 from utils import *
 
@@ -13,6 +14,7 @@ def getHealth():
     return 'OK'
 
 app.register_blueprint(links_bp)
+app.register_blueprint(clientinfo_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

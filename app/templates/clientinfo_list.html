@@ -1,10 +1,10 @@
 {% extends "index.html" %}
 
-{% block title %}Client Info for {{ env }} - {{ realm }}{% endblock %}
+{% block title %}Client Info for {{ env }} - {{ realmName }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Client Info List for {{ env }} - {{ realm }}</h1>
+    <h1>Client Info List for {{ env }} - {{ realmName }}</h1>
     {% if clients and clients|length > 0 %}
     <table class="admin-links-table">
         <thead>
@@ -18,7 +18,7 @@
             {% for client in clients %}
             <tr>
                 <td>
-                    <a href="{{ url_for('clientinfo.clientinfo_detail', env=env, realm=realm, client_id=client.clientId or client.client_id) }}">
+                    <a href="/clientinfo/{{ env }}/{{ realmName }}/{{ client.clientId }}">
                         {{ client.clientId }}
                     </a>
                 </td>

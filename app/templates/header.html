@@ -43,7 +43,7 @@
                             <a href="#">{{ env }} &raquo;</a>
                             <div class="dropdown-submenu">
                                 {% for realm in realms %}
-                                    <a href="{{ url_for('clientinfo.clientinfo_list', env=env, realm=realm) }}">{{ realm }}</a>
+                                    <a href="{{ url_for('clientinfo.clientinfo_list', env=env, realmName=realmName) }}">{{ realm }}</a>
                                 {% endfor %}
                             </div>
                         </div>

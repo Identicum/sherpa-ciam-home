@@ -22,6 +22,17 @@ def getRealms():
     data = get_data()
     return list(data.get("realms", {}).keys())
 
+def getRealm(env, realmName):
+    kc_admin = getKeycloakAdmin(env, realmName)
+    if not kc_admin:
+        return []
+    try:
+        realm = kc_admin.get_realm(realmName)
+        return realm
+    except Exception as e:
+        logger.error("Error fetching realm for {}/{}: {}", env, realm, e)
+        return []
+
 def getEnvironments():
     data = get_data()
     return list(data.get("environments", {}).keys())

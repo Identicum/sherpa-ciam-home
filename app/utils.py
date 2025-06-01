@@ -66,14 +66,102 @@ def getClients(env, realm):
         logger.error("Error fetching clients for {}/{}: {}", env, realm, e)
         return []
 
-def getClient(env, realm, client_id):
-    kc_admin = getKeycloakAdmin(env, realm)
+def getClient(env, realmName, client_id):
+    """
+    Get Client object in normalized form, to simplify functions.
+
+    :param env (str): Environment
+    :param realmName (str): Realm name
+    :param client_id (str): client_id
+    :return: Client object
+    """
+    kc_admin = getKeycloakAdmin(env, realmName)
     if not kc_admin:
-        return []
+        return {}
     try:
         client_keycloak_id = kc_admin.get_client_id(client_id)
         client = kc_admin.get_client(client_keycloak_id)
-        return client
+        realm = kc_admin.get_realm(realmName)
+        response = {}
+        logger.trace("KC Client object: {}, type: {}", client, type(client))
+        response["id"] = client["id"]
+        response["client_id"] = client["clientId"]
+        response["name"] = client["name"]
+        response["enabled"] = client["enabled"]
+
+        client_description = client["description"] if "description" in client else ""
+        response["tag"] = getClientTag(client_description, client["clientId"])
+        response["owner_email"] = splitDescription(client_description, 1, "")
+        response["description"] = splitDescription(client_description, 2, client_description)
+
+        if client["publicClient"]:
+            response["access_type"] = "PUBLIC"
+        else:
+            response["access_type"] = "CONFIDENTIAL"
+
+        response["authorization_code_flow"] = client["standardFlowEnabled"]
+        response["implicit_flow"] = client["implicitFlowEnabled"]
+        response["client_credentials_flow"] = client["serviceAccountsEnabled"]
+        response["ropc_flow"] = client["directAccessGrantsEnabled"]
+
+        response["root_url"] = client.get("rootUrl", "")
+        response["admin_url"] = client.get("adminUrl", "")
+        response["base_url"] = client.get("baseUrl", "")
+        response["redirect_uris"] = client.get("redirectUris", [])
+        if client["attributes"] and client["attributes"]["post.logout.redirect.uris"]:
+            response["post_logout_redirect_uris"] = client["attributes"]["post.logout.redirect.uris"].split('##')
+        else:
+            response["post_logout_redirect_uris"] = []
+        response["web_origins"] = client.get("webOrigins", [])
+
+        response["access_token_lifespan"] = client["attributes"].get("access.token.lifespan", "(inherit from realm)")
+        response["effective_access_token_lifespan"] = client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", ""))
+        response["realm_access_token_lifespan"] = realm.get("accessTokenLifespan", "")
+
+        response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", "(inherit from realm)")
+        response["effective_client_session_idle"] = client["attributes"].get("client.session.idle.timeout", realm.get("clientSessionIdleTimeout", ""))
+        response["realm_client_session_idle"] = realm.get("clientSessionIdleTimeout", "")
+
+        response["client_session_max"] = client["attributes"].get("client.session.max.lifespan", "(inherit from realm)")
+        response["effective_client_session_max"] = client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", ""))
+        response["realm_client_session_max"] = realm.get("clientSessionMaxLifespan", "")
+
+        logger.trace("Returning response: {}", response)
+        return response
     except Exception as e:
         logger.error("Error fetching client for {}/{}/{}: {}", env, realm, client_id, e)
-        return []
+        return {}
+
+def splitDescription(description, position, defaultValue):
+    """
+    Extract Client information from description custom syntax.
+
+    :param description (str): Client description in format 'TAG##ownerEmail##Client description'.
+    :return: Text in position, otherwise None.
+    """
+    extracted = None
+    if description and isinstance(description, str) and "##" in description:
+        extracted = description.split("##")[position]
+    logger.trace("description: {}, position: {}, type: {}, extracted: '{}', type: {}", description, position, type(position), extracted, type(extracted))
+    if extracted is not None:
+        return extracted
+    else:
+        return defaultValue
+
+def getClientTag(description, client_id):
+    """
+    Get [TAG] from description and client_id.
+
+    :param description (str): Client description in format '[TAG]##ownerEmail##Client description'.
+    :param client_id (str): client_id.
+    :return: TAG or TAG_MISSING or TAG_INVALID
+      etiqueta válida, devuelve '[TAG_INVALID]'.
+            Las etiquetas válidas incluyen: "[TAG_MISSING]", "[KEYCLOAK_NATIVE]", "[SPA_NGINX]", "[MOBILE]", 
+            "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]".
+    """
+    tag = splitDescription(description, 0, "[TAG_MISSING]")
+    if client_id in [ "account", "account-console", "security-admin-console", "admin-cli", "realm-management", "broker" ]:
+        tag = "[KEYCLOAK_NATIVE]"
+    if tag not in ["[TAG_MISSING]", "[KEYCLOAK_NATIVE]", "[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]"]:
+        tag = "[TAG_INVALID]"           
+    return tag

@@ -8,7 +8,7 @@
                 <a href="javascript:void(0)" class="dropbtn">Links</a>
                 <div class="dropdown-content">
                     {% for env in environments %}
-                    <a href="{{ url_for('links.links', env=env) }}">{{ env }}</a>
+                    <a href="/links/{{env}}">{{env}}</a>
                     {% endfor %}
                 </div>
             </li>
@@ -17,10 +17,10 @@
                 <div class="dropdown-content">
                     {% for env in environments %}
                         <div class="submenu-parent">
-                            <a href="#">{{ env }} &raquo;</a>
+                            <a href="/checkclients/{{env}}">{{env}} &raquo;</a>
                             <div class="dropdown-submenu">
                                 {% for realm in realms %}
-                                    <a href="#">{{ realm }}</a>
+                                    <a href="/checkclients/{{env}}/{{realm}}">{{realm}}</a>
                                 {% endfor %}
                             </div>
                         </div>
@@ -31,7 +31,7 @@
                 <a href="javascript:void(0)" class="dropbtn">Clients Activity</a>
                 <div class="dropdown-content">
                     {% for env in environments %}
-                    <a href="#">{{ env }}</a>
+                    <a href="/clientactivity/{{env}}">{{env}}</a>
                     {% endfor %}
                 </div>
             </li>
@@ -40,10 +40,10 @@
                 <div class="dropdown-content">
                     {% for env in environments %}
                         <div class="submenu-parent">
-                            <a href="#">{{ env }} &raquo;</a>
+                            <a href="/clientinfo/{{env}}">{{env}} &raquo;</a>
                             <div class="dropdown-submenu">
                                 {% for realm in realms %}
-                                    <a href="{{ url_for('clientinfo.clientinfo_list', env=env, realmName=realmName) }}">{{ realm }}</a>
+                                    <a href="/clientinfo/{{env}}/{{realm}}">{{realm}}</a>
                                 {% endfor %}
                             </div>
                         </div>
@@ -54,7 +54,7 @@
                 <a href="javascript:void(0)" class="dropbtn">Terraform check</a>
                 <div class="dropdown-content">
                     {% for env in environments %}
-                    <a href="#">{{ env }}</a>
+                    <a href="/terraformcheck/{{env}}">{{env}}</a>
                     {% endfor %}
                 </div>
             </li>

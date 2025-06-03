@@ -85,6 +85,7 @@ def getClient(env, realmName, client_id):
         response = {}
         logger.trace("KC Client object: {}, type: {}", client, type(client))
         response["id"] = client["id"]
+        response["realm_name"] = realmName
         response["client_id"] = client["clientId"]
         response["name"] = client["name"]
         response["enabled"] = client["enabled"]
@@ -108,10 +109,11 @@ def getClient(env, realmName, client_id):
         response["admin_url"] = client.get("adminUrl", "")
         response["base_url"] = client.get("baseUrl", "")
         response["redirect_uris"] = client.get("redirectUris", [])
-        if client["attributes"] and client["attributes"]["post.logout.redirect.uris"]:
+        if client["attributes"] and client["attributes"].get("post.logout.redirect.uris"):
             response["post_logout_redirect_uris"] = client["attributes"]["post.logout.redirect.uris"].split('##')
         else:
             response["post_logout_redirect_uris"] = []
+        logger.trace("post_logout_redirect_uris: {}", response["post_logout_redirect_uris"])
         response["web_origins"] = client.get("webOrigins", [])
 
         response["access_token_lifespan"] = client["attributes"].get("access.token.lifespan", "(inherit from realm)")
@@ -129,7 +131,7 @@ def getClient(env, realmName, client_id):
         logger.trace("Returning response: {}", response)
         return response
     except Exception as e:
-        logger.error("Error fetching client for {}/{}/{}: {}", env, realm, client_id, e)
+        logger.error("Error fetching client for {}/{}/{}: {}", env, realmName, client_id, e)
         return {}
 
 def splitDescription(description, position, defaultValue):
@@ -155,12 +157,12 @@ def getClientTag(description, client_id):
     :param description (str): Client description in format '[TAG]##ownerEmail##Client description'.
     :param client_id (str): client_id.
     :return: TAG or TAG_MISSING or TAG_INVALID
-      etiqueta válida, devuelve '[TAG_INVALID]'.
-            Las etiquetas válidas incluyen: "[TAG_MISSING]", "[KEYCLOAK_NATIVE]", "[SPA_NGINX]", "[MOBILE]", 
-            "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]".
     """
     tag = splitDescription(description, 0, "[TAG_MISSING]")
-    if client_id in [ "account", "account-console", "security-admin-console", "admin-cli", "realm-management", "broker" ]:
+    native_clients = [ "account", "account-console", "admin-cli", "broker", "realm-management", "security-admin-console" ]
+    for realm_name in getRealms():
+        native_clients.append("{}-realm".format(realm_name))
+    if client_id in native_clients:
         tag = "[KEYCLOAK_NATIVE]"
     if tag not in ["[TAG_MISSING]", "[KEYCLOAK_NATIVE]", "[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]"]:
         tag = "[TAG_INVALID]"           

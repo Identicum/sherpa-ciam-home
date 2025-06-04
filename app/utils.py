@@ -4,8 +4,9 @@ from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 
-logger = Logger(os.path.basename(__file__), "TRACE", "/tmp/python-flask.log")
+logger = Logger(os.path.basename(__file__), "DEBUG", "/tmp/python-flask.log")
 properties = Properties("/local.properties", "/local.properties")
+
 
 def get_data():
     try:
@@ -18,9 +19,11 @@ def get_data():
         # ToDo: Handle cases where JSON is invalid
         return {}
 
+
 def getRealms():
     data = get_data()
     return list(data.get("realms", {}).keys())
+
 
 def getRealm(env, realmName):
     kc_admin = getKeycloakAdmin(env, realmName)
@@ -33,13 +36,11 @@ def getRealm(env, realmName):
         logger.error("Error fetching realm for {}/{}: {}", env, realm, e)
         return []
 
+
 def getEnvironments():
     data = get_data()
     return list(data.get("environments", {}).keys())
 
-# def getKeycloakUrl(env):
-#     data = get_data()
-#     return data.get("environments", {}).get(env, {}).get("keycloak_url", "")
 
 def getKeycloakAdmin(env, realm):
     data = get_data()
@@ -55,6 +56,7 @@ def getKeycloakAdmin(env, realm):
         )
     return kc_admin
 
+
 def getClients(env, realm):
     kc_admin = getKeycloakAdmin(env, realm)
     if not kc_admin:
@@ -65,6 +67,7 @@ def getClients(env, realm):
     except Exception as e:
         logger.error("Error fetching clients for {}/{}: {}", env, realm, e)
         return []
+
 
 def getClient(env, realmName, client_id):
     """
@@ -134,6 +137,7 @@ def getClient(env, realmName, client_id):
         logger.error("Error fetching client for {}/{}/{}: {}", env, realmName, client_id, e)
         return {}
 
+
 def splitDescription(description, position, defaultValue):
     """
     Extract Client information from description custom syntax.
@@ -149,6 +153,7 @@ def splitDescription(description, position, defaultValue):
         return extracted
     else:
         return defaultValue
+
 
 def getClientTag(description, client_id):
     """

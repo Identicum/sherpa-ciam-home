@@ -7,6 +7,7 @@ links_bp = Blueprint('links', __name__)
 with open('/data/links.json') as linksFile:
     linksJson = json.load(linksFile)
 
+
 @links_bp.route('/links/<env>', methods=["GET"])
 def links(env):
     links = linksJson.get(env, [])

@@ -71,6 +71,9 @@ def getClientWarns(client, env):
     for warn in checkRedirectUrls(client, env):
         clientWarns.append(warn)
 
+    for warn in checkFrontChannelLogout(client):
+        clientWarns.append(warn)
+
     logger.trace("getClientWarns response. client_name: {}, response: {}", client.get("client_name"), clientWarns)
     return clientWarns
 
@@ -165,3 +168,23 @@ def checkRedirectUrls(client, env):
                 return [getWarn(client, "WARN", issue_description)]
 
     return warns
+
+
+def checkFrontChannelLogout(client):
+    """
+    Check fron channel logout settings.
+
+    :param client (dict): Normalized Client object.
+    :return: List of warnings or empty list.
+    """
+    if client["frontchannel_logout_enabled"]:
+        if client["frontchannel_logout_url"] == "":
+            return [getWarn(client, "WARN", "This client has frontchannel_logout enabled but does not have a frontchannel_logout_url.")]
+        else:
+            return []
+    else:
+        if client["frontchannel_logout_url"] == "":
+            return []
+        else:
+            return [getWarn(client, "WARN", "This client has frontchannel_logout disabled but has a frontchannel_logout_url.")]
+

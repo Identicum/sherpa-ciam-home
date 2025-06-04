@@ -119,6 +119,9 @@ def getClient(env, realmName, client_id):
         logger.trace("post_logout_redirect_uris: {}", response["post_logout_redirect_uris"])
         response["web_origins"] = client.get("webOrigins", [])
 
+        response["frontchannel_logout_enabled"] = client.get("frontchannelLogout", False)
+        response["frontchannel_logout_url"] = client["attributes"].get("frontchannel.logout.url", "")
+
         response["access_token_lifespan"] = client["attributes"].get("access.token.lifespan", "(inherit from realm)")
         response["effective_access_token_lifespan"] = client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", ""))
         response["realm_access_token_lifespan"] = realm.get("accessTokenLifespan", "")

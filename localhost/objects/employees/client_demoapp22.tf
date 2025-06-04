@@ -3,7 +3,7 @@ resource "keycloak_openid_client" "demoapp22" {
   client_id                       = "demoapp22_client_id"
   client_secret                   = "demoapp22_client_secret"
   name                            = "demoapp22"
-  description                     = "[SPA_NGINX]####no email_owner"
+  description                     = "[SPA_NGINX]####no owner email"
   enabled                         = true
   access_type                     = "CONFIDENTIAL"
   standard_flow_enabled           = true
@@ -14,6 +14,7 @@ resource "keycloak_openid_client" "demoapp22" {
   base_url                        = "/"
   valid_redirect_uris             = [ "/private/redirect_uri", "/private/info" ]
   valid_post_logout_redirect_uris = [ "/logoutSuccess.html" ]
+  frontchannel_logout_enabled     = false
 }
 
 resource "keycloak_openid_client_default_scopes" "demoapp22_defaultscopes" {

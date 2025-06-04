@@ -14,6 +14,7 @@ resource "keycloak_openid_client" "demoapp21" {
   base_url                        = "/"
   valid_redirect_uris             = [ "/private/redirect_uri", "/private/info" ]
   valid_post_logout_redirect_uris = [ "/logoutSuccess.html" ]
+  frontchannel_logout_enabled     = false
 }
 
 resource "keycloak_openid_client_default_scopes" "demoapp21_defaultscopes" {

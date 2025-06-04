@@ -1,0 +1,23 @@
+{
+    "realms": {
+        "master": {},
+        "customers": {},
+        "employees": {}
+    },
+    "environments": {
+        "local": {
+            "keycloak_url": "http://idp:8080",
+            "username": "sherpaciamhome",
+            "password": "Sherpa.2025"
+        },
+        "dev": {
+            "keycloak_url": "https://dev.identicum.com"
+        },
+        "test": {
+            "keycloak_url": "https://test-idp.identicum.com"
+        },
+        "prod": {
+            "keycloak_url": "https://idp.identicum.com"
+        }
+    }
+}

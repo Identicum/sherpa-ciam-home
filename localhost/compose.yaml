@@ -1,0 +1,54 @@
+services:
+    db:
+        container_name: db
+        image: ghcr.io/identicum/postgres:16
+        restart: always
+        pull_policy: always
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_PASSWORD: postgrespwd
+        volumes:
+            - ./postgres-initdb/:/docker-entrypoint-initdb.d/
+
+    idp:
+        container_name: idp
+        image: ghcr.io/identicum/keycloak:26.1
+        restart: always
+        ports:
+            - 8080:8080
+        environment:
+            KC_BOOTSTRAP_ADMIN_USERNAME: admin
+            KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+            KC_DB: postgres
+            KC_DB_URL: jdbc:postgresql://db/keycloakdb
+            KC_DB_USERNAME: keycloakusr
+            KC_DB_PASSWORD: keycloakpwd
+        depends_on:
+            db:
+                condition: service_healthy
+
+    idp_setup:
+        container_name: idp_setup
+        image: ghcr.io/identicum/sherpa-deploy:latest
+        pull_policy: always
+        volumes:
+            - ./:/usr/home/
+        command: "bash ./objects/apply_config.sh"
+        depends_on:
+            idp:
+                condition: service_healthy
+
+    home:
+        container_name: home
+        image: ghcr.io/identicum/sherpa-ciam-home:latest
+        # pull_policy: always
+        ports:
+            - 80:5000
+        volumes:
+            - ../app/:/app/
+            - ./data/:/data/
+            - ./local.properties:/local.properties
+        depends_on:
+            idp_setup:
+                condition: service_completed_successfully

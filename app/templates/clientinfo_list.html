@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+
+{% block title %}Client Info for {{ env }} - {{ realmName }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Client Info List for {{ env }} - {{ realmName }}</h1>
+    {% if clients and clients|length > 0 %}
+    <table class="admin-links-table">
+        <thead>
+            <tr>
+                <th>Client ID</th>
+                <th>Client Name</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr>
+                <td>
+                    <a href="/clientinfo/{{ env }}/{{ realmName }}/{{ client.clientId }}">
+                        {{ client.clientId }}
+                    </a>
+                </td>
+                <td>{{ client.name }}</td>
+                <td style="text-align:center;">
+                    {% if client.enabled %}
+                        <span title="Enabled" style="color:green;">&#x2714;</span>
+                    {% else %}
+                        <span title="Disabled" style="color:red;">&#x2716;</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No clients found for this environment and realm.</p>
+    {% endif %}
+</div>
+{% endblock %}

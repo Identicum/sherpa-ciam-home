@@ -1,0 +1,63 @@
+<header>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo">
+    </div>
+    <nav>
+        <ul>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Links</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                    <a href="/links/{{env}}">{{env}}</a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Check clients</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                        <div class="submenu-parent">
+                            <a href="/checkclients/{{env}}">{{env}} &raquo;</a>
+                            <div class="dropdown-submenu">
+                                {% for realm in realms %}
+                                    <a href="/checkclients/{{env}}/{{realm}}">{{realm}}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Clients Activity</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                    <a href="/clientactivity/{{env}}">{{env}}</a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Client Info</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                        <div class="submenu-parent">
+                            <a href="/clientinfo/{{env}}">{{env}} &raquo;</a>
+                            <div class="dropdown-submenu">
+                                {% for realm in realms %}
+                                    <a href="/clientinfo/{{env}}/{{realm}}">{{realm}}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Terraform check</a>
+                <div class="dropdown-content">
+                    {% for env in environments %}
+                    <a href="/terraformcheck/{{env}}">{{env}}</a>
+                    {% endfor %}
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>

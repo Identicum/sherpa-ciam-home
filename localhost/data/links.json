@@ -1,0 +1,112 @@
+{
+    "local": {
+        "admin": [
+            {
+                "url": "https://idp-localhost.identicum.com/auth/admin/",
+                "displayText": "Admin console",
+                "comment": "(admin/admin)"
+            },
+            {
+                "url": "http://iamcrud/",
+                "displayText": "IAM CRUD",
+                "comment": "(iamcrud_usr1 / iamcrud_pwd1)"
+            },
+            {
+                "url":"http://localhost:1080/",
+                "displayText": "Mailcatcher"
+            },
+            {
+                "url": "http://localhost:8082/",
+                "displayText": "Mmock"
+            }
+        ],
+        "useCases": [
+            {
+                "url": "http://demoapp1",
+                "displayText": "demoapp1",
+                "realm": "customers",
+                "comments": "Demo app 1",
+                "credentials": "jdoe / Sherpa.2025"
+            },
+            {
+                "url": "http://demoapp2/",
+                "displayText": "demoapp2",
+                "realm": "employees",
+                "comments": "Demo app 2",
+                "credentials": "jsmith / Sherpa.2025"
+            }
+        ]
+    },
+    "dev": {
+        "admin": [
+            {
+                "url": "https://dev-idp.identicum.com/admin/master/console/",
+                "displayText": "Admin console"
+            }
+        ],
+        "useCases": [
+            {
+                "url": "http://demoapp11",
+                "displayText": "demoapp11",
+                "realm": "customers",
+                "comments": "Demo app 11",
+                "credentials": "jdoe / Sherpa.2025"
+            },
+            {
+                "url": "http://demoapp12/",
+                "displayText": "demoapp12",
+                "realm": "employees",
+                "comments": "Demo app 12",
+                "credentials": "jsmith / Sherpa.2025"
+            }
+        ]
+    },
+    "test": {
+        "admin": [
+            {
+                "url": "https://test-idp.identicum.com/admin/master/console/",
+                "displayText": "Admin console"
+            }
+        ],
+        "useCases": [
+            {
+                "url": "http://demoapp21",
+                "displayText": "demoapp21",
+                "realm": "customers",
+                "comments": "Demo app 21",
+                "credentials": "jdoe / Sherpa.2025"
+            },
+            {
+                "url": "http://demoapp22/",
+                "displayText": "demoapp22",
+                "realm": "employees",
+                "comments": "Demo app 22",
+                "credentials": "jsmith / Sherpa.2025"
+            }
+        ]
+    },
+    "prod": {
+        "admin": [
+            {
+                "url": "https://idp.identicum.com/admin/master/console/",
+                "displayText": "Admin console"
+            }
+        ],
+        "useCases": [
+            {
+                "url": "http://demoapp31",
+                "displayText": "demoapp31",
+                "realm": "customers",
+                "comments": "Demo app 31",
+                "credentials": "jdoe / Sherpa.2025"
+            },
+            {
+                "url": "http://demoapp32/",
+                "displayText": "demoapp32",
+                "realm": "employees",
+                "comments": "Demo app 32",
+                "credentials": "jsmith / Sherpa.2025"
+            }
+        ]
+    }
+}

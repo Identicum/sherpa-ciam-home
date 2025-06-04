@@ -1,0 +1,39 @@
+{% extends "index.html" %}
+
+{% block title %}Check Clients Warnings for {{env}}, realm: {{realmName}}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Check Clients Warnings for {{env}}, realm: {{realmName}}</h1>
+    {% if warns and warns|length > 0 %}
+        <table class="admin-links-table">
+            <thead>
+                <tr>
+                    <th>Realm</th>
+                    <th>Client ID</th>
+                    <th>Tag</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Level</th>
+                    <th>Issue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for warn in warns %}
+                    <tr>
+                        <td>{{warn.realmName}}</td>
+                        <td>{{warn.client_id}}</td>
+                        <td>{{warn.tag}}</td>
+                        <td>{{warn.name}}</td>
+                        <td>{{warn.description}}</td>
+                        <td>{{warn.issue_level}}</td>
+                        <td>{{warn.issue_description}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No warnings found.</p>
+    {% endif %}
+</div>
+{% endblock %}

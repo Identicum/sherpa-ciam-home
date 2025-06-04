@@ -9,14 +9,23 @@ properties = Properties("/local.properties", "/local.properties")
 
 
 def get_data():
+    datafile = '/data/home.json'
     try:
-        with open('/data/data.json', 'r') as f:
-            return json.load(f)
+        with open(datafile, 'r') as f:
+            data = json.load(f)
+        envs = data.get("environments", {})
+        for env_name, env_info in envs.items():
+            password = env_info.get("password")
+            if isinstance(password, str) and password.startswith("$env:"):
+                env_var = password[5:]
+                logger.debug("Getting password for env {} from variable '{}'", env_name, env_var)
+                env_info["password"] = os.environ.get(env_var, "")
+        return data
     except FileNotFoundError:
-        # ToDo: Handle cases where the file does not exist
+        logger.error("Data file '{}' not found.", datafile)
         return {}
     except json.JSONDecodeError:
-        # ToDo: Handle cases where JSON is invalid
+        logger.error("Data file '{}' is not a valid JSON.", datafile)
         return {}
 
 

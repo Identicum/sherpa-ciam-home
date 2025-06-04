@@ -49,6 +49,8 @@ services:
             - ../app/:/app/
             - ./data/:/data/
             - ./local.properties:/local.properties
+        env_file:
+            - ./data/home.secrets
         depends_on:
             idp_setup:
                 condition: service_completed_successfully

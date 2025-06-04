@@ -8,7 +8,7 @@
         "local": {
             "keycloak_url": "http://idp:8080",
             "username": "sherpaciamhome",
-            "password": "Sherpa.2025"
+            "password": "$env:LOCAL_KEYCLOAK_PASSWORD"
         },
         "dev": {
             "keycloak_url": "https://dev.identicum.com"

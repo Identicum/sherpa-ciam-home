@@ -2,7 +2,7 @@ resource "keycloak_openid_client" "demoapp13" {
   realm_id                        = resource.keycloak_realm.realm.id
   client_id                       = "demoapp13_client_id"
   name                            = "demoapp13"
-  description                     = "[SPA_NGINX]##contact@identicum.com##NGINX SPA, should be confidential. With web_origins."
+  description                     = "[SPA_NGINX]##contact@identicum.com##NGINX SPA, should be confidential. With web_origins. No post_logout."
   enabled                         = true
   access_type                     = "PUBLIC"
   standard_flow_enabled           = true
@@ -12,7 +12,6 @@ resource "keycloak_openid_client" "demoapp13" {
   root_url                        = "https://demoapp13"
   base_url                        = "/"
   valid_redirect_uris             = [ "/private/redirect_uri", "/private/info" ]
-  valid_post_logout_redirect_uris = [ "/logoutSuccess.html" ]
   web_origins                     = [ "https://demoapp13.example.com" ]
   frontchannel_logout_enabled     = false
 }

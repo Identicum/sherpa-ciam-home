@@ -68,6 +68,9 @@ def getClientWarns(client, env):
     for warn in checkRedirectUrls(client, env):
         clientWarns.append(warn)
 
+    for warn in checkPostLogoutRedirectUrls(client, env):
+        clientWarns.append(warn)
+
     for warn in checkWebOrigins(client):
         clientWarns.append(warn)
 
@@ -271,3 +274,29 @@ def checkWebOrigins(client):
         if web_origins_count > 0:
             warns.append(getWarn(client, "WARN", "This client should not have web origins but has {}.".format(web_origins_count)))
     return warns
+
+
+def checkPostLogoutRedirectUrls(client, env):
+    """
+    Verify post_logout_redirect_url values.
+
+    :param client (dict): Normalized Client object.
+    :param env (str): Environment.
+    :return: List of warnings or empty list.
+    """
+    client_post_logout_redirect_urls_count = len(client["post_logout_redirect_uris"])
+    
+    if client["tag"] == "[IDP_INTERNAL]":
+        logger.debug("No controls for IDP_INTERNAL.")
+        return []
+    
+    if client["tag"] in [ "[CLIENT_CREDENTIALS]", "[MOBILE]", "[ROPC]" ]:
+        if client_post_logout_redirect_urls_count > 0:
+            return [getWarn(client, "WARN", "This client should not have post_logout_redirect_url, but has {}.".format(client_post_logout_redirect_urls_count))]
+    else:
+        if not env == "dev":
+            if client_post_logout_redirect_urls_count == 0:
+                return [getWarn(client, "WARN", "This client should have post_logout_redirect_url, but has none.")]
+            elif client_post_logout_redirect_urls_count > 1:
+                return [getWarn(client, "WARN", "This client should have only one post_logout_redirect_url, but has {}.".format(client_post_logout_redirect_urls_count))]
+    return []

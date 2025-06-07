@@ -13,7 +13,6 @@ resource "keycloak_openid_client" "demoapp16" {
   root_url                        = "https://demoapp16"
   base_url                        = "/"
   valid_redirect_uris             = [ "/private/redirect_uri", "/private/info" ]
-  valid_post_logout_redirect_uris = [ "/logoutSuccess.html" ]
   frontchannel_logout_enabled     = false
 }
 

@@ -1,0 +1,86 @@
+{% extends "index.html" %}
+
+{% block title %}Terraform Check Summary for {{ env }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Terraform Check Summary for {{ env }}</h1>
+
+    {% if error_message %}
+        <p style="color: red;">Error: {{ error_message }}</p>
+    {% elif report_data %}
+        {% if report_data.metadata and report_data.metadata.timestamp %}
+            <p><strong>Report generated on:</strong> {{ report_data.metadata.timestamp }}</p>
+        {% else %}
+            <p><em>Report metadata (like timestamp) is missing.</em></p>
+        {% endif %}
+
+        <hr>
+
+        {# Prepare a list of realms that actually have workspace data to avoid empty sections #}
+        {% set realms_with_content = [] %}
+        {% if report_data is mapping %}
+            {% for r_name, r_data in report_data.items() %}
+                {# Ensure r_name is not 'metadata' and r_data is a dictionary (mapping) and not empty #}
+                {% if r_name != 'metadata' and r_data is mapping and r_data.items() | length > 0 %}
+                    {% set _ = realms_with_content.append(r_name) %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if realms_with_content | length > 0 %}
+            <table class="admin-links-table" style="background-color: #f9f9f9; margin-top: 10px; width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="width: 25%; text-align: left; padding: 8px;">Realm</th>
+                        <th style="width: 25%; text-align: left; padding: 8px;">Workspace</th>
+                        <th style="width: 15%; text-align: left; padding: 8px;">Create (Count)</th>
+                        <th style="width: 15%; text-align: left; padding: 8px;">Update (Count)</th>
+                        <th style="width: 15%; text-align: left; padding: 8px;">Delete (Count)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for realm_name in realms_with_content %}
+                        {% for workspace_name, workspace_changes_list in report_data[realm_name].items() %}
+                            {% set create_count = namespace(value=0) %}
+                            {% set update_count = namespace(value=0) %}
+                            {% set delete_count = namespace(value=0) %}
+                            {% if workspace_changes_list and workspace_changes_list is iterable %}
+                                {% for change in workspace_changes_list %}
+                                    {% if change.actions %}
+                                        {% if 'create' in change.actions %}
+                                            {% set create_count.value = create_count.value + 1 %}
+                                        {% endif %}
+                                        {% if 'update' in change.actions %}
+                                            {% set update_count.value = update_count.value + 1 %}
+                                        {% endif %}
+                                        {% if 'delete' in change.actions %}
+                                            {% set delete_count.value = delete_count.value + 1 %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <tr>
+                                <td style="padding: 8px; border-top: 1px solid #ddd;">{{ realm_name }}</td>
+                                <td style="padding: 8px; border-top: 1px solid #ddd;">{{ workspace_name }}</td>
+                                <td style="padding: 8px; border-top: 1px solid #ddd;">{{ create_count.value }}</td>
+                                <td style="padding: 8px; border-top: 1px solid #ddd;">{{ update_count.value }}</td>
+                                <td style="padding: 8px; border-top: 1px solid #ddd;">{{ delete_count.value }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        {# This case handles if a realm was in realms_with_content but had no workspaces, which shouldn't happen with the current logic #}
+                        <tr>
+                            <td colspan="5" style="padding: 8px; border-top: 1px solid #ddd;"><em>No workspace data found for realm {{ realm_name }} (or realm data is not structured as expected).</em></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No realm data with workspace information found in the report (excluding metadata).</p>
+        {% endif %}
+    {% else %}
+        <p>No report data available and no error message. This usually means the report file is empty or could not be processed.</p>
+    {% endif %}
+</div>
+{% endblock %}

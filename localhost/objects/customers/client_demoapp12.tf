@@ -2,7 +2,7 @@ resource "keycloak_openid_client" "demoapp12" {
   realm_id                        = resource.keycloak_realm.realm.id
   client_id                       = "demoapp12_client_id"
   name                            = "demoapp12"
-  description                     = "[SPA_PUBLIC]##idp@identicum.com##Public SPA, no PKCE"
+  description                     = "[SPA_PUBLIC]##idp@identicum.com##Public SPA, no PKCE. Multiple web_origins."
   enabled                         = true
   access_type                     = "PUBLIC"
   standard_flow_enabled           = true
@@ -13,6 +13,7 @@ resource "keycloak_openid_client" "demoapp12" {
   base_url                        = "/"
   valid_redirect_uris             = [ "/private/redirect_uri", "/private/info" ]
   valid_post_logout_redirect_uris = [ "/logoutSuccess.html" ]
+  web_origins                     = [ "https://demoapp12.example.com", "https://demoapp12.identicum.com" ]
   frontchannel_logout_enabled     = false
 }
 

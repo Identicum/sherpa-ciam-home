@@ -68,6 +68,9 @@ def getClientWarns(client, env):
     for warn in checkRedirectUrls(client, env):
         clientWarns.append(warn)
 
+    for warn in checkWebOrigins(client):
+        clientWarns.append(warn)
+
     for warn in checkFrontChannelLogout(client):
         clientWarns.append(warn)
 
@@ -247,4 +250,24 @@ def checkGrants(client):
                 warns.append(getWarn(client, "WARN", "This client should have direct access grants disabled."))
             if client["client_credentials_flow"]:
                 warns.append(getWarn(client, "WARN", "This client should have service accounts disabled."))
+    return warns
+
+
+def checkWebOrigins(client):
+    """
+    Verify Client Web origins.
+
+    :param client (dict): Normalized Client object.
+    :return: List of warnings or empty list.
+    """
+    warns = []
+    web_origins_count = len(client["web_origins"])
+    if client["tag"] == "[SPA_PUBLIC]":
+        if web_origins_count > 1:
+            warns.append(getWarn(client, "WARN", "This client should only have 1 web origins but has {}.".format(web_origins_count)))
+        elif web_origins_count == 0:
+            warns.append(getWarn(client, "WARN", "This client should have 1 web origins but has none."))
+    else:
+        if web_origins_count > 0:
+            warns.append(getWarn(client, "WARN", "This client should not have web origins but has {}.".format(web_origins_count)))
     return warns

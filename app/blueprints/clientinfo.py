@@ -4,6 +4,16 @@ from utils import *
 clientinfo_bp = Blueprint('clientinfo', __name__)
 
 
+@clientinfo_bp.route('/clientinfo/<env>', methods=["GET"])
+def clientinfo_list_realms(env):
+    return render_template(
+        'clientinfo_list_realms.html',
+        realms=getRealms(),
+        environments=getEnvironments(),
+        env=env
+    )
+
+
 @clientinfo_bp.route('/clientinfo/<env>/<realmName>', methods=["GET"])
 def clientinfo_list(env, realmName):
     clients = getClients(env, realmName)

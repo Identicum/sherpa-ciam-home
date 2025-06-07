@@ -1,0 +1,31 @@
+{% extends "index.html" %}
+
+{% block title %}Client Info for {{ env }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Client Info List for {{ env }}</h1>
+    {% if realms and realms|length > 0 %}
+    <table class="admin-links-table">
+        <thead>
+            <tr>
+                <th>Realm</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for realmName in realms %}
+            <tr>
+                <td>
+                    <a href="/clientinfo/{{ env }}/{{ realmName }}">
+                        {{ realmName }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No realms found for this environment.</p>
+    {% endif %}
+</div>
+{% endblock %}

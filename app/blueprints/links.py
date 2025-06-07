@@ -11,5 +11,11 @@ with open('/data/links.json') as linksFile:
 @links_bp.route('/links/<env>', methods=["GET"])
 def links(env):
     links = linksJson.get(env, [])
-    return render_template('links.html', realms=getRealms(), environments=getEnvironments(), links=links, env=env)
+    return render_template(
+        'links.html',
+        realms=getRealms(),
+        environments=getEnvironments(),
+        links=links,
+        env=env
+    )
 

@@ -78,8 +78,14 @@ def store_parsed_plan(logger, environment, realm, workspace, parsed_changes, out
 			logger.error("Error reading {}: {}. Initializing fresh data structure.".format(output_file_path, e))
 			current_data = {}
 
-	# Ensure the realm key exists and is a dictionary, then set the workspace data
-	current_data.setdefault(realm, {})[workspace] = parsed_changes
+	# Ensure the top-level structure has 'metadata' and 'diff' keys
+	if "metadata" not in current_data:
+		current_data["metadata"] = {}
+	if "diff" not in current_data or not isinstance(current_data["diff"], dict):
+		current_data["diff"] = {}
+
+	# Ensure the realm key exists under 'diff' and is a dictionary, then set the workspace data
+	current_data["diff"].setdefault(realm, {})[workspace] = parsed_changes
 
 	try:
 		with open(output_file_path, 'w') as f:

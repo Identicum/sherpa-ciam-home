@@ -17,12 +17,11 @@
 
         <hr>
 
-        {# Prepare a list of realms that actually have workspace data to avoid empty sections #}
+        {# Use the new 'diff' key for all realm/workspace data #}
         {% set realms_with_content = [] %}
-        {% if report_data is mapping %}
-            {% for r_name, r_data in report_data.items() %}
-                {# Ensure r_name is not 'metadata' and r_data is a dictionary (mapping) and not empty #}
-                {% if r_name != 'metadata' and r_data is mapping and r_data.items() | length > 0 %}
+        {% if report_data.diff is mapping %}
+            {% for r_name, r_data in report_data.diff.items() %}
+                {% if r_data is mapping and r_data.items() | length > 0 %}
                     {% set _ = realms_with_content.append(r_name) %}
                 {% endif %}
             {% endfor %}
@@ -42,7 +41,7 @@
                 </thead>
                 <tbody>
                     {% for realm_name in realms_with_content %}
-                        {% for workspace_name, workspace_changes_list in report_data[realm_name].items() %}
+                        {% for workspace_name, workspace_changes_list in report_data.diff[realm_name].items() %}
                             {# Create a unique ID for the details row based on realm and workspace names #}
                             {# Replace characters not suitable for HTML IDs (like dots or slashes) with underscores #}
                             {% set safe_realm_name = realm_name | replace('.', '_') | replace('/', '_') %}
@@ -165,26 +164,7 @@
     {% endif %}
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const summaryRows = document.querySelectorAll('.expandable-summary-row');
-        summaryRows.forEach(row => {
-            row.addEventListener('click', function () {
-                const targetId = this.dataset.targetId;
-                const detailsRow = document.getElementById(targetId);
-                const icon = this.querySelector('.toggle-icon');
-                if (detailsRow) {
-                    if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
-                        detailsRow.style.display = 'table-row';
-                        icon.innerHTML = '&#9660;'; // ▼
-                    } else {
-                        detailsRow.style.display = 'none';
-                        icon.innerHTML = '&#9658;'; // ►
-                    }
-                }
-            });
-        });
-    });
-</script>
+
+<script src="{{ url_for('static', filename='js/terraformcheck.js') }}"></script>
 
 {% endblock %}

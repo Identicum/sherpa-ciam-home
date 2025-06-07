@@ -135,16 +135,19 @@ def getClient(env, realmName, client_id):
         response["frontchannel_logout_enabled"] = client.get("frontchannelLogout", False)
         response["frontchannel_logout_url"] = client["attributes"].get("frontchannel.logout.url", "")
 
-        response["access_token_lifespan"] = client["attributes"].get("access.token.lifespan", "(inherit from realm)")
-        response["effective_access_token_lifespan"] = client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", ""))
-        response["realm_access_token_lifespan"] = realm.get("accessTokenLifespan", "")
+        response["access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", 0))
+        response["effective_access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0)))
+        response["realm_access_token_lifespan"] = realm["accessTokenLifespan"]
 
-        response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", "(inherit from realm)")
-        response["effective_client_session_idle"] = client["attributes"].get("client.session.idle.timeout", realm.get("clientSessionIdleTimeout", ""))
-        response["realm_client_session_idle"] = realm.get("clientSessionIdleTimeout", "")
+        response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", 0)
+        effective_realm_client_session_idle = realm["clientSessionIdleTimeout"]
+        if effective_realm_client_session_idle == 0:
+            effective_realm_client_session_idle = realm["ssoSessionIdleTimeout"]
+        response["realm_client_session_idle"] = effective_realm_client_session_idle
+        response["effective_client_session_idle"] = int(client["attributes"].get("client.session.idle.timeout", effective_realm_client_session_idle))
 
-        response["client_session_max"] = client["attributes"].get("client.session.max.lifespan", "(inherit from realm)")
-        response["effective_client_session_max"] = client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", ""))
+        response["client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", 0))
+        response["effective_client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", 0)))
         response["realm_client_session_max"] = realm.get("clientSessionMaxLifespan", "")
 
         logger.trace("Returning response: {}", response)

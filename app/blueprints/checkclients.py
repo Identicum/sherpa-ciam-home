@@ -31,7 +31,7 @@ def getRealmWarns(env, realmName):
     realmWarns = []
     for client in getClients(env, realmName):
         normalized_client = getClient(env, realmName, client["clientId"])
-        clientWarns = getClientWarns(normalized_client, env)
+        clientWarns = getClientWarns(env, realmName, normalized_client)
         for clientWarn in clientWarns:
             logger.trace("Adding client warning: {}", clientWarn)
             realmWarns.append(clientWarn)
@@ -40,8 +40,8 @@ def getRealmWarns(env, realmName):
     return realmWarns
 
 
-def getClientWarns(client, env):
-    logger.trace("getWarns(). client_name: {}", client.get("name"))
+def getClientWarns(env, realmName, client):
+    logger.trace("getClientWarns({}, {}, {})", env, realmName, client.get("name"))
 
     if client["enabled"] is False:
         logger.debug("Client is disabled, no warnings will be generated.")
@@ -81,6 +81,10 @@ def getClientWarns(client, env):
         clientWarns.append(warn)
 
     for warn in checkGrants(client):
+        clientWarns.append(warn)
+
+    realm = getRealm(env, realmName)
+    for warn in checkSessionTimeout(client, realm):
         clientWarns.append(warn)
 
     logger.trace("getClientWarns response. client_name: {}, response: {}", client.get("client_name"), clientWarns)
@@ -128,61 +132,48 @@ def checkAccessTokenLifespan(client):
 def checkRedirectUrls(client, env):
     redirect_urls = client["redirect_uris"]
     redirect_urls_count = len(redirect_urls)
-    absolute_redirect_urls_count = 0
+
     tag = client["tag"]
-    
     if client["tag"] == "[IDP_INTERNAL]":
         return []
-
-    for redirect_url in redirect_urls:
-        if not redirect_url.startswith("/"):
-            absolute_redirect_urls_count += 1
-
     if client["tag"] in [ "[CLIENT_CREDENTIALS]", "[ROPC]" ]:
         if redirect_urls_count > 0:
             issue_description = "This client should not have redirect_url values, but has {}.".format(redirect_urls_count)
             logger.debug("Returning issue '{}' for client '{}'", issue_description, client["client_id"])
             return [getWarn(client, "WARN", issue_description)]
+        else:
+            return []
 
     if redirect_urls_count == 0:
-            issue_description = "This client should have redirect_url values, but has none."
-            logger.debug("Returning issue '{}' for client '{}'", issue_description, client["client_id"])
-            return [getWarn(client, "WARN", issue_description)]
-    
-    warns = []
-    if absolute_redirect_urls_count > 1 and env != "dev":
-        issue_description = "This client should have up to 1 absolute redirect_url value, but has {}.".format(redirect_urls_count)
-        logger.debug("Returning issue '{}' for client '{}'", issue_description, client["client_id"])
-        return [getWarn(client, "WARN", issue_description)]
+        return [getWarn(client, "WARN", "This client should have redirect_url values, but has none.")]
 
+    absolute_redirect_urls_count = 0
+    for redirect_url in redirect_urls:
+        if not redirect_url.startswith("/"):
+            absolute_redirect_urls_count += 1
+
+    if absolute_redirect_urls_count > 1 and env != "dev":
+        return [getWarn(client, "WARN", "This client should have up to 1 absolute redirect_url value, but has {}.".format(redirect_urls_count))]
+
+    warns = []
     for redirect_url in redirect_urls:
         if tag == "[MOBILE]":
             if redirect_url.startswith("http"):
-                issue_description = "This client's redirect_url should not start with http."
-                logger.debug("Returning issue '{}' for client '{}'", issue_description, client["client_id"])
-                return [getWarn(client, "WARN", issue_description)]
+                return [getWarn(client, "WARN", "This client's redirect_url should not start with http.")]
         else:
             if (env != "dev") and (not redirect_url.startswith("http")) and (not redirect_url.startswith("/")):
-                issue_description = "This client's redirect_url should start with 'http' or '/'."
-                logger.debug("Returning issue '{}' for client '{}'", issue_description, client["client_id"])
-                return [getWarn(client, "WARN", issue_description)]
-
+                return [getWarn(client, "WARN", "This client's redirect_url should start with 'http' or '/'.")]
         if env != "dev":
             if "localhost" in redirect_url:
-                issue_description = "This client has a redirect_url that contains localhost."
-                logger.debug("Returning issue '{}' for client '{}'", issue_description, client["client_id"])
-                return [getWarn(client, "WARN", issue_description)]
+                return [getWarn(client, "WARN", "This client has a redirect_url that contains localhost.")]
             if "*" in redirect_url or "+" in redirect_url:
-                issue_description = "This client has a redirect_url that contains wildcard characters."
-                logger.debug("Returning issue '{}' for client '{}'", issue_description, client["client_id"])
-                return [getWarn(client, "WARN", issue_description)]
-
+                return [getWarn(client, "WARN", "This client has a redirect_url that contains wildcard characters.")]
     return warns
 
 
 def checkFrontChannelLogout(client):
     """
-    Check fron channel logout settings.
+    Check front channel logout settings.
 
     :param client (dict): Normalized Client object.
     :return: List of warnings or empty list.
@@ -206,22 +197,23 @@ def checkAccessType(client):
     :param client (dict): Normalized Client object.
     :return: List of warnings or empty list.
     """
+    warns = []
     if client["tag"] in [ "[MOBILE]", "[SPA_PUBLIC]" ]:
         if client["access_type"] != "PUBLIC":
-            return [getWarn(client, "WARN", "This client should be PUBLIC.")]
+            warns.append(getWarn(client, "WARN", "This client should be PUBLIC."))
         if client["pkce_code_challenge_method"] is None:
-            return [getWarn(client, "WARN", "This client should have PKCE enabled.")]
+            warns.append(getWarn(client, "WARN", "This client should have PKCE enabled."))
     else:
         if client["access_type"] != "CONFIDENTIAL":
-            return [getWarn(client, "WARN", "This client should be CONFIDENTIAL.")]
+            warns.append(getWarn(client, "WARN", "This client should be CONFIDENTIAL."))
         if client["pkce_code_challenge_method"] is not None:
-            return [getWarn(client, "WARN", "This client should have PKCE disabled.")]
-    return []
+            warns.append(getWarn(client, "WARN", "This client should have PKCE disabled."))
+    return warns
 
 
 def checkGrants(client):
     """
-    Verify Client Grants (flows).
+    Verify Grants (flows).
 
     :param client (dict): Normalized Client object.
     :return: List of warnings or empty list.
@@ -258,7 +250,7 @@ def checkGrants(client):
 
 def checkWebOrigins(client):
     """
-    Verify Client Web origins.
+    Verify Web origins.
 
     :param client (dict): Normalized Client object.
     :return: List of warnings or empty list.
@@ -300,3 +292,20 @@ def checkPostLogoutRedirectUrls(client, env):
             elif client_post_logout_redirect_urls_count > 1:
                 return [getWarn(client, "WARN", "This client should have only one post_logout_redirect_url, but has {}.".format(client_post_logout_redirect_urls_count))]
     return []
+
+
+def checkSessionTimeout(client, realm):
+    """
+    Verify session timeouts
+
+    :param client (dict): Normalized Client object.
+    :param realm (dict): Realm object.
+    :return: List of warnings or empty list.
+    """
+    warns = []
+    effective_client_session_idle = client["effective_client_session_idle"]
+    realm_sso_session_idle_timeout = realm["ssoSessionIdleTimeout"]
+    logger.debug("checkSessionTimeout(): client: {}, effective_client_session_idle: {} ({}), realm_sso_session_idle_timeout: {} ({})", client["client_id"], effective_client_session_idle, type(effective_client_session_idle), realm_sso_session_idle_timeout, type(realm_sso_session_idle_timeout))
+    if effective_client_session_idle > realm_sso_session_idle_timeout:
+        warns.append(getWarn(client, "WARN", "This client has a session timeout greater than the Realm SSO idle timeout."))
+    return warns

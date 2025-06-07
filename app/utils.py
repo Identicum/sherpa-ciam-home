@@ -111,6 +111,10 @@ def getClient(env, realmName, client_id):
             response["access_type"] = "PUBLIC"
         else:
             response["access_type"] = "CONFIDENTIAL"
+        if client["attributes"] and client["attributes"].get("pkce.code.challenge.method"):
+            response["pkce_code_challenge_method"] = client["attributes"]["pkce.code.challenge.method"]
+        else:
+            response["pkce_code_challenge_method"] = None
 
         response["authorization_code_flow"] = client["standardFlowEnabled"]
         response["implicit_flow"] = client["implicitFlowEnabled"]

@@ -74,6 +74,9 @@ def getClientWarns(client, env):
     for warn in checkFrontChannelLogout(client):
         clientWarns.append(warn)
 
+    for warn in checkAccessType(client):
+        clientWarns.append(warn)
+
     logger.trace("getClientWarns response. client_name: {}, response: {}", client.get("client_name"), clientWarns)
     return clientWarns
 
@@ -188,3 +191,22 @@ def checkFrontChannelLogout(client):
         else:
             return [getWarn(client, "WARN", "This client has frontchannel_logout disabled but has a frontchannel_logout_url.")]
 
+
+def checkAccessType(client):
+    """
+    Verify access type, PKCE, etc.
+
+    :param client (dict): Normalized Client object.
+    :return: List of warnings or empty list.
+    """
+    if client["tag"] in [ "[MOBILE]", "[SPA_PUBLIC]" ]:
+        if client["access_type"] != "PUBLIC":
+            return [getWarn(client, "WARN", "This client should be PUBLIC.")]
+        if client["pkce_code_challenge_method"] is None:
+            return [getWarn(client, "WARN", "This client should have PKCE enabled.")]
+    else:
+        if client["access_type"] != "CONFIDENTIAL":
+            return [getWarn(client, "WARN", "This client should be CONFIDENTIAL.")]
+        if client["pkce_code_challenge_method"] is not None:
+            return [getWarn(client, "WARN", "This client should have PKCE disabled.")]
+    return []

@@ -5,14 +5,10 @@ import os
 
 terraformcheck_bp = Blueprint('terraformcheck', __name__, template_folder='../templates')
 
-# Path within the container where the reports are stored
-TERRAFORM_REPORTS_PATH = "/data/"
 
 @terraformcheck_bp.route('/terraformcheck/<env>', methods=["GET"])
 def terraform_check_report(env):
-    report_file_name = f"terraform_check_{env}.json"
-    report_file_path = os.path.join(TERRAFORM_REPORTS_PATH, report_file_name)
-    
+    report_file_path = "/data/terraform_check_{}.json".format(env)
     report_data = None
     error_message = None
     
@@ -29,8 +25,8 @@ def terraform_check_report(env):
         
     return render_template(
         'terraformcheck.html',
-        realmsG=getRealms(), # Pass under a different name to avoid conflict
-        environmentsG=getEnvironments(), # Pass under a different name
+        realms=getRealms(),
+        environments=getEnvironments(),
         env=env,
         report_data=report_data,
         error_message=error_message

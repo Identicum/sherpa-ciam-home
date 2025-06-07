@@ -65,9 +65,6 @@ def getClientWarns(client, env):
     for warn in checkAccessTokenLifespan(client):
         clientWarns.append(warn)
 
-    for warn in checkAccessTokenLifespan(client):
-        clientWarns.append(warn)
-
     for warn in checkRedirectUrls(client, env):
         clientWarns.append(warn)
 
@@ -75,6 +72,9 @@ def getClientWarns(client, env):
         clientWarns.append(warn)
 
     for warn in checkAccessType(client):
+        clientWarns.append(warn)
+
+    for warn in checkGrants(client):
         clientWarns.append(warn)
 
     logger.trace("getClientWarns response. client_name: {}, response: {}", client.get("client_name"), clientWarns)
@@ -112,8 +112,9 @@ def checkOwnerEmail(client):
 def checkAccessTokenLifespan(client):
     logger.trace("checkAccessTokenLifespan({})", client.get("client_id"))
     access_token_lifespan = client["access_token_lifespan"]
+    logger.trace("access_token_lifespan: {}, type: {}", access_token_lifespan, type(access_token_lifespan))
     if client["tag"] == "[CLIENT_CREDENTIALS]":
-        if access_token_lifespan is None or int(access_token_lifespan) < 1800:
+        if access_token_lifespan is None or isinstance(access_token_lifespan, str) or int(access_token_lifespan) < 1800:
             return [getWarn(client, "WARN", "This client should have an access token lifespan of (at least) 1800 seconds.")]
     return []
 
@@ -210,3 +211,40 @@ def checkAccessType(client):
         if client["pkce_code_challenge_method"] is not None:
             return [getWarn(client, "WARN", "This client should have PKCE disabled.")]
     return []
+
+
+def checkGrants(client):
+    """
+    Verify Client Grants (flows).
+
+    :param client (dict): Normalized Client object.
+    :return: List of warnings or empty list.
+    """
+    warns = []
+    if client["implicit_flow"]:
+        warns.append(getWarn(client, "WARN", "This client should have implicit flow disabled."))
+    match client["tag"]:
+        case "[CLIENT_CREDENTIALS]":
+            if client["authorization_code_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have standard flow disabled."))
+            if client["ropc_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have direct access grants disabled."))
+            if not client["client_credentials_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have service accounts enabled."))
+        case "[IDP_INTERNAL]":
+            logger.debug("No controls for IDP_INTERNAL.")
+        case "[ROPC]":
+            if client["authorization_code_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have standard flow disabled."))
+            if not client["ropc_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have direct access grants enabled."))
+            if client["client_credentials_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have service accounts disabled."))
+        case _:
+            if not client["authorization_code_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have standard flow enabled."))
+            if client["ropc_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have direct access grants disabled."))
+            if client["client_credentials_flow"]:
+                warns.append(getWarn(client, "WARN", "This client should have service accounts disabled."))
+    return warns

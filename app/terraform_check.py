@@ -5,9 +5,8 @@ from datetime import datetime, timezone
 import json
 import os
 import sys
-from sherpa.utils import os_cmd
 from sherpa.utils.basics import Logger
-from terraform_utils import terraform_init, terraform_select_workspace, terraform_binary_plan, terraform_show_binary2json
+from sherpa.utils import terraform
 
 
 def get_environments(logger):
@@ -109,12 +108,12 @@ def process_workspace(logger, environment, realm, realm_folder, workspace, works
 	if not os.path.exists(workspace_folder):
 		logger.error("Workspace directory ({}) does not exist.", workspace_folder)
 		return
-	terraform_select_workspace(logger, realm_folder, workspace)
-	terraform_init(logger, realm_folder)
+	terraform.select_workspace(logger, realm_folder, workspace)
+	terraform.init(logger, realm_folder)
 	binary_plan = "{}/{}_tfplan.binary".format(realm_folder, workspace)
-	terraform_binary_plan(logger, realm_folder, binary_plan)
+	terraform.plan2binary(logger, realm_folder, binary_plan)
 	json_plan = "{}/{}_tfplan.json".format(realm_folder, workspace)
-	terraform_show_binary2json(logger, realm_folder, binary_plan, json_plan)
+	terraform.show_binary2json(logger, realm_folder, binary_plan, json_plan)
 	parsed_changes = parse_plan(logger, json_plan)
 	store_parsed_plan(logger, environment, realm, workspace, parsed_changes, output_file_path)
 

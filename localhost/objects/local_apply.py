@@ -3,8 +3,8 @@
 import os
 import sys
 from sherpa.utils import os_cmd
+from sherpa.utils import terraform
 from sherpa.utils.basics import Logger
-from terraform_utils import terraform_init, terraform_create_workspace, terraform_select_workspace, terraform_local_apply, terraform_local_delete_state
 
 
 def get_realms(logger, environment):
@@ -23,12 +23,12 @@ def main(arguments):
 	objects_path = "/usr/home/objects"
 	for realm in get_realms(logger, environment):
 		realm_folder = "{}/{}".format(objects_path, realm)
-		terraform_init(logger, realm_folder)
+		terraform.init(logger, realm_folder)
 		for workspace in get_workspaces(logger, environment, realm):
-			terraform_local_delete_state(logger, realm_folder, workspace)
-			terraform_create_workspace(logger, realm_folder, workspace)
-			terraform_select_workspace(logger, realm_folder, workspace)
-			terraform_local_apply(logger, realm_folder)
+			terraform.delete_workspace_state(logger, realm_folder, workspace)
+			terraform.create_workspace(logger, realm_folder, workspace)
+			terraform.select_workspace(logger, realm_folder, workspace)
+			terraform.apply(logger, realm_folder)
 
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 

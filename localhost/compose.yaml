@@ -59,18 +59,10 @@ services:
             - ../app/:/app/
             - ./data/:/data/
             - ./local.properties:/local.properties
+            - ./objects/:/terraform-objects/
         env_file:
             - ./home.secrets
         depends_on:
             idp_setup:
                 condition: service_completed_successfully
 
-    idp_postsetup:
-        container_name: idp_postsetup
-        image: ghcr.io/identicum/sherpa-deploy:latest
-        pull_policy: always
-        volumes:
-            - ./:/usr/home/
-        depends_on:
-            idp_setup:
-                condition: service_completed_successfully

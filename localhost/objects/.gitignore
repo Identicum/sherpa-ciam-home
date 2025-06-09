@@ -1,2 +1,5 @@
 /*/.terraform*
 /*/terraform.tfstate.d/
+
+/*/*_tfplan.binary
+/*/*_tfplan.json

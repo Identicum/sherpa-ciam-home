@@ -1,6 +1,7 @@
 from blueprints.links import links_bp
 from blueprints.clientinfo import clientinfo_bp
 from blueprints.checkclients import checkclients_bp
+from blueprints.terraformcheck import terraformcheck_bp
 from flask import Flask, render_template
 from utils import *
 
@@ -20,6 +21,7 @@ def getHealth():
 app.register_blueprint(links_bp)
 app.register_blueprint(clientinfo_bp)
 app.register_blueprint(checkclients_bp)
+app.register_blueprint(terraformcheck_bp)
 
 
 if __name__ == '__main__':

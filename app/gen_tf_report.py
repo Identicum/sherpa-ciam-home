@@ -105,46 +105,55 @@ def initialize_output_file(logger, output_file_path):
 
 
 def process_workspace(logger, environment, realm, realm_folder, workspace, workspace_folder, output_file_path):
+	logger.debug("Processing workspace {} in {} for realm {} in {}.", workspace, workspace_folder, realm, realm_folder)
 	if not os.path.exists(workspace_folder):
 		logger.error("Workspace directory ({}) does not exist.", workspace_folder)
 		return
-	terraform.select_workspace(logger, realm_folder, workspace)
 	terraform.init(logger, realm_folder)
+	terraform.select_workspace(logger, realm_folder, workspace)
 	binary_plan = "{}/{}_tfplan.binary".format(realm_folder, workspace)
 	terraform.plan2binary(logger, realm_folder, binary_plan)
 	json_plan = "{}/{}_tfplan.json".format(realm_folder, workspace)
 	terraform.show_binary2json(logger, realm_folder, binary_plan, json_plan)
 	parsed_changes = parse_plan(logger, json_plan)
 	store_parsed_plan(logger, environment, realm, workspace, parsed_changes, output_file_path)
+	return parsed_changes
 
 
 def process_realm(logger, environment, realm, realm_folder, output_file_path):
+	logger.debug("Processing realm {} in {}.", realm, realm_folder)
 	if not os.path.exists(realm_folder):
 		logger.error("{} directory does not exist.", realm_folder)
 		return
+	process_output = []
 	for workspace in get_workspaces(logger, environment, realm):
 		workspace_folder = "{}/terraform.tfstate.d/{}".format(realm_folder, workspace)
-		process_workspace(logger, environment, realm, realm_folder, workspace, workspace_folder, output_file_path)
+		output = process_workspace(logger, environment, realm, realm_folder, workspace, workspace_folder, output_file_path)
+		process_output.append(output)
+	return process_output
 
 
-def process_environment(logger, objects_path, output_path, environment):
+def run(logger, objects_path, output_path, environment):
 	logger.info("Checking Terraform plans for environment: {}", environment)
 	output_file_path = "{}/terraform_check_{}.json".format(output_path, environment)
 	initialize_output_file(logger, output_file_path)
+	process_output = []
 	for realm in get_realms(logger, environment):
 		realm_folder = "{}/{}".format(objects_path, realm)
-		process_realm(logger, environment, realm, realm_folder, output_file_path)
+		output = process_realm(logger, environment, realm, realm_folder, output_file_path)
+		process_output.append(output)
+	return process_output
 
 
 def main(arguments):
-	logger = Logger(os.path.basename(__file__), "DEBUG", "/tmp/terraform_check.log")
+	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check.log")
 	environments = get_environments(logger)
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('environment', type=str.lower, help="Enter environment ({}).".format(", ".join(environments)))
 	parser.add_argument('objects_path', type=str, help="Path to terraform objects.")
 	parser.add_argument('output_path', type=str, help="Path to terraform_check_*.json files.")
 	args = parser.parse_args(arguments)
-	process_environment(logger, args.objects_path, args.output_path, args.environment)
+	run(logger, args.objects_path, args.output_path, args.environment)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

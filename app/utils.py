@@ -29,7 +29,7 @@ def get_data():
         return {}
 
 
-def getRealms():
+def getRealms(logger):
     data = get_data()
     return list(data.get("realms", {}).keys())
 
@@ -46,9 +46,15 @@ def getRealm(env, realmName):
         return []
 
 
-def getEnvironments():
+def getEnvironments(logger):
     data = get_data()
     return list(data.get("environments", {}).keys())
+
+
+
+def getWorkspaces(logger, realm, environment):
+    data = get_data()
+    return list(data.get("realms", {}).get(realm, {}).get("workspaces", {}).get(environment, []))
 
 
 def getKeycloakAdmin(env, realm):

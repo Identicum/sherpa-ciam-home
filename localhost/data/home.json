@@ -29,16 +29,20 @@
         "local": {
             "keycloak_url": "http://idp:8080",
             "username": "sherpaciamhome",
-            "password": "$env:LOCAL_KEYCLOAK_PASSWORD"
+            "password": "$env:LOCAL_KEYCLOAK_PASSWORD",
+            "var_files": ["../env/local_secrets.tfvars", "../env/local.tfvars"]
         },
         "dev": {
-            "keycloak_url": "https://dev.identicum.com"
+            "keycloak_url": "https://dev.identicum.com",
+            "var_files": []
         },
         "test": {
-            "keycloak_url": "https://test-idp.identicum.com"
+            "keycloak_url": "https://test-idp.identicum.com",
+            "var_files": []
         },
         "prod": {
-            "keycloak_url": "https://idp.identicum.com"
+            "keycloak_url": "https://idp.identicum.com",
+            "var_files": []
         }
     }
 }

@@ -214,3 +214,7 @@ def getClientTag(description, client_id):
     if tag not in ["[TAG_MISSING]", "[KEYCLOAK_NATIVE]", "[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]:
         tag = "[TAG_INVALID]"           
     return tag
+
+def getVarFiles(logger, environment):
+    data = get_data()
+    return list(data.get("environments", {}).get(environment, {}).get("var_files", []))

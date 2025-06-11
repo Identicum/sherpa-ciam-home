@@ -21,6 +21,7 @@ def main(arguments):
 	logger = Logger(os.path.basename(__file__), "DEBUG", "/tmp/localhost_apply.log")
 	environment = "local"
 	objects_path = "/usr/home/objects"
+	var_files = ["../env/local.tfvars", "../env/local_secrets.tfvars"]
 	for realm in get_realms(logger, environment):
 		realm_folder = "{}/{}".format(objects_path, realm)
 		terraform.init(logger, realm_folder)
@@ -28,7 +29,7 @@ def main(arguments):
 			terraform.delete_workspace_state(logger, realm_folder, workspace)
 			terraform.create_workspace(logger, realm_folder, workspace)
 			terraform.select_workspace(logger, realm_folder, workspace)
-			terraform.apply(logger, realm_folder)
+			terraform.apply(logger, realm_folder, var_files)
 
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 

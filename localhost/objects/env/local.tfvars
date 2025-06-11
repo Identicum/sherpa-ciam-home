@@ -1,0 +1,1 @@
+idp_url = "http://idp:8080"

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import json
 import os
 import sys
-from utils import getRealms, getEnvironments, getWorkspaces
+from utils import getRealms, getEnvironments, getWorkspaces, getVarFiles
 from sherpa.utils.basics import Logger
 from sherpa.utils import terraform
 
@@ -90,7 +90,7 @@ def initialize_output_file(logger, output_file_path):
 	logger.info("Initialized output file: {}".format(output_file_path))
 
 
-def process_workspace(logger, environment, realm, realm_folder, workspace, workspace_folder, output_file_path):
+def process_workspace(logger, environment, realm, realm_folder, workspace, workspace_folder, output_file_path, var_files):
 	logger.debug("Processing workspace {} in {} for realm {} in {}.", workspace, workspace_folder, realm, realm_folder)
 	if not os.path.exists(workspace_folder):
 		logger.error("Workspace directory ({}) does not exist.", workspace_folder)
@@ -98,7 +98,7 @@ def process_workspace(logger, environment, realm, realm_folder, workspace, works
 	terraform.init(logger, realm_folder)
 	terraform.select_workspace(logger, realm_folder, workspace)
 	binary_plan = "{}/{}_tfplan.binary".format(realm_folder, workspace)
-	terraform.plan2binary(logger, realm_folder, binary_plan)
+	terraform.plan2binary(logger, realm_folder, binary_plan, var_files)
 	json_plan = "{}/{}_tfplan.json".format(realm_folder, workspace)
 	terraform.show_binary2json(logger, realm_folder, binary_plan, json_plan)
 	parsed_changes = parse_plan(logger, json_plan)
@@ -106,7 +106,7 @@ def process_workspace(logger, environment, realm, realm_folder, workspace, works
 	return parsed_changes
 
 
-def process_realm(logger, environment, realm, realm_folder, output_file_path):
+def process_realm(logger, environment, realm, realm_folder, output_file_path, var_files):
 	logger.debug("Processing realm {} in {}.", realm, realm_folder)
 	if not os.path.exists(realm_folder):
 		logger.error("{} directory does not exist.", realm_folder)
@@ -114,7 +114,7 @@ def process_realm(logger, environment, realm, realm_folder, output_file_path):
 	process_output = []
 	for workspace in getWorkspaces(logger, realm, environment):
 		workspace_folder = "{}/terraform.tfstate.d/{}".format(realm_folder, workspace)
-		output = process_workspace(logger, environment, realm, realm_folder, workspace, workspace_folder, output_file_path)
+		output = process_workspace(logger, environment, realm, realm_folder, workspace, workspace_folder, output_file_path, var_files)
 		process_output.append(output)
 	return process_output
 
@@ -123,10 +123,11 @@ def run(logger, objects_path, output_path, environment):
 	logger.info("Checking Terraform plans for environment: {}", environment)
 	output_file_path = "{}/terraform_check_{}.json".format(output_path, environment)
 	initialize_output_file(logger, output_file_path)
+	var_files = getVarFiles(logger, environment)
 	process_output = []
 	for realm in getRealms(logger):
 		realm_folder = "{}/{}".format(objects_path, realm)
-		output = process_realm(logger, environment, realm, realm_folder, output_file_path)
+		output = process_realm(logger, environment, realm, realm_folder, output_file_path, var_files)
 		process_output.append(output)
 	return process_output
 

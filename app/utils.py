@@ -4,7 +4,7 @@ from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 
-logger = Logger(os.path.basename(__file__), "DEBUG", "/tmp/python-flask.log")
+logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
 properties = Properties("/local.properties", "/local.properties")
 
 

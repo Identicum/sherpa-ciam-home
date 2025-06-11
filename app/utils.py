@@ -106,27 +106,62 @@ def getClient(env, realmName, client_id):
         response["realm_name"] = realmName
         response["client_id"] = client["clientId"]
         response["name"] = client["name"]
-        response["enabled"] = client["enabled"]
+        
+        if client["attributes"] and client["attributes"].get("realm_client", "") == "true":
+            response["type"] = "realm"
+        else:
+            response["type"] = client["protocol"]
 
-        client_description = client["description"] if "description" in client else ""
+        client_description = client.get("description", "")
         response["tag"] = getClientTag(client_description, client["clientId"])
         response["owner_email"] = splitDescription(client_description, 1, "")
         response["description"] = splitDescription(client_description, 2, client_description)
 
-        if client["publicClient"]:
-            response["access_type"] = "PUBLIC"
+        if response["type"] == "realm":
+            response["enabled"] = True
         else:
-            response["access_type"] = "CONFIDENTIAL"
-        if client["attributes"] and client["attributes"].get("pkce.code.challenge.method"):
-            response["pkce_code_challenge_method"] = client["attributes"]["pkce.code.challenge.method"]
-        else:
-            response["pkce_code_challenge_method"] = None
+            response["enabled"] = client["enabled"]
 
-        response["authorization_code_flow"] = client["standardFlowEnabled"]
-        response["implicit_flow"] = client["implicitFlowEnabled"]
-        response["client_credentials_flow"] = client["serviceAccountsEnabled"]
-        response["ropc_flow"] = client["directAccessGrantsEnabled"]
+        # OIDC Exclusive Client Attributes
+        if response["type"] == "openid-connect":
+            if client["publicClient"]:
+                response["access_type"] = "PUBLIC"
+            else:
+                response["access_type"] = "CONFIDENTIAL"
+            if client["attributes"]:
+                response["pkce_code_challenge_method"] = client["attributes"].get("pkce.code.challenge.method", None)
 
+            response["authorization_code_flow"] = client["standardFlowEnabled"]
+            response["implicit_flow"] = client["implicitFlowEnabled"]
+            response["client_credentials_flow"] = client["serviceAccountsEnabled"]
+            response["ropc_flow"] = client["directAccessGrantsEnabled"]
+
+            response["frontchannel_logout_enabled"] = client.get("frontchannelLogout", False)
+            response["frontchannel_logout_url"] = client["attributes"].get("frontchannel.logout.url", "")
+
+            response["access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", 0))
+            response["effective_access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0)))
+            response["realm_access_token_lifespan"] = realm["accessTokenLifespan"]
+
+            response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", 0)
+            effective_realm_client_session_idle = realm["clientSessionIdleTimeout"]
+            if effective_realm_client_session_idle == 0:
+                effective_realm_client_session_idle = realm["ssoSessionIdleTimeout"]
+            response["realm_client_session_idle"] = effective_realm_client_session_idle
+            response["effective_client_session_idle"] = int(client["attributes"].get("client.session.idle.timeout", effective_realm_client_session_idle))
+
+            response["client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", 0))
+            response["effective_client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", 0)))
+            response["realm_client_session_max"] = realm.get("clientSessionMaxLifespan", "")
+
+        # SAML Exclusive Client Attributes
+        if response["type"] == "saml":
+            if client["attributes"] and client["attributes"].get("saml.assertion.signature"):
+                response["saml_assertion_signature"] = client["attributes"]["saml.assertion.signature"]
+            if client["attributes"] and client["attributes"].get("saml_name_id_format"):
+                response["saml_nameid_format"] = client["attributes"]["saml_name_id_format"]
+
+        # All Clients' Attributes
         response["root_url"] = client.get("rootUrl", "")
         response["admin_url"] = client.get("adminUrl", "")
         response["base_url"] = client.get("baseUrl", "")
@@ -137,24 +172,6 @@ def getClient(env, realmName, client_id):
             response["post_logout_redirect_uris"] = []
         logger.trace("post_logout_redirect_uris: {}", response["post_logout_redirect_uris"])
         response["web_origins"] = client.get("webOrigins", [])
-
-        response["frontchannel_logout_enabled"] = client.get("frontchannelLogout", False)
-        response["frontchannel_logout_url"] = client["attributes"].get("frontchannel.logout.url", "")
-
-        response["access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", 0))
-        response["effective_access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0)))
-        response["realm_access_token_lifespan"] = realm["accessTokenLifespan"]
-
-        response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", 0)
-        effective_realm_client_session_idle = realm["clientSessionIdleTimeout"]
-        if effective_realm_client_session_idle == 0:
-            effective_realm_client_session_idle = realm["ssoSessionIdleTimeout"]
-        response["realm_client_session_idle"] = effective_realm_client_session_idle
-        response["effective_client_session_idle"] = int(client["attributes"].get("client.session.idle.timeout", effective_realm_client_session_idle))
-
-        response["client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", 0))
-        response["effective_client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", 0)))
-        response["realm_client_session_max"] = realm.get("clientSessionMaxLifespan", "")
 
         logger.trace("Returning response: {}", response)
         return response
@@ -190,10 +207,10 @@ def getClientTag(description, client_id):
     """
     tag = splitDescription(description, 0, "[TAG_MISSING]")
     native_clients = [ "account", "account-console", "admin-cli", "broker", "realm-management", "security-admin-console" ]
-    for realm_name in getRealms():
+    for realm_name in getRealms(logger):
         native_clients.append("{}-realm".format(realm_name))
     if client_id in native_clients:
         tag = "[KEYCLOAK_NATIVE]"
-    if tag not in ["[TAG_MISSING]", "[KEYCLOAK_NATIVE]", "[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]"]:
+    if tag not in ["[TAG_MISSING]", "[KEYCLOAK_NATIVE]", "[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]:
         tag = "[TAG_INVALID]"           
     return tag

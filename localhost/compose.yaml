@@ -62,6 +62,8 @@ services:
             - ./objects/:/terraform-objects/
         env_file:
             - ./home.secrets
+        environment:
+            - LOG_LEVEL=TRACE
         depends_on:
             idp_setup:
                 condition: service_completed_successfully

@@ -5,6 +5,7 @@ RUN apk add --no-cache openldap-dev && \
     python3 -m pip install --upgrade --no-cache git+https://github.com/Identicum/sherpa-py-utils.git@main && \
     python3 -m pip install --upgrade --no-cache git+https://github.com/Identicum/sherpa-py-keycloak.git@main
 
+ENV LOG_LEVEL="DEBUG"
 ENV TERRAFORM_VERSION="1.9.8"
 ARG BUILDARCH
 RUN curl https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${BUILDARCH}.zip > terraform.zip && \

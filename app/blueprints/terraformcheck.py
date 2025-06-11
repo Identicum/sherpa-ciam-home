@@ -7,6 +7,7 @@ import os
 
 terraformcheck_bp = Blueprint('terraformcheck', __name__, template_folder='../templates')
 
+logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
 
 @terraformcheck_bp.route('/terraformcheck/<env>', methods=["GET"])
 def terraform_check_report(env):
@@ -27,8 +28,8 @@ def terraform_check_report(env):
         
     return render_template(
         'terraformcheck.html',
-        realms=getRealms(),
-        environments=getEnvironments(),
+        realms=getRealms(logger),
+        environments=getEnvironments(logger),
         env=env,
         report_data=report_data,
         error_message=error_message
@@ -45,8 +46,8 @@ def terraform_generate_report(env):
     )
     return render_template(
         'terraformcheck_output.html',
-        realms=getRealms(),
-        environments=getEnvironments(),
+        realms=getRealms(logger),
+        environments=getEnvironments(logger),
         env=env,
         process_output=output,
     )

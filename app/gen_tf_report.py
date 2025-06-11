@@ -5,23 +5,9 @@ from datetime import datetime, timezone
 import json
 import os
 import sys
+from utils import getRealms, getEnvironments, getWorkspaces
 from sherpa.utils.basics import Logger
 from sherpa.utils import terraform
-
-
-def get_environments(logger):
-	logger.trace("get_environments()")
-	return ["local"]
-
-
-def get_realms(logger, environment):
-	logger.trace("get_realms({})".format(environment))
-	return ["master", "customers", "employees"]
-
-
-def get_workspaces(logger, environment, realm):
-	logger.trace("get_realms({}, {})".format(environment, realm))
-	return ["local_default"]
 
 
 def parse_plan(logger, json_plan):
@@ -126,7 +112,7 @@ def process_realm(logger, environment, realm, realm_folder, output_file_path):
 		logger.error("{} directory does not exist.", realm_folder)
 		return
 	process_output = []
-	for workspace in get_workspaces(logger, environment, realm):
+	for workspace in getWorkspaces(logger, realm, environment):
 		workspace_folder = "{}/terraform.tfstate.d/{}".format(realm_folder, workspace)
 		output = process_workspace(logger, environment, realm, realm_folder, workspace, workspace_folder, output_file_path)
 		process_output.append(output)
@@ -138,7 +124,7 @@ def run(logger, objects_path, output_path, environment):
 	output_file_path = "{}/terraform_check_{}.json".format(output_path, environment)
 	initialize_output_file(logger, output_file_path)
 	process_output = []
-	for realm in get_realms(logger, environment):
+	for realm in getRealms(logger):
 		realm_folder = "{}/{}".format(objects_path, realm)
 		output = process_realm(logger, environment, realm, realm_folder, output_file_path)
 		process_output.append(output)
@@ -147,7 +133,7 @@ def run(logger, objects_path, output_path, environment):
 
 def main(arguments):
 	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check.log")
-	environments = get_environments(logger)
+	environments = getEnvironments(logger)
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('environment', type=str.lower, help="Enter environment ({}).".format(", ".join(environments)))
 	parser.add_argument('objects_path', type=str, help="Path to terraform objects.")

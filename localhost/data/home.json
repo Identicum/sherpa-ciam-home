@@ -1,8 +1,29 @@
 {
     "realms": {
-        "master": {},
-        "customers": {},
-        "employees": {}
+        "master": {
+            "workspaces": {
+                "local": [ "local_default" ],
+                "dev": [],
+                "test": [],
+                "prod": []
+            }
+        },
+        "customers": {
+            "workspaces": {
+                "local": [ "local_default" ],
+                "dev": [],
+                "test": [],
+                "prod": []
+            }
+        },
+        "employees": {
+            "workspaces": {
+                "local": [ "local_default" ],
+                "dev": [],
+                "test": [],
+                "prod": []
+            }
+        }
     },
     "environments": {
         "local": {

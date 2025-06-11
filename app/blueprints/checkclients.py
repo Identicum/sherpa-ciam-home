@@ -3,24 +3,25 @@ from utils import *
 
 checkclients_bp = Blueprint('checkclients', __name__)
 
+logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
 
 @checkclients_bp.route('/checkclients/<env>', methods=["GET"])
 def checkclientsEnv(env):
     warns = getEnvWarns(env)
     logger.debug("checkclientsEnv({}). warns: {}", env, warns)
-    return render_template('checkclients.html', realms=getRealms(), environments=getEnvironments(), env=env, warns=warns, realmName="All Realms")
+    return render_template('checkclients.html', realms=getRealms(logger), environments=getEnvironments(logger), env=env, warns=warns, realmName="All Realms")
 
 
 @checkclients_bp.route('/checkclients/<env>/<realmName>', methods=["GET"])
 def checkclientsEnvRealm(env, realmName):
     warns = getRealmWarns(env, realmName)
     logger.debug("checkclientsEnvRealm({}). warns: {}", env, warns)
-    return render_template('checkclients.html', realms=getRealms(), environments=getEnvironments(), env=env, warns=warns, realmName=realmName)
+    return render_template('checkclients.html', realms=getRealms(logger), environments=getEnvironments(logger), env=env, warns=warns, realmName=realmName)
 
 
 def getEnvWarns(env):
     envWarns = []
-    for realmName in getRealms():
+    for realmName in getRealms(logger):
         realmWarns = getRealmWarns(env, realmName)
         for realmWarn in realmWarns:
             envWarns.append(realmWarn)

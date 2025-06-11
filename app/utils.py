@@ -55,7 +55,7 @@ def getKeycloakAdmin(env, realm):
     data = get_data()
     kc_admin = SherpaKeycloakAdmin(
             logger=logger, 
-            local_properties=properties, 
+            properties=properties, 
             server_url=data.get("environments", {}).get(env, {}).get("keycloak_url", ""), 
             username=data.get("environments", {}).get(env, {}).get("username", ""), 
             password=data.get("environments", {}).get(env, {}).get("password", ""), 

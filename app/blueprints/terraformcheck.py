@@ -35,6 +35,28 @@ def terraform_check_report(env):
         error_message=error_message
     )
 
+
+@terraformcheck_bp.route('/terraformcheck/generate', methods=["GET"])
+def terraform_generate_general_report():
+    logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check_generate.log")
+    process_output = []
+    for env in getEnvironments(logger):
+        output = gen_tf_report.run(
+            logger=logger,
+            objects_path="/terraform-objects",
+            output_path="/data",
+            environment=env
+        )
+        process_output.append(output)
+    return render_template(
+        'terraformcheck_output.html',
+        realms=getRealms(logger),
+        environments=getEnvironments(logger),
+        env="All Environments",
+        process_output=process_output,
+    )
+
+
 @terraformcheck_bp.route('/terraformcheck/generate/<env>', methods=["GET"])
 def terraform_generate_report(env):
     logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check_generate.log")

@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template
 from utils import getRealms, getEnvironments
+from sherpa.utils.basics import Logger
+import app.gen_tf_report as gen_tf_report
 import json
 import os
 
@@ -30,4 +32,21 @@ def terraform_check_report(env):
         env=env,
         report_data=report_data,
         error_message=error_message
+    )
+
+@terraformcheck_bp.route('/terraformcheck/generate/<env>', methods=["GET"])
+def terraform_generate_report(env):
+    logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check_generate.log")
+    output = gen_tf_report.run(
+        logger=logger,
+        objects_path="/terraform-objects",
+        output_path="/data",
+        environment=env
+    )
+    return render_template(
+        'terraformcheck_output.html',
+        realms=getRealms(),
+        environments=getEnvironments(),
+        env=env,
+        process_output=output,
     )

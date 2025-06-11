@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from utils import getRealms, getEnvironments
 from sherpa.utils.basics import Logger
-import app.gen_tf_report as gen_tf_report
+import gen_tf_report
 import json
 import os
 

@@ -10,7 +10,15 @@ terraformcheck_bp = Blueprint('terraformcheck', __name__, template_folder='../te
 logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
 
 @terraformcheck_bp.route('/terraformcheck/<env>', methods=["GET"])
-def terraform_check_report(env):
+def terraform_check_report(env: str):
+    """Renders 'Terraform Check' Diff Report Page
+
+    Args:
+        env (str): Environment name
+
+    Returns:
+        Template: 'Terraform Check' Diff Report Rendered HTML Page
+    """
     report_file_path = "/data/terraform_check_{}.json".format(env)
     report_data = None
     error_message = None
@@ -38,6 +46,11 @@ def terraform_check_report(env):
 
 @terraformcheck_bp.route('/terraformcheck/generate', methods=["GET"])
 def terraform_generate_general_report():
+    """Renders General 'Terraform Check' Diff Report **GENERATION** Page (All environments)
+
+    Returns:
+        Template: General 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
+    """
     logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check_generate.log")
     process_output = []
     for env in getEnvironments(logger):
@@ -58,7 +71,15 @@ def terraform_generate_general_report():
 
 
 @terraformcheck_bp.route('/terraformcheck/generate/<env>', methods=["GET"])
-def terraform_generate_report(env):
+def terraform_generate_report(env: str):
+    """Renders Environment-Specific 'Terraform Check' Diff Report **GENERATION** Page
+
+    Args:
+        env (str): Environment name
+
+    Returns:
+        Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
+    """
     logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check_generate.log")
     output = gen_tf_report.run(
         logger=logger,

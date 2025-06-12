@@ -12,11 +12,21 @@ logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/p
 
 @app.route('/', methods=["GET"])
 def index():
+    """Renders Index Page
+
+    Returns:
+        Template: Rendered Index Page HTML
+    """
     return render_template("index.html", realms=getRealms(logger), environments=getEnvironments(logger))
 
 
 @app.route('/health', methods=["GET"])
 def getHealth():
+    """Healthcheck Endpoint
+
+    Returns:
+        str: Signs of Life
+    """
     return 'OK'
 
 

@@ -8,7 +8,12 @@ logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/p
 properties = Properties("/local.properties", "/local.properties")
 
 
-def get_data():
+def get_data() -> dict:
+    """Returns the parsed contents of /data/home.json
+
+    Returns:
+        dict: Parsed contents of /data/home.json
+    """
     datafile = '/data/home.json'
     try:
         with open(datafile, 'r') as f:
@@ -29,12 +34,29 @@ def get_data():
         return {}
 
 
-def getRealms(logger):
+def getRealms(logger: Logger) -> list:
+    """Returns only the list of realms from /data/home.json
+
+    Args:
+        logger (Logger): Logger instance
+
+    Returns:
+        list: List of realms from /data/home.json
+    """
     data = get_data()
     return list(data.get("realms", {}).keys())
 
 
-def getRealm(env, realmName):
+def getRealm(env: str, realmName: str) -> dict:
+    """Will fetch a realm from a given Environment using Keycloak's Admin API and return it
+
+    Args:
+        env (str): Environment name
+        realmName (str): Realm name
+
+    Returns:
+        dict: Realm Object from the Keycloak API
+    """
     kc_admin = getKeycloakAdmin(env, realmName)
     if not kc_admin:
         return []
@@ -46,18 +68,44 @@ def getRealm(env, realmName):
         return []
 
 
-def getEnvironments(logger):
+def getEnvironments(logger: Logger) -> list:
+    """Returns only the list of environments from /data/home.json
+
+    Args:
+        logger (Logger): Logger instance
+
+    Returns:
+        list: List of Environments from /data/home.json
+    """
     data = get_data()
     return list(data.get("environments", {}).keys())
 
 
 
-def getWorkspaces(logger, realm, environment):
+def getWorkspaces(logger: Logger, realm: str, environment: str) -> list:
     data = get_data()
+    """Returns only the list of a given realm's workspaces from /data/home.json
+
+    Args:
+        logger (Logger): Logger instance
+
+    Returns:
+        list: List of the given realm's workspaces from /data/home.json
+    """
     return list(data.get("realms", {}).get(realm, {}).get("workspaces", {}).get(environment, []))
 
 
-def getKeycloakAdmin(env, realm):
+def getKeycloakAdmin(env: str, realm: str) -> SherpaKeycloakAdmin:
+    """Creates an instance of SherpaKeycloakAdmin passing the given environment and realm's data in params
+    (See in [sherpa-py-keycloak](https://github.com/Identicum/sherpa-py-keycloak/blob/main/sherpa/keycloak/keycloak_lib.py))
+
+    Args:
+        env (str): Environment name - Must match the equal one in /home/data.json for the function to properly fetch `keycloak_url`, `username` and `password`
+        realm (str): Realm name - To be passed as a parameter for SherpaKeycloakAdmin
+
+    Returns:
+        SherpaKeycloakAdmin: Resulting SherpaKeycloakAdmin instance
+    """
     data = get_data()
     kc_admin = SherpaKeycloakAdmin(
             logger=logger, 
@@ -72,7 +120,16 @@ def getKeycloakAdmin(env, realm):
     return kc_admin
 
 
-def getClients(env, realm):
+def getClients(env: str, realm: str) -> list:
+    """Will fetch a given realm in a given environment's client list from the Keycloak API and return it.
+
+    Args:
+        env (str): Environment name
+        realm (str): Realm name
+
+    Returns:
+        list: List of clients in the realm
+    """
     kc_admin = getKeycloakAdmin(env, realm)
     if not kc_admin:
         return []
@@ -84,14 +141,15 @@ def getClients(env, realm):
         return []
 
 
-def getClient(env, realmName, client_id):
-    """
-    Get Client object in normalized form, to simplify functions.
+def getClient(env: str, realmName: str, client_id: str) -> dict:
+    """Will fetch a Client from a given Realm in a given Environment using the provided `client_id` in the Keycloak API, then format the object so as to standardize the output between different client types
 
-    :param env (str): Environment
-    :param realmName (str): Realm name
-    :param client_id (str): client_id
-    :return: Client object
+    Args:
+        env (str): Environment name
+        realmName (str): Realm name
+        client_id (str): Client ID
+    Returns:
+        dict: Resulting Client Object
     """
     kc_admin = getKeycloakAdmin(env, realmName)
     if not kc_admin:
@@ -180,12 +238,16 @@ def getClient(env, realmName, client_id):
         return {}
 
 
-def splitDescription(description, position, defaultValue):
-    """
-    Extract Client information from description custom syntax.
+def splitDescription(description: str, position: int, defaultValue: str) -> str:
+    """Extracts whichever detail it finds in the provided `position` inside of a client `description` (also provided). Will return the provided default value if it finds nothing.
 
-    :param description (str): Client description in format 'TAG##ownerEmail##Client description'.
-    :return: Text in position, otherwise None.
+    Args:
+        description (str): Client Description - Custom Syntax
+        position (str): Desired detail's position in the description
+        defaultValue (str): Value to be provided if nothing is found
+
+    Returns:
+        str: Found value in the client description
     """
     extracted = None
     if description and isinstance(description, str) and "##" in description:
@@ -197,13 +259,16 @@ def splitDescription(description, position, defaultValue):
         return defaultValue
 
 
-def getClientTag(description, client_id):
-    """
-    Get [TAG] from description and client_id.
+def getClientTag(description: str, client_id: str) -> str:
+    """Extracts a client tag from a provided description (Custom Syntax) \n
+    Will automatically filter Native keycloak client tags using the provided client_id and mark unsupported tags as [TAG_INVALID]
 
-    :param description (str): Client description in format '[TAG]##ownerEmail##Client description'.
-    :param client_id (str): client_id.
-    :return: TAG or TAG_MISSING or TAG_INVALID
+    Args:
+        description (str): _description_
+        client_id (str): _description_
+
+    Returns:
+        str: Client Tag - Example: [SPA_PUBLIC]
     """
     tag = splitDescription(description, 0, "[TAG_MISSING]")
     native_clients = [ "account", "account-console", "admin-cli", "broker", "realm-management", "security-admin-console" ]
@@ -215,6 +280,15 @@ def getClientTag(description, client_id):
         tag = "[TAG_INVALID]"           
     return tag
 
-def getVarFiles(logger, environment):
+def getVarFiles(logger: Logger, environment: str) -> list:
+    """Returns only the list of var_file paths related to the provided environment - from /data/home.json
+
+    Args:
+        logger (Logger): Logger instance
+        environment (str): Environment name - Must match that of the one in /data/home.json
+
+    Returns:
+        list: List of var_file paths related to the environment
+    """
     data = get_data()
     return list(data.get("environments", {}).get(environment, {}).get("var_files", []))

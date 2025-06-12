@@ -7,13 +7,31 @@ from sherpa.utils import terraform
 from sherpa.utils.basics import Logger
 
 
-def get_realms(logger, environment):
+def get_realms(logger: Logger, environment: str) -> list:
+	""" Returns Example Realms List for Localhost
+	Args:
+		logger (Logger): Logger instance
+		environment (str): Environment name
+
+	Returns:
+		list: _description_
+	"""
 	logger.trace("get_realms({})".format(environment))
 	return ["customers", "employees", "master"]
 
 
-def get_workspaces(logger, environment, realm):
-	logger.trace("get_realms({}, {})".format(environment, realm))
+def get_workspaces(logger: Logger, environment: str, realm: str) -> list:
+	"""Returns Example Workspaces List for Localhost
+
+	Args:
+		logger (Logger): Logger instance
+		environment (str): Environment name
+		realm (str): Realm name
+
+	Returns:
+		list: _description_
+	"""
+	logger.trace("get_workspaces({}, {})".format(environment, realm))
 	return ["local_default"]
 
 

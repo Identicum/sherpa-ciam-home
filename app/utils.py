@@ -7,6 +7,7 @@ from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
 properties = Properties("/local.properties", "/local.properties")
 
+valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]
 
 def get_data() -> dict:
     """Returns the parsed contents of /data/home.json
@@ -171,7 +172,7 @@ def getClient(env: str, realmName: str, client_id: str) -> dict:
             response["type"] = client["protocol"]
 
         client_description = client.get("description", "")
-        response["tag"] = getClientTag(client_description, client["clientId"])
+        response["tag"] = getClientTag(client_description, client["clientId"], response["type"])
         response["owner_email"] = splitDescription(client_description, 1, "")
         response["description"] = splitDescription(client_description, 2, client_description)
 
@@ -259,26 +260,32 @@ def splitDescription(description: str, position: int, defaultValue: str) -> str:
         return defaultValue
 
 
-def getClientTag(description: str, client_id: str) -> str:
+def getClientTag(description: str, client_id: str, client_type: str) -> str:
     """Extracts a client tag from a provided description (Custom Syntax) \n
     Will automatically filter Native keycloak client tags using the provided client_id and mark unsupported tags as [TAG_INVALID]
 
     Args:
         description (str): _description_
         client_id (str): _description_
+        client_type (str): realm / openid-connect / saml
 
     Returns:
         str: Client Tag - Example: [SPA_PUBLIC]
     """
-    tag = splitDescription(description, 0, "[TAG_MISSING]")
+    if client_type=="realm":
+        return "[KEYCLOAK_NATIVE]"
+
     native_clients = [ "account", "account-console", "admin-cli", "broker", "realm-management", "security-admin-console" ]
-    for realm_name in getRealms(logger):
-        native_clients.append("{}-realm".format(realm_name))
     if client_id in native_clients:
-        tag = "[KEYCLOAK_NATIVE]"
-    if tag not in ["[TAG_MISSING]", "[KEYCLOAK_NATIVE]", "[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]:
-        tag = "[TAG_INVALID]"           
+        return "[KEYCLOAK_NATIVE]"
+
+    tag = splitDescription(description, 0, "")
+    if tag == "":
+        return "[TAG_MISSING]"
+    if tag not in valid_client_types:
+        return "[TAG_INVALID]"           
     return tag
+
 
 def getVarFiles(logger: Logger, environment: str) -> list:
     """Returns only the list of var_file paths related to the provided environment - from /data/home.json

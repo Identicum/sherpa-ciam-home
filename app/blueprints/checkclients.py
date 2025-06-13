@@ -109,29 +109,26 @@ def getClientWarns(env: str, realmName: str, client: dict) -> list:
     for warn in checkOwnerEmail(client):
         clientWarns.append(warn)
 
-    for warn in checkAccessTokenLifespan(client):
-        clientWarns.append(warn)
+    # OIDC Exclusive Client Attributes
+    if client["type"] == "openid-connect":
+        for warn in checkAccessTokenLifespan(client):
+            clientWarns.append(warn)
+        for warn in checkPostLogoutRedirectUrls(client, env):
+            clientWarns.append(warn)
+        for warn in checkAccessType(client):
+            clientWarns.append(warn)
+        for warn in checkGrants(client):
+                clientWarns.append(warn)
+        for warn in checkFrontChannelLogout(client):
+            clientWarns.append(warn)
+        realm = getRealm(env, realmName)
+        for warn in checkSessionTimeout(client, realm):
+            clientWarns.append(warn)
 
     for warn in checkRedirectUrls(client, env):
         clientWarns.append(warn)
 
-    for warn in checkPostLogoutRedirectUrls(client, env):
-        clientWarns.append(warn)
-
     for warn in checkWebOrigins(client):
-        clientWarns.append(warn)
-
-    for warn in checkFrontChannelLogout(client):
-        clientWarns.append(warn)
-
-    for warn in checkAccessType(client):
-        clientWarns.append(warn)
-
-    for warn in checkGrants(client):
-        clientWarns.append(warn)
-
-    realm = getRealm(env, realmName)
-    for warn in checkSessionTimeout(client, realm):
         clientWarns.append(warn)
 
     logger.trace("getClientWarns response. client_name: {}, response: {}", client.get("client_name"), clientWarns)

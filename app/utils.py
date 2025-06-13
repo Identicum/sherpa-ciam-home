@@ -163,7 +163,7 @@ def getClient(env: str, realmName: str, client_id: str) -> dict:
         response["id"] = client["id"]
         response["realm_name"] = realmName
         response["client_id"] = client["clientId"]
-        response["name"] = client["name"]
+        response["name"] = client.get("name", "")
         
         if client["attributes"] and client["attributes"].get("realm_client", "") == "true":
             response["type"] = "realm"

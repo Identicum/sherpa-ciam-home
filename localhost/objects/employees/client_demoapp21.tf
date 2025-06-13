@@ -2,8 +2,7 @@ resource "keycloak_openid_client" "demoapp21" {
   realm_id                        = resource.keycloak_realm.realm.id
   client_id                       = "demoapp21_client_id"
   client_secret                   = "demoapp21_client_secret"
-  name                            = "demoapp21"
-  description                     = "no TAG"
+  description                     = "no TAG, no name"
   enabled                         = true
   access_type                     = "CONFIDENTIAL"
   standard_flow_enabled           = true

@@ -103,6 +103,9 @@ def getClientWarns(env: str, realmName: str, client: dict) -> list:
         for warn in checkTag(client):
             clientWarns.append(warn)
 
+    if client["name"]=="":
+        clientWarns.append(getWarn(client, "WARN", "Client has no name."))
+
     for warn in checkOwnerEmail(client):
         clientWarns.append(warn)
 

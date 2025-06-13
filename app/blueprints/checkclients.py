@@ -94,22 +94,24 @@ def getClientWarns(env: str, realmName: str, client: dict) -> list:
         logger.debug("Client is disabled, no warnings will be generated.")
         return []
 
-    # TAG
-    match client["tag"]:
-        case "[KEYCLOAK_NATIVE]":
-            logger.debug("Native client, do nothing.")
-            return []
-        case "[TAG_MISSING]":
-            return [getWarn(client, "WARN", "Client has no tag.")]
-        case "[TAG_INVALID]":
-            return [getWarn(client, "WARN", "Client tag is invalid: " + client["tag"])]
-
     clientWarns = []
+
+    if client["tag"]=="[KEYCLOAK_NATIVE]":
+        logger.debug("Native client, do nothing.")
+        return []
+    else:
+        for warn in checkTag(client):
+            clientWarns.append(warn)
 
     for warn in checkOwnerEmail(client):
         clientWarns.append(warn)
 
-    # OIDC Exclusive Client Attributes
+    for warn in checkRedirectUrls(client, env):
+        clientWarns.append(warn)
+
+    for warn in checkWebOrigins(client):
+        clientWarns.append(warn)
+
     if client["type"] == "openid-connect":
         for warn in checkAccessTokenLifespan(client):
             clientWarns.append(warn)
@@ -124,12 +126,6 @@ def getClientWarns(env: str, realmName: str, client: dict) -> list:
         realm = getRealm(env, realmName)
         for warn in checkSessionTimeout(client, realm):
             clientWarns.append(warn)
-
-    for warn in checkRedirectUrls(client, env):
-        clientWarns.append(warn)
-
-    for warn in checkWebOrigins(client):
-        clientWarns.append(warn)
 
     logger.trace("getClientWarns response. client_name: {}, response: {}", client.get("client_name"), clientWarns)
     return clientWarns
@@ -155,6 +151,33 @@ def getWarn(client: dict, level: str, issue_description: str) -> dict:
         issue_level=level,
         issue_description=issue_description
     )
+
+
+def checkTag(client: dict) -> list:
+    """Checks the tag and verifies with client.type
+
+    Args:
+        client (dict): Normalized Client Object
+
+    Returns:
+        list: Respective warnings. Empty list otherwise.
+    """
+    logger.trace("checkTag({})", client.get("client_id"))
+    warns = []
+
+    if client["type"]=="saml" and client["tag"]!="[SAML]":
+        warns.append(getWarn(client, "WARN", "Tag should be [SAML]."))
+
+    if client["type"]=="openid-connect" and client["tag"]=="[SAML]":
+        warns.append(getWarn(client, "WARN", "Tag should NOT be [SAML]."))
+
+    if client["tag"]=="[TAG_MISSING]":
+        warns.append(getWarn(client, "WARN", "Client has no tag."))
+
+    if client["tag"]=="[TAG_INVALID]":
+        warns.append(getWarn(client, "WARN", "Client tag is invalid: " + client["tag"]))
+        
+    return warns
 
 
 def checkOwnerEmail(client: dict) -> list:

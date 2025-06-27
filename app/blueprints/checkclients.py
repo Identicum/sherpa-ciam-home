@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template
-from utils import *
+import utils
 
 checkclients_bp = Blueprint('checkclients', __name__)
 
-logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
+logger = utils.logger
 
 @checkclients_bp.route('/checkclients/<env>', methods=["GET"])
 def checkclientsEnv(env: str):
@@ -17,7 +17,7 @@ def checkclientsEnv(env: str):
     """
     warns = getEnvWarns(env)
     logger.debug("checkclientsEnv({}). warns: {}", env, warns)
-    return render_template('checkclients.html', realms=getRealms(logger), environments=getEnvironments(logger), env=env, warns=warns, realmName="All Realms")
+    return render_template('checkclients.html', utils=utils, env=env, warns=warns, realmName="All Realms")
 
 
 @checkclients_bp.route('/checkclients/<env>/<realmName>', methods=["GET"])
@@ -33,7 +33,7 @@ def checkclientsEnvRealm(env: str, realmName: str):
     """
     warns = getRealmWarns(env, realmName)
     logger.debug("checkclientsEnvRealm({}). warns: {}", env, warns)
-    return render_template('checkclients.html', realms=getRealms(logger), environments=getEnvironments(logger), env=env, warns=warns, realmName=realmName)
+    return render_template('checkclients.html', utils=utils, env=env, warns=warns, realmName=realmName)
 
 
 def getEnvWarns(env: str) -> list:
@@ -46,7 +46,7 @@ def getEnvWarns(env: str) -> list:
         list: Warnings for all realms in the environment
     """
     envWarns = []
-    for realmName in getRealms(logger):
+    for realmName in utils.getRealms(logger, env):
         realmWarns = getRealmWarns(env, realmName)
         for realmWarn in realmWarns:
             envWarns.append(realmWarn)
@@ -64,8 +64,8 @@ def getRealmWarns(env: str, realmName: str) -> list:
         list: _description_
     """
     realmWarns = []
-    for client in getClients(env, realmName):
-        normalized_client = getClient(env, realmName, client["clientId"])
+    for client in utils.getClients(env, realmName):
+        normalized_client = utils.getClient(env, realmName, client["clientId"])
         clientWarns = getClientWarns(env, realmName, normalized_client)
         for clientWarn in clientWarns:
             logger.trace("Adding client warning: {}", clientWarn)
@@ -77,6 +77,8 @@ def getRealmWarns(env: str, realmName: str) -> list:
 
 def getClientWarns(env: str, realmName: str, client: dict) -> list:
     """ # TODO: Add support for SAML clients.
+    # SAML clients are not supported yet.
+    return warns
     
     Gathers and returns a list of a given `client` in the provided `realm`'s active warnings
 
@@ -126,7 +128,7 @@ def getClientWarns(env: str, realmName: str, client: dict) -> list:
                 clientWarns.append(warn)
         for warn in checkFrontChannelLogout(client):
             clientWarns.append(warn)
-        realm = getRealm(env, realmName)
+        realm = utils.getRealm(env, realmName)
         for warn in checkSessionTimeout(client, realm):
             clientWarns.append(warn)
 

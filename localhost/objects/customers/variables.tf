@@ -5,3 +5,7 @@ variable "idp_url" {
 variable "admin_password" {
     type = string
 }
+
+variable "realm_name" {
+    type = string
+}

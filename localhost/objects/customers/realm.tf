@@ -1,4 +1,4 @@
 resource "keycloak_realm" "realm" {
-  realm        = "customers"
+  realm        = var.realm_name
   enabled      = true
 }

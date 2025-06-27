@@ -1,28 +1,39 @@
 {
     "realms": {
-        "master": {
-            "workspaces": {
-                "local": [ "local_default" ],
-                "dev": [],
-                "test": [],
-                "prod": []
-            }
-        },
         "customers": {
-            "workspaces": {
-                "local": [ "local_default" ],
-                "dev": [],
-                "test": [],
-                "prod": []
-            }
+            "local": {
+                "ar_local": {
+                    "realm_name": "customers-ar",
+                    "var_files": ["../env/ar_local.tfvars"]
+                },
+                "us_local": {
+                    "realm_name": "customers-us",
+                    "var_files": ["../env/us_local.tfvars"]
+                }
+            },
+            "dev": {},
+            "test": {},
+            "prod": {}
         },
         "employees": {
-            "workspaces": {
-                "local": [ "local_default" ],
-                "dev": [],
-                "test": [],
-                "prod": []
-            }
+            "local": {
+                "ar_local": {
+                    "realm_name": "employees"
+                }
+            },
+            "dev": {},
+            "test": {},
+            "prod": {}
+        },
+        "master": {
+            "local": {
+                "ar_local": {
+                    "realm_name": "master"
+                }
+            },
+            "dev": {},
+            "test": {},
+            "prod": {}
         }
     },
     "environments": {

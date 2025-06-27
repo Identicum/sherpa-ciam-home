@@ -7,7 +7,7 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Links</a>
                 <div class="dropdown-content">
-                    {% for env in environments %}
+                    {% for env in utils.getEnvironments(utils.logger) %}
                     <a href="/links/{{env}}">{{env}}</a>
                     {% endfor %}
                 </div>
@@ -15,11 +15,11 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Check clients</a>
                 <div class="dropdown-content">
-                    {% for env in environments %}
+                    {% for env in utils.getEnvironments(utils.logger) %}
                         <div class="submenu-parent">
                             <a href="/checkclients/{{env}}">{{env}} &raquo;</a>
                             <div class="dropdown-submenu">
-                                {% for realm in realms %}
+                                {% for realm in utils.getRealms(utils.logger, env) %}
                                     <a href="/checkclients/{{env}}/{{realm}}">{{realm}}</a>
                                 {% endfor %}
                             </div>
@@ -30,7 +30,7 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Clients Activity</a>
                 <div class="dropdown-content">
-                    {% for env in environments %}
+                    {% for env in utils.getEnvironments(utils.logger) %}
                     <a href="/clientactivity/{{env}}">{{env}}</a>
                     {% endfor %}
                 </div>
@@ -38,11 +38,11 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Client Info</a>
                 <div class="dropdown-content">
-                    {% for env in environments %}
+                    {% for env in utils.getEnvironments(utils.logger) %}
                         <div class="submenu-parent">
                             <a href="/clientinfo/{{env}}">{{env}} &raquo;</a>
                             <div class="dropdown-submenu">
-                                {% for realm in realms %}
+                                {% for realm in utils.getRealms(utils.logger, env) %}
                                     <a href="/clientinfo/{{env}}/{{realm}}">{{realm}}</a>
                                 {% endfor %}
                             </div>
@@ -53,7 +53,7 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Terraform check</a>
                 <div class="dropdown-content">
-                    {% for env in environments %}
+                    {% for env in utils.getEnvironments(utils.logger) %}
                     <a href="/terraformcheck/{{env}}">{{env}}</a>
                     {% endfor %}
                 </div>

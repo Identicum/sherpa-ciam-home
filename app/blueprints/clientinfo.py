@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template
-from utils import *
+import utils
 
 clientinfo_bp = Blueprint('clientinfo', __name__)
 
-logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
+logger = utils.logger
 
 @clientinfo_bp.route('/clientinfo/<env>', methods=["GET"])
 def clientinfo_list_realms(env: str):
@@ -17,8 +17,7 @@ def clientinfo_list_realms(env: str):
     """
     return render_template(
         'clientinfo_list_realms.html',
-        realms=getRealms(logger),
-        environments=getEnvironments(logger),
+        utils=utils,
         env=env
     )
 
@@ -34,11 +33,10 @@ def clientinfo_list(env: str, realmName: str):
     Returns:
         Template: 'Client Info' Realm's Client List Rendered HTML Page
     """
-    clients = getClients(env, realmName)
+    clients = utils.getClients(env, realmName)
     return render_template(
         'clientinfo_list.html',
-        realms=getRealms(logger),
-        environments=getEnvironments(logger),
+        utils=utils,
         env=env,
         realmName=realmName,
         clients=clients
@@ -57,14 +55,13 @@ def clientinfo_detail(env: str, realmName: str, client_id: str):
     Returns:
         Template: 'Client Info' Client Detail Rendered HTML Page
     """
-    client = getClient(env, realmName, client_id)
+    client = utils.getClient(env, realmName, client_id)
     logger.trace("client: {}", client)
-    realm = getRealm(env, realmName)
+    realm = utils.getRealm(env, realmName)
     # logger.trace("realm: {}", realm)
     return render_template(
         'clientinfo_detail.html',
-        realms=getRealms(logger),
-        environments=getEnvironments(logger),
+        utils=utils,
         env=env,
         realm=realm,
         client=client

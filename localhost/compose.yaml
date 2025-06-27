@@ -40,9 +40,14 @@ services:
         container_name: idp_setup
         image: ghcr.io/identicum/sherpa-deploy:latest
         pull_policy: always
+        environment:
+            - LOG_LEVEL=TRACE
         volumes:
-            - ./:/usr/home/
-        command: "python3 ./objects/local_apply.py"
+            - ../app/:/app/
+            - ./data/:/data/
+            - ./local.properties:/local.properties
+            - ./objects/:/terraform-objects/
+        command: "python3 /terraform-objects/local_apply.py"
         depends_on:
             idp:
                 condition: service_healthy
@@ -55,15 +60,15 @@ services:
         # pull_policy: always
         ports:
             - 80:5000
+        env_file:
+            - ./home.secrets
+        environment:
+            - LOG_LEVEL=DEBUG
         volumes:
             - ../app/:/app/
             - ./data/:/data/
             - ./local.properties:/local.properties
             - ./objects/:/terraform-objects/
-        env_file:
-            - ./home.secrets
-        environment:
-            - LOG_LEVEL=TRACE
         depends_on:
             idp_setup:
                 condition: service_completed_successfully

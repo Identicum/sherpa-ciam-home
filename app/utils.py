@@ -9,7 +9,7 @@ properties = Properties("/local.properties", "/local.properties")
 
 valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]
 
-def get_data() -> dict:
+def getData() -> dict:
     """Returns the parsed contents of /data/home.json
 
     Returns:
@@ -24,7 +24,7 @@ def get_data() -> dict:
             password = env_info.get("password")
             if isinstance(password, str) and password.startswith("$env:"):
                 env_var = password[5:]
-                logger.debug("Getting password for env {} from variable '{}'", env_name, env_var)
+                logger.trace("Getting password for env {} from variable '{}'", env_name, env_var)
                 env_info["password"] = os.environ.get(env_var, "")
         return data
     except FileNotFoundError:
@@ -35,17 +35,39 @@ def get_data() -> dict:
         return {}
 
 
-def getRealms(logger: Logger) -> list:
-    """Returns only the list of realms from /data/home.json
+def getRealmTypes(logger: Logger) -> list:
+    """Returns the list of realm types from /data/home.json
 
     Args:
         logger (Logger): Logger instance
 
     Returns:
+        list: List of realm types
+    """
+    data = getData()
+    return list(data.get("realms", {}).keys())
+
+
+def getRealms(logger: Logger, environment: str) -> list:
+    """Returns only the list of realms from /data/home.json
+
+    Args:
+        logger (Logger): Logger instance
+        environment (str): Environment name
+
+    Returns:
         list: List of realms from /data/home.json
     """
-    data = get_data()
-    return list(data.get("realms", {}).keys())
+    data = getData()
+    realm_list = []
+    realm_types = list(data.get("realms", {}).keys())
+    for realm_type in realm_types:
+        logger.trace("getRealms() processing realm_type: {}", realm_type)
+        for workspace in getWorkspaces(logger, realm_type, environment):
+            logger.trace("getRealms() processing workspace: {}", workspace)
+            realm_name = getRealmName(logger, realm_type, environment, workspace)
+            realm_list.append(realm_name)
+    return realm_list
 
 
 def getRealm(env: str, realmName: str) -> dict:
@@ -69,6 +91,24 @@ def getRealm(env: str, realmName: str) -> dict:
         return []
 
 
+def getRealmName(logger: Logger, realmType: str, environment: str, workspace: str) -> str:
+    """Get realm name from its type, environment and workspace
+
+    Args:
+        logger (Logger): Logger instance
+        realmType (str): Realm type
+        environment (str): Environment
+        workspace (str): Workspace
+
+    Returns:
+        str: Realm name
+    """
+    data = getData()
+    realmName = data.get("realms", {}).get(realmType, {}).get(environment, {}).get(workspace, {}).get("realm_name", realmType)
+    logger.trace("getRealmName() processing realmType: {}, environment: {}, workspace: {}, realmName: {}", realmType, environment, workspace, realmName)
+    return realmName
+
+
 def getEnvironments(logger: Logger) -> list:
     """Returns only the list of environments from /data/home.json
 
@@ -78,13 +118,13 @@ def getEnvironments(logger: Logger) -> list:
     Returns:
         list: List of Environments from /data/home.json
     """
-    data = get_data()
+    data = getData()
     return list(data.get("environments", {}).keys())
 
 
 
-def getWorkspaces(logger: Logger, realm: str, environment: str) -> list:
-    data = get_data()
+def getWorkspaces(logger: Logger, realmType: str, environment: str) -> list:
+    data = getData()
     """Returns only the list of a given realm's workspaces from /data/home.json
 
     Args:
@@ -93,7 +133,12 @@ def getWorkspaces(logger: Logger, realm: str, environment: str) -> list:
     Returns:
         list: List of the given realm's workspaces from /data/home.json
     """
-    return list(data.get("realms", {}).get(realm, {}).get("workspaces", {}).get(environment, []))
+    logger.trace("getWorkspaces() processing realmType: {}, environment: {}", realmType, environment)
+    realms = data.get("realms", {})
+    realm_type = realms.get(realmType)
+    instance = realm_type.get(environment)
+
+    return list(data.get("realms", {}).get(realmType).get(environment, {}).keys())
 
 
 def getKeycloakAdmin(env: str, realm: str) -> SherpaKeycloakAdmin:
@@ -107,7 +152,7 @@ def getKeycloakAdmin(env: str, realm: str) -> SherpaKeycloakAdmin:
     Returns:
         SherpaKeycloakAdmin: Resulting SherpaKeycloakAdmin instance
     """
-    data = get_data()
+    data = getData()
     kc_admin = SherpaKeycloakAdmin(
             logger=logger, 
             properties=properties, 
@@ -297,5 +342,5 @@ def getVarFiles(logger: Logger, environment: str) -> list:
     Returns:
         list: List of var_file paths related to the environment
     """
-    data = get_data()
+    data = getData()
     return list(data.get("environments", {}).get(environment, {}).get("var_files", []))

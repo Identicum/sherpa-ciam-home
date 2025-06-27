@@ -17,20 +17,37 @@ data "keycloak_role" "master_view_clients" {
 }
 
 # CUSTOMERS
-data "keycloak_openid_client" "customers_realm_client" {
+data "keycloak_openid_client" "customersar_realm_client" {
   realm_id  = data.keycloak_realm.realm.id
-  client_id = "customers-realm"
+  client_id = "customers-ar-realm"
 }
 
-data "keycloak_role" "customers_view_realm" {
+data "keycloak_role" "customersar_view_realm" {
   realm_id  = data.keycloak_realm.realm.id
-  client_id = data.keycloak_openid_client.customers_realm_client.id
+  client_id = data.keycloak_openid_client.customersar_realm_client.id
   name      = "view-realm"
 }
 
-data "keycloak_role" "customers_view_clients" {
+data "keycloak_role" "customersar_view_clients" {
   realm_id  = data.keycloak_realm.realm.id
-  client_id = data.keycloak_openid_client.customers_realm_client.id
+  client_id = data.keycloak_openid_client.customersar_realm_client.id
+  name      = "view-clients"
+}
+
+data "keycloak_openid_client" "customersus_realm_client" {
+  realm_id  = data.keycloak_realm.realm.id
+  client_id = "customers-us-realm"
+}
+
+data "keycloak_role" "customersus_view_realm" {
+  realm_id  = data.keycloak_realm.realm.id
+  client_id = data.keycloak_openid_client.customersus_realm_client.id
+  name      = "view-realm"
+}
+
+data "keycloak_role" "customersus_view_clients" {
+  realm_id  = data.keycloak_realm.realm.id
+  client_id = data.keycloak_openid_client.customersus_realm_client.id
   name      = "view-clients"
 }
 
@@ -59,8 +76,10 @@ resource "keycloak_role" "idp_readonly" {
   composite_roles = [
     data.keycloak_role.master_view_realm.id,
     data.keycloak_role.master_view_clients.id,
-    data.keycloak_role.customers_view_realm.id,
-    data.keycloak_role.customers_view_clients.id,
+    data.keycloak_role.customersar_view_realm.id,
+    data.keycloak_role.customersar_view_clients.id,
+    data.keycloak_role.customersus_view_realm.id,
+    data.keycloak_role.customersus_view_clients.id,
     data.keycloak_role.employees_view_realm.id,
     data.keycloak_role.employees_view_clients.id
   ]

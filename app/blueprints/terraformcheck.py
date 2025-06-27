@@ -1,13 +1,12 @@
 from flask import Blueprint, render_template
-from utils import getRealms, getEnvironments
-from sherpa.utils.basics import Logger
 import gen_tf_report
 import json
 import os
+import utils
 
 terraformcheck_bp = Blueprint('terraformcheck', __name__, template_folder='../templates')
 
-logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
+logger = utils.logger
 
 @terraformcheck_bp.route('/terraformcheck/<env>', methods=["GET"])
 def terraform_check_report(env: str):
@@ -36,8 +35,7 @@ def terraform_check_report(env: str):
         
     return render_template(
         'terraformcheck.html',
-        realms=getRealms(logger),
-        environments=getEnvironments(logger),
+        utils=utils,
         env=env,
         report_data=report_data,
         error_message=error_message
@@ -51,9 +49,8 @@ def terraform_generate_general_report():
     Returns:
         Template: General 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
-    logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check_generate.log")
     process_output = []
-    for env in getEnvironments(logger):
+    for env in utils.getEnvironments(logger):
         output = gen_tf_report.run(
             logger=logger,
             objects_path="/terraform-objects",
@@ -63,8 +60,7 @@ def terraform_generate_general_report():
         process_output.append(output)
     return render_template(
         'terraformcheck_output.html',
-        realms=getRealms(logger),
-        environments=getEnvironments(logger),
+        utils=utils,
         env="All Environments",
         process_output=process_output,
     )
@@ -80,7 +76,6 @@ def terraform_generate_report(env: str):
     Returns:
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
-    logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraform_check_generate.log")
     output = gen_tf_report.run(
         logger=logger,
         objects_path="/terraform-objects",
@@ -89,8 +84,7 @@ def terraform_generate_report(env: str):
     )
     return render_template(
         'terraformcheck_output.html',
-        realms=getRealms(logger),
-        environments=getEnvironments(logger),
+        utils=utils,
         env=env,
         process_output=output,
     )

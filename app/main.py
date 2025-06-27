@@ -1,14 +1,12 @@
 from blueprints.links import links_bp
-from sherpa.utils.basics import Logger
 from blueprints.clientinfo import clientinfo_bp
 from blueprints.checkclients import checkclients_bp
 from blueprints.terraformcheck import terraformcheck_bp
 from flask import Flask, render_template
-from utils import *
+from sherpa.utils.basics import Logger
+import utils
 
 app = Flask(__name__)
-
-logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
 
 @app.route('/', methods=["GET"])
 def index():
@@ -17,7 +15,7 @@ def index():
     Returns:
         Template: Rendered Index Page HTML
     """
-    return render_template("index.html", realms=getRealms(logger), environments=getEnvironments(logger))
+    return render_template("index.html", utils=utils)
 
 
 @app.route('/health', methods=["GET"])

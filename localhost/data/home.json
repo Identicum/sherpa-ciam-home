@@ -17,9 +17,7 @@
         },
         "employees": {
             "local": {
-                "ar_local": {
-                    "realm_name": "employees"
-                }
+                "ar_local": {}
             },
             "dev": {},
             "test": {},
@@ -27,9 +25,7 @@
         },
         "master": {
             "local": {
-                "ar_local": {
-                    "realm_name": "master"
-                }
+                "ar_local": {}
             },
             "dev": {},
             "test": {},

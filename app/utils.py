@@ -104,7 +104,7 @@ def getRealmName(logger: Logger, realmType: str, environment: str, workspace: st
         str: Realm name
     """
     data = getData()
-    realmName = data.get("realms", {}).get(realmType, {}).get(environment, {}).get(workspace, {}).get("realm_name", "")
+    realmName = data.get("realms", {}).get(realmType, {}).get(environment, {}).get(workspace, {}).get("realm_name", realmType)
     logger.trace("getRealmName() processing realmType: {}, environment: {}, workspace: {}, realmName: {}", realmType, environment, workspace, realmName)
     return realmName
 

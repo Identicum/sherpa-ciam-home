@@ -3,7 +3,6 @@ from blueprints.clientinfo import clientinfo_bp
 from blueprints.checkclients import checkclients_bp
 from blueprints.terraformcheck import terraformcheck_bp
 from flask import Flask, render_template
-from sherpa.utils.basics import Logger
 import utils
 
 app = Flask(__name__)

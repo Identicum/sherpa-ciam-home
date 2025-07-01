@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-import gen_tf_report
+import terraformcheck_report
 import json
 import os
 import utils
@@ -51,7 +51,7 @@ def terraform_generate_general_report():
     """
     process_output = []
     for env in utils.getEnvironments(logger):
-        output = gen_tf_report.run(
+        output = terraformcheck_report.run(
             logger=logger,
             objects_path="/terraform-objects",
             output_path="/data",
@@ -76,7 +76,7 @@ def terraform_generate_report(env: str):
     Returns:
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
-    output = gen_tf_report.run(
+    output = terraformcheck_report.run(
         logger=logger,
         objects_path="/terraform-objects",
         output_path="/data",

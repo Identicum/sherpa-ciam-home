@@ -201,13 +201,12 @@ def run(logger: Logger, objects_path: str, output_path: str, environment: str) -
 
 def main(arguments):
 	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/gen_tf_report.log")
-	environments = utils.getEnvironments(logger)
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-	parser.add_argument('environment', type=str.lower, help="Enter environment ({}).".format(", ".join(environments)))
 	parser.add_argument('objects_path', type=str, help="Path to terraform objects.")
 	parser.add_argument('output_path', type=str, help="Path to terraform_check_*.json files.")
 	args = parser.parse_args(arguments)
-	run(logger, args.objects_path, args.output_path, args.environment)
+	for environment in utils.getEnvironments(logger):
+		run(logger, args.objects_path, args.output_path, environment)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

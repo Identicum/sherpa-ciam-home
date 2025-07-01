@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-import gen_checkclients_report
+import checkclients_report
 import json
 import os
 import utils
@@ -54,7 +54,7 @@ def checkclientsEnvGenerate(env: str):
     Returns:
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
-    output = gen_checkclients_report.run(
+    output = checkclients_report.run(
         logger=logger,
         output_path="/data",
         environment=env

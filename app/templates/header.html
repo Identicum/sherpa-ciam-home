@@ -17,12 +17,7 @@
                 <div class="dropdown-content">
                     {% for env in utils.getEnvironments(utils.logger) %}
                         <div class="submenu-parent">
-                            <a href="/checkclients/{{env}}">{{env}} &raquo;</a>
-                            <div class="dropdown-submenu">
-                                {% for realm in utils.getRealms(utils.logger, env) %}
-                                    <a href="/checkclients/{{env}}/{{realm}}">{{realm}}</a>
-                                {% endfor %}
-                            </div>
+                            <a href="/checkclients/{{env}}">{{env}}</a>
                         </div>
                     {% endfor %}
                 </div>

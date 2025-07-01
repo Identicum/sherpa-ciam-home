@@ -5,6 +5,9 @@
 {% block content %}
 <div class="container">
     <h1>Check Clients Warnings for {{env}}, realm: {{realmName}}</h1>
+    {% if error_message %}
+        <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
+    {% endif %}
     {% if warns and warns|length > 0 %}
         <table class="admin-links-table">
             <thead>

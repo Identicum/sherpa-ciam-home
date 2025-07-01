@@ -91,7 +91,6 @@
             <tr><th>Access Token Lifespan</th><td>{{client.realm_access_token_lifespan}}</td><td><strong>{{client.access_token_lifespan}}</strong></td></tr>
             <tr><th>Client Session Idle</th><td>{{client.realm_client_session_idle}}</td><td><strong>{{client.client_session_idle}}</strong></td></tr>
             <tr><th>Client Session Max</th><td>{{client.realm_client_session_max}}</td><td><strong>{{client.client_session_max}}</strong></td></tr>
-            <tr class="table-group-divider"><th colspan="3"></th></tr>
             <tr><th>SSO Session Idle Timeout</th><td colspan="2"><strong>{{realm.ssoSessionIdleTimeout}}</strong></td></tr>
             <tr><th>SSO Session Max Lifespan</th><td colspan="2"><strong>{{realm.ssoSessionMaxLifespan}}</strong></td></tr>
             <tr class="table-group-divider"><th colspan="3"></th></tr>
@@ -102,7 +101,7 @@
                         {% if warns|length > 0 %}
                             <ul class="list-unstyled mb-0">
                                 {% for warn in warns %}
-                                <li>{{ warn.issue_description }}</li>
+                                <li class="text-danger">&#8226; {{ warn.issue_description }}</li>
                                 {% endfor %}
                             </ul>
                         {% else %}

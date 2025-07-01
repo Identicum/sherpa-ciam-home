@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template
+import checkclients_report
 import utils
 
 clientinfo_bp = Blueprint('clientinfo', __name__)
@@ -58,11 +59,12 @@ def clientinfo_detail(env: str, realmName: str, client_id: str):
     client = utils.getClient(env, realmName, client_id)
     logger.trace("client: {}", client)
     realm = utils.getRealm(env, realmName)
-    # logger.trace("realm: {}", realm)
+    warns = checkclients_report.getClientWarns(logger=logger, env=env, realmName=realmName, client=client)
     return render_template(
         'clientinfo_detail.html',
         utils=utils,
         env=env,
         realm=realm,
-        client=client
+        client=client,
+        warns=warns
     )

@@ -94,6 +94,23 @@
             <tr class="table-group-divider"><th colspan="3"></th></tr>
             <tr><th>SSO Session Idle Timeout</th><td colspan="2"><strong>{{realm.ssoSessionIdleTimeout}}</strong></td></tr>
             <tr><th>SSO Session Max Lifespan</th><td colspan="2"><strong>{{realm.ssoSessionMaxLifespan}}</strong></td></tr>
+            <tr class="table-group-divider"><th colspan="3"></th></tr>
+            {% if warns %}
+                <tr>
+                    <th>Warnings</th>
+                    <td colspan="2">
+                        {% if warns|length > 0 %}
+                            <ul class="list-unstyled mb-0">
+                                {% for warn in warns %}
+                                <li>{{ warn.issue_description }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No warnings found.</p>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
     {% else %}

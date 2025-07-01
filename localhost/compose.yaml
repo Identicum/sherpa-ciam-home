@@ -1,3 +1,5 @@
+name: sherpa-ciam-home
+
 services:
     db:
         container_name: db

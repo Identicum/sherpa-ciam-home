@@ -454,7 +454,7 @@ def run(logger: Logger, output_path: str, environment: str) -> list:
 
 
 def main(arguments):
-	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/gen_checkclients_report.log")
+	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/checkclients_report.log")
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('output_path', type=str, help="Path to checkclients_*.json files.")
 	args = parser.parse_args(arguments)

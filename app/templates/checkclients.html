@@ -25,7 +25,7 @@
                 {% for warn in warns %}
                     <tr>
                         <td>{{warn.realmName}}</td>
-                        <td>{{warn.client_id}}</td>
+                        <td><a href="/clientinfo/{{env}}/{{warn.realmName}}/{{warn.client_id}}">{{warn.client_id}}</a></td>
                         <td>{{warn.tag}}</td>
                         <td>{{warn.name}}</td>
                         <td>{{warn.description}}</td>

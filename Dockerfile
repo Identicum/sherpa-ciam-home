@@ -12,7 +12,4 @@ RUN curl https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
     unzip terraform.zip -d /bin && \
     rm -f terraform.zip
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-
 COPY ./app/ /app

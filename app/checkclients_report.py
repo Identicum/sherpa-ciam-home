@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-from datetime import datetime, timezone
 import json
 import os
 import sys
@@ -426,9 +425,7 @@ def store_warns(logger: Logger, warns: list, output_file_path: str):
 		warns (list): List of warnings
 		output_file_path (str): **File** Path in which to save the JSON Plan
 	"""
-	now_local = datetime.now().astimezone()
-	timestamp_str = now_local.strftime("%Y-%m-%dT%H:%M:%S%z")
-	metadata = { "timestamp": timestamp_str }
+	metadata = { "timestamp": utils.get_local_datetime() }
 	output_content = { "metadata": metadata, "warns": warns }
 	logger.info("Storing warns into: {}", output_file_path)
 	with open(output_file_path, 'w') as f:

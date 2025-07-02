@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 from sherpa.utils.basics import Properties
@@ -8,6 +9,13 @@ logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/p
 properties = Properties("/local.properties", "/local.properties")
 
 valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]
+
+
+def get_local_datetime() -> str:
+    """Return the current local date/time as an ISO string with timezone offset."""
+    now_local = datetime.now().astimezone()
+    return now_local.strftime("%Y-%m-%d %H:%M:%S")
+
 
 def getData() -> dict:
     """Returns the parsed contents of /data/home.json

@@ -8,6 +8,7 @@
     {% if error_message %}
         <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
     {% endif %}
+    <p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
     {% if warns and warns|length > 0 %}
     <h2>{{warns|length}} warnings</h2>
         <table class="admin-links-table">

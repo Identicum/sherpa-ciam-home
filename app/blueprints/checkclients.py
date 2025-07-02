@@ -22,12 +22,14 @@ def checkclientsEnv(env: str):
     report_data = None
     error_message = None
     warns = []
+    metadata = {}
 
     try:
         if os.path.exists(report_file_path):
             with open(report_file_path, 'r') as f:
                 report_data = json.load(f)
                 warns = report_data.get("warns", [])
+                metadata = report_data.get("metadata", {})
         else:
             error_message = f"Report file not found: {report_file_path}"
     except json.JSONDecodeError:
@@ -40,6 +42,7 @@ def checkclientsEnv(env: str):
         utils=utils,
         env=env,
         warns=warns,
+        metadata=metadata,
         realmName="All Realms",
         error_message=error_message
     )

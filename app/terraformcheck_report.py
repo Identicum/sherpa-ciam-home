@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-from datetime import datetime, timezone
 import json
 import os
 import sys
@@ -106,9 +105,7 @@ def initialize_output_file(logger: Logger, output_file_path: str):
 		logger (Logger): Logger instance
 		output_file_path (str): **File** Path in which to save the JSON Plan
 	"""
-	now_local = datetime.now().astimezone()
-	timestamp_str = now_local.strftime("%Y-%m-%dT%H:%M:%S%z")
-	metadata = { "timestamp": timestamp_str }
+	metadata = { "timestamp": utils.get_local_datetime() }
 	output_content = { "metadata": metadata }
 	with open(output_file_path, 'w') as f:
 		json.dump(output_content, f, indent=4)

@@ -27,12 +27,17 @@ def run(logger: Logger, output_path: str, environment: str) -> list:
 	for realmName in utils.getRealms(logger, environment):
 		logger.debug("Getting Clients activity for realm: {}", realmName)
 		realm_activity = []
+		elastic = utils.getElastic(logger, environment)
+		if not elastic:
+			last_activity = "No Elastic configuration"
 		for client in utils.getClients(environment, realmName):
+			if elastic:
+				last_activity = utils.getClientLastActivity(logger=logger, env=environment, elastic=elastic, realmName=realmName, client_id=client["clientId"])
 			client_activity = {
 				"client_id": client["clientId"],
                 "name": client["name"],
                 "enabled": client["enabled"],
-                "last_activity": utils.getClientLastActivity(logger, environment, realmName, client["clientId"])
+                "last_activity": last_activity
             }
 			realm_activity.append(client_activity)
 		output_content["activity"][realmName] = realm_activity

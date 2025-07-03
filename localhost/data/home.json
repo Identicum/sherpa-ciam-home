@@ -37,18 +37,34 @@
             "keycloak_url": "http://idp:8080",
             "username": "sherpaciamhome",
             "password": "$env:LOCAL_KEYCLOAK_PASSWORD",
+            "elastic_configuration": {
+                "urls": []
+            },
             "var_files": ["../env/local_secrets.tfvars", "../env/local.tfvars"]
         },
         "dev": {
             "keycloak_url": "https://dev.identicum.com",
+            "elastic_configuration": {
+                "urls": []
+            },
             "var_files": []
         },
         "test": {
             "keycloak_url": "https://test-idp.identicum.com",
+            "elastic_configuration": {
+                "urls": [],
+                "username": "",
+                "password": ""
+            },
             "var_files": []
         },
         "prod": {
             "keycloak_url": "https://idp.identicum.com",
+            "elastic_configuration": {
+                "urls": [],
+                "username": "",
+                "password": ""
+            },
             "var_files": []
         }
     }

@@ -1,4 +1,5 @@
 from datetime import datetime
+from elasticsearch import Elasticsearch
 import json
 import os
 from sherpa.utils.basics import Properties
@@ -137,6 +138,8 @@ def getWorkspaces(logger: Logger, realmType: str, environment: str) -> list:
 
     Args:
         logger (Logger): Logger instance
+        realmType (str): Realm type
+        environment (str): Environment
 
     Returns:
         list: List of the given realm's workspaces from /data/home.json
@@ -147,6 +150,32 @@ def getWorkspaces(logger: Logger, realmType: str, environment: str) -> list:
     instance = realm_type.get(environment)
 
     return list(data.get("realms", {}).get(realmType).get(environment, {}).keys())
+
+
+def getElastic(logger: Logger, environment: str):
+    """Returns ElasticSearch connection
+
+    Args:
+        logger (Logger): Logger instance
+        environment (str): Environment
+
+    Returns:
+        Elasticsearch: ElasticSeach connection
+    """
+    data = getData()
+    urls = data.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("urls", [])
+    if urls:
+        username = data.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("username", "")
+        password = data.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("password", "")
+        if username and password:
+            logger.debug("Connecting to urls: {}, username: {}", urls, username)
+            return Elasticsearch(urls, http_auth=(username, password))
+        else:
+            logger.debug("Connecting to urls: {}", urls)
+            return Elasticsearch(urls)
+    else:
+        logger.debug("No Elastic URLs provided.")
+        return None
 
 
 def getKeycloakAdmin(env: str, realm: str) -> SherpaKeycloakAdmin:
@@ -195,19 +224,39 @@ def getClients(env: str, realm: str) -> list:
         return []
 
 
-def getClientLastActivity(logger: Logger, env: str, realm: str, client_id: str) -> list:
+def getClientLastActivity(logger: Logger, env: str, elastic: Elasticsearch, realmName: str, client_id: str) -> list:
     """List Clients including last activity.
 
     Args:
         logger (Logger): Logger instance
         env (str): Environment name
-        realm (str): Realm name
+        elastic (Elasticsearch): ElasticSearch connection
+        realmName (str): Realm name
         client_id (str): client_id
 
     Returns:
         str: Date of last activity of the client, or "No activity"
     """
-    return "No activity"
+    activity_query_response = elastic.search(index="", body={
+        "size": 1,
+        "query": {
+            "bool": {
+                "must": [
+                    {"match": {"idp.realm": realmName}},
+                    {"match": {"idp.client_id": client_id}}
+                ]
+            }
+        },
+    })
+    logger.debug("activity_query_response: {}", activity_query_response)
+    hits_list = activity_query_response.get("hits", {}).get("hits", [])
+    if hits_list:
+        timestamp = hits_list[0].get("_source", {}).get("@timestamp", "")
+        dt_utc = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        dt_local = dt_utc.astimezone()
+        return dt_local.strftime("%Y-%m-%d %H:%M")
+    else:
+        return "No activity"
 
 
 def getClient(env: str, realmName: str, client_id: str) -> dict:

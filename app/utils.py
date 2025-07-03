@@ -195,6 +195,21 @@ def getClients(env: str, realm: str) -> list:
         return []
 
 
+def getClientLastActivity(logger: Logger, env: str, realm: str, client_id: str) -> list:
+    """List Clients including last activity.
+
+    Args:
+        logger (Logger): Logger instance
+        env (str): Environment name
+        realm (str): Realm name
+        client_id (str): client_id
+
+    Returns:
+        str: Date of last activity of the client, or "No activity"
+    """
+    return "No activity"
+
+
 def getClient(env: str, realmName: str, client_id: str) -> dict:
     """Will fetch a Client from a given Realm in a given Environment using the provided `client_id` in the Keycloak API, then format the object so as to standardize the output between different client types
 
@@ -203,7 +218,7 @@ def getClient(env: str, realmName: str, client_id: str) -> dict:
         realmName (str): Realm name
         client_id (str): Client ID
     Returns:
-        dict: Resulting Client Object
+        dict: Resulting Normalized Client object
     """
     kc_admin = getKeycloakAdmin(env, realmName)
     if not kc_admin:

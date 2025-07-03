@@ -1,0 +1,49 @@
+{% extends "index.html" %}
+
+{% block title %}Clients activity for {{ env }} - {{ realmName }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Clients activity list for {{ env }} - {{ realmName }}</h1>
+    {% if error_message %}
+        <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
+    {% endif %}
+    {% if metadata and metadata.timestamp %}
+        <p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
+    {% endif %}
+    {% if realm_activity_data and realm_activity_data|length > 0 %}
+    <table class="admin-links-table">
+        <thead>
+            <tr>
+                <th>Client ID</th>
+                <th>Client Name</th>
+                <th>Status</th>
+                <th>Last activity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in realm_activity_data %}
+            <tr>
+                <td>
+                    <a href="/clientinfo/{{ env }}/{{ realmName }}/{{ client.client_id }}">
+                        {{ client.client_id }}
+                    </a>
+                </td>
+                <td>{{ client.name }}</td>
+                <td style="text-align:center;">
+                    {% if client.enabled %}
+                        <span title="Enabled" style="color:green;">&#x2714;</span>
+                    {% else %}
+                        <span title="Disabled" style="color:red;">&#x2716;</span>
+                    {% endif %}
+                <td>{{ client.last_activity }}</td>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No clients found for this environment and realm.</p>
+    {% endif %}
+</div>
+{% endblock %}

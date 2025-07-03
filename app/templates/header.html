@@ -26,7 +26,7 @@
                 <a href="javascript:void(0)" class="dropbtn">Clients Activity</a>
                 <div class="dropdown-content">
                     {% for env in utils.getEnvironments(utils.logger) %}
-                    <a href="/clientactivity/{{env}}">{{env}}</a>
+                    <a href="/clientsactivity/{{env}}">{{env}}</a>
                     {% endfor %}
                 </div>
             </li>

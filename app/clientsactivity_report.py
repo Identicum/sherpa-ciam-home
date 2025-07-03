@@ -35,7 +35,7 @@ def run(logger: Logger, output_path: str, environment: str) -> list:
 				last_activity = utils.getClientLastActivity(logger=logger, env=environment, elastic=elastic, realmName=realmName, client_id=client["clientId"])
 			client_activity = {
 				"client_id": client["clientId"],
-                "name": client["name"],
+                "name": client.get("name", ""),
                 "enabled": client["enabled"],
                 "last_activity": last_activity
             }

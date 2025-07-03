@@ -30,11 +30,16 @@ def getData() -> dict:
             data = json.load(f)
         envs = data.get("environments", {})
         for env_name, env_info in envs.items():
-            password = env_info.get("password")
-            if isinstance(password, str) and password.startswith("$env:"):
-                env_var = password[5:]
-                logger.trace("Getting password for env {} from variable '{}'", env_name, env_var)
+            keycloak_password = env_info.get("password")
+            if isinstance(keycloak_password, str) and keycloak_password.startswith("$env:"):
+                env_var = keycloak_password[5:]
+                logger.trace("Getting KC password for env {} from variable '{}'", env_name, env_var)
                 env_info["password"] = os.environ.get(env_var, "")
+            elastic_password = env_info.get("elastic_configuration", {}).get("password", "")
+            if isinstance(elastic_password, str) and elastic_password.startswith("$env:"):
+                env_var = elastic_password[5:]
+                logger.trace("Getting Elastic password for env {} from variable '{}'", env_name, env_var)
+                env_info["elastic_configuration"]["password"] = os.environ.get(env_var, "")
         return data
     except FileNotFoundError:
         logger.error("Data file '{}' not found.", datafile)

@@ -425,7 +425,7 @@ def store_warns(logger: Logger, warns: list, output_file_path: str):
 		warns (list): List of warnings
 		output_file_path (str): **File** Path in which to save the JSON Plan
 	"""
-	metadata = { "timestamp": utils.get_local_datetime() }
+	metadata = { "timestamp": utils.getLocalDatetime() }
 	output_content = { "metadata": metadata, "warns": warns }
 	logger.info("Storing warns into: {}", output_file_path)
 	with open(output_file_path, 'w') as f:

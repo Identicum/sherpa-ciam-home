@@ -22,7 +22,7 @@ def run(logger: Logger, output_path: str, environment: str) -> list:
 	"""
 	logger.info("Getting Clients activity for environment: {}", environment)
 	output_file_path = "{}/clientsactivity_{}.json".format(output_path, environment)
-	metadata = { "timestamp": utils.get_local_datetime() }
+	metadata = { "timestamp": utils.getLocalDatetime() }
 	output_content = { "metadata": metadata, "activity": {} }
 	for realmName in utils.getRealms(logger, environment):
 		logger.debug("Getting Clients activity for realm: {}", realmName)

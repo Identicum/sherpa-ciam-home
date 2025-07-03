@@ -11,7 +11,7 @@ properties = Properties("/local.properties", "/local.properties")
 valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]
 
 
-def get_local_datetime() -> str:
+def getLocalDatetime() -> str:
     """Return the current local date/time as an ISO string with timezone offset."""
     now_local = datetime.now().astimezone()
     return now_local.strftime("%Y-%m-%d %H:%M:%S")

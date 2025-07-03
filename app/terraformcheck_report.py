@@ -105,7 +105,7 @@ def initialize_output_file(logger: Logger, output_file_path: str):
 		logger (Logger): Logger instance
 		output_file_path (str): **File** Path in which to save the JSON Plan
 	"""
-	metadata = { "timestamp": utils.get_local_datetime() }
+	metadata = { "timestamp": utils.getLocalDatetime() }
 	output_content = { "metadata": metadata }
 	with open(output_file_path, 'w') as f:
 		json.dump(output_content, f, indent=4)

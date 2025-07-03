@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template
+import clientsactivity_report
 import json
 import os
 import utils
@@ -21,6 +22,29 @@ def clientsactivity_list_realms(env: str):
         'clientsactivity_list_realms.html',
         utils=utils,
         env=env
+    )
+
+
+@clientsactivity_bp.route('/clientsactivity/<env>/generate', methods=["GET"])
+def clientsactivityEnvGenerate(env: str):
+    """Renders Environment-Specific 'Clients activity' Report **GENERATION** Page
+
+    Args:
+        env (str): Environment name
+
+    Returns:
+        Template: Environment-Specific 'Clients activity' Report **GENERATION** Rendered Page HTML
+    """
+    output = clientsactivity_report.run(
+        logger=logger,
+        output_path="/data",
+        environment=env
+    )
+    return render_template(
+        'terraformcheck_output.html',
+        utils=utils,
+        env=env,
+        process_output=output,
     )
 
 

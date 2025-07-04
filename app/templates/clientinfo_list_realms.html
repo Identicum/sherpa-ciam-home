@@ -5,6 +5,7 @@
 {% block content %}
 <div class="container">
     <h1>Client Info List for {{ env }}</h1>
+    {% set realms = utils.getRealms(utils.logger, env) %}
     {% if realms and realms|length > 0 %}
     <table class="admin-links-table">
         <thead>

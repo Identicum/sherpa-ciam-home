@@ -220,6 +220,7 @@ def getClients(env: str, realm: str) -> list:
     """
     kc_admin = getKeycloakAdmin(env, realm)
     if not kc_admin:
+        logger.error("Error fetching clients for {}/{}. No kc_admin.", env, realm)
         return []
     try:
         clients = kc_admin.get_clients()

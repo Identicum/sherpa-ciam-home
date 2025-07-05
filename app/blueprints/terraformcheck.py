@@ -6,39 +6,38 @@ import utils
 
 terraformcheck_bp = Blueprint('terraformcheck', __name__, template_folder='../templates')
 
-logger = utils.logger
 
-@terraformcheck_bp.route('/terraformcheck/<env>', methods=["GET"])
-def terraform_check_report(env: str):
+@terraformcheck_bp.route('/terraformcheck/<environment>', methods=["GET"])
+def terraform_check_report(environment: str):
     """Renders 'Terraform Check' Diff Report Page
 
     Args:
-        env (str): Environment name
+        environment (str): Environment name
 
     Returns:
         Template: 'Terraform Check' Diff Report Rendered HTML Page
     """
-    report_file_path = "/data/terraform_check_{}.json".format(env)
-    report_data = None
-    error_message = None
+    reportFilePath = "/data/terraform_check_{}.json".format(environment)
+    reportData = None
+    errorMessage = None
     
     try:
-        if os.path.exists(report_file_path):
-            with open(report_file_path, 'r') as f:
-                report_data = json.load(f)
+        if os.path.exists(reportFilePath):
+            with open(reportFilePath, 'r') as f:
+                reportData = json.load(f)
         else:
-            error_message = f"Report file not found: {report_file_path}"
+            errorMessage = f"Report file not found: {reportFilePath}"
     except json.JSONDecodeError:
-        error_message = f"Error decoding JSON from report file: {report_file_path}"
+        errorMessage = f"Error decoding JSON from report file: {reportFilePath}"
     except Exception as e:
-        error_message = f"An unexpected error occurred while reading {report_file_path}: {str(e)}"
+        errorMessage = f"An unexpected error occurred while reading {reportFilePath}: {str(e)}"
         
     return render_template(
         'terraformcheck.html',
         utils=utils,
-        env=env,
-        report_data=report_data,
-        error_message=error_message
+        environment=environment,
+        reportData=reportData,
+        errorMessage=errorMessage
     )
 
 
@@ -50,41 +49,43 @@ def terraform_generate_general_report():
         Template: General 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
     process_output = []
-    for env in utils.getEnvironments(logger):
+    logger = utils.getLogger()
+    for environment in utils.getEnvironments(logger=logger):
         output = terraformcheck_report.run(
             logger=logger,
-            objects_path="/terraform-objects",
-            output_path="/data",
-            environment=env
+            objectsPath="/terraform-objects",
+            outputPath="/data",
+            environment=environment
         )
         process_output.append(output)
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
-        env="All Environments",
+        environment="All Environments",
         process_output=process_output,
     )
 
 
-@terraformcheck_bp.route('/terraformcheck/generate/<env>', methods=["GET"])
-def terraform_generate_report(env: str):
+@terraformcheck_bp.route('/terraformcheck/generate/<environment>', methods=["GET"])
+def terraform_generate_report(environment: str):
     """Renders Environment-Specific 'Terraform Check' Diff Report **GENERATION** Page
 
     Args:
-        env (str): Environment name
+        environment (str): Environment name
 
     Returns:
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
+    logger = utils.getLogger()
     output = terraformcheck_report.run(
         logger=logger,
-        objects_path="/terraform-objects",
-        output_path="/data",
-        environment=env
+        objectsPath="/terraform-objects",
+        outputPath="/data",
+        environment=environment
     )
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
-        env=env,
+        environment=environment,
         process_output=output,
     )

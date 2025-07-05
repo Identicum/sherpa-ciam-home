@@ -1,10 +1,10 @@
 {% extends "index.html" %}
 
-{% block title %}Client Info for {{ env }} - {{ realm.realm }} - {{ client.client_id }}{% endblock %}
+{% block title %}Client Info for {{ environment }} - {{ realm.realm }} - {{ client.client_id }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Client Info for {{ env }} - {{ realm.realm }} - {{ client.client_id }}</h1>
+    <h1>Client Info for {{ environment }} - {{ realm.realm }} - {{ client.client_id }}</h1>
     {% if client %}
     <table class="table table-bordered" style="max-width:700px;">
         <tbody>
@@ -101,7 +101,7 @@
                         {% if warns|length > 0 %}
                             <ul class="list-unstyled mb-0">
                                 {% for warn in warns %}
-                                <li class="text-danger">&#8226; {{ warn.issue_description }}</li>
+                                <li class="text-danger">&#8226; {{ warn.issueDescription }}</li>
                                 {% endfor %}
                             </ul>
                         {% else %}

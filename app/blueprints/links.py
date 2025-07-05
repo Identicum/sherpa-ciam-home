@@ -8,21 +8,21 @@ with open('/data/links.json') as linksFile:
     linksJson = json.load(linksFile)
 
 
-@links_bp.route('/links/<env>', methods=["GET"])
-def links(env: str):
+@links_bp.route('/links/<environment>', methods=["GET"])
+def links(environment: str):
     """Renders URL List Page
 
     Args:
-        env (str): Environment Name
+        environment (str): Environment Name
 
     Returns:
         Template: URL List Page Rendered HTML Page
     """
-    links = linksJson.get(env, [])
+    links = linksJson.get(environment, [])
     return render_template(
         'links.html',
         utils=utils,
         links=links,
-        env=env
+        environment=environment
     )
 

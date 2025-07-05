@@ -1,22 +1,22 @@
 {% extends "index.html" %}
 
-{% block title %}Terraform Check for {{ env }}{% endblock %}
+{% block title %}Terraform Check for {{ environment }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Terraform Check for {{ env }}</h1>
+    <h1>Terraform Check for {{ environment }}</h1>
 
-    {% if error_message %}
-        <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
-    {% elif report_data %}
-        {% if report_data.metadata and report_data.metadata.timestamp %}
-            <p><strong>Report generated on:</strong> {{ report_data.metadata.timestamp }}</p>
+    {% if errorMessage %}
+        <div class="alert alert-danger" role="alert">Error: {{ errorMessage }}</div>
+    {% elif reportData %}
+        {% if reportData.metadata and reportData.metadata.timestamp %}
+            <p><strong>Report generated on:</strong> {{ reportData.metadata.timestamp }}</p>
         {% else %}
             <p><em>Report metadata missing.</em></p>
         {% endif %}
         <hr>
         
-        {% if report_data.diff is mapping and report_data.diff %}
+        {% if reportData.diff is mapping and reportData.diff %}
             <table class="table table-bordered table-hover" style="margin-top: 10px; width: 100%;">
                 <thead class="table-light">
                     <tr>
@@ -28,7 +28,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for realm_key, changes_list in report_data.diff.items() %}
+                    {% for realm_key, changes_list in reportData.diff.items() %}
                         {# Sanitize ID for use in HTML #}
                         {% set detail_id = "details-" ~ realm_key | replace('.', '_') | replace('-', '_') %}
 

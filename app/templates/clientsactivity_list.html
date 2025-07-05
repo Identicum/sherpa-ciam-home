@@ -1,12 +1,12 @@
 {% extends "index.html" %}
 
-{% block title %}Clients activity for {{ env }} - {{ realmName }}{% endblock %}
+{% block title %}Clients activity for {{ environment }} - {{ realmName }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Clients activity list for {{ env }} - {{ realmName }}</h1>
-    {% if error_message %}
-        <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
+    <h1>Clients activity list for {{ environment }} - {{ realmName }}</h1>
+    {% if errorMessage %}
+        <div class="alert alert-danger" role="alert">Error: {{ errorMessage }}</div>
     {% endif %}
     {% if metadata and metadata.timestamp %}
         <p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
@@ -25,7 +25,7 @@
             {% for client in realm_activity_data %}
             <tr>
                 <td>
-                    <a href="/clientinfo/{{ env }}/{{ realmName }}/{{ client.client_id }}">
+                    <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ client.client_id }}">
                         {{ client.client_id }}
                     </a>
                 </td>

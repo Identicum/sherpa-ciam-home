@@ -6,14 +6,13 @@ import utils
 
 clientsactivity_bp = Blueprint('clientsactivity', __name__)
 
-logger = utils.logger
 
-@clientsactivity_bp.route('/clientsactivity/<env>', methods=["GET"])
-def clientsactivity_list_realms(env: str):
+@clientsactivity_bp.route('/clientsactivity/<environment>', methods=["GET"])
+def clientsactivity_list_realms(environment: str):
     """Renders 'Clients Activity' Realm list template
 
     Args:
-        env (str): Environment name
+        environment (str): Environment name
 
     Returns:
         Template: Realm list rendered HTML Page
@@ -21,68 +20,69 @@ def clientsactivity_list_realms(env: str):
     return render_template(
         'clientsactivity_list_realms.html',
         utils=utils,
-        env=env
+        environment=environment
     )
 
 
-@clientsactivity_bp.route('/clientsactivity/<env>/generate', methods=["GET"])
-def clientsactivityEnvGenerate(env: str):
+@clientsactivity_bp.route('/clientsactivity/<environment>/generate', methods=["GET"])
+def clientsactivityEnvGenerate(environment: str):
     """Renders Environment-Specific 'Clients activity' Report **GENERATION** Page
 
     Args:
-        env (str): Environment name
+        environment (str): Environment name
 
     Returns:
         Template: Environment-Specific 'Clients activity' Report **GENERATION** Rendered Page HTML
     """
-    output = clientsactivity_report.run(
+    logger = utils.getLogger()
+    processOutput = clientsactivity_report.run(
         logger=logger,
-        output_path="/data",
-        environment=env
+        outputPath="/data",
+        environment=environment
     )
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
-        env=env,
-        process_output=output,
+        environment=environment,
+        processOutput=processOutput,
     )
 
 
-@clientsactivity_bp.route('/clientsactivity/<env>/<realmName>', methods=["GET"])
-def clientsactivity_list(env: str, realmName: str):
+@clientsactivity_bp.route('/clientsactivity/<environment>/<realmName>', methods=["GET"])
+def clientsactivity_list(environment: str, realmName: str):
     """Renders 'Clients Activity' Realm's Clients list Template
 
     Args:
-        env (str): Environment name
+        environment (str): Environment name
         realmName (str): Realm name
 
     Returns:
         Template: 'Client Info' Realm's Client List Rendered HTML Page
     """
-    report_file_path = "/data/clientsactivity_{}.json".format(env)
-    report_data = None
-    error_message = None
+    reportFilePath = "/data/clientsactivity_{}.json".format(environment)
+    reportData = None
+    errorMessage = None
     metadata = {}
-    realm_activity_data = []
+    realmActivityData = []
     
     try:
-        if os.path.exists(report_file_path):
-            with open(report_file_path, 'r') as f:
-                report_data = json.load(f)
-                metadata = report_data.get("metadata", {})
-                realm_activity_data = report_data.get("activity", {}).get(realmName, [])
+        if os.path.exists(reportFilePath):
+            with open(reportFilePath, 'r') as f:
+                reportData = json.load(f)
+                metadata = reportData.get("metadata", {})
+                realmActivityData = reportData.get("activity", {}).get(realmName, [])
         else:
-            error_message = f"Report file not found: {report_file_path}"
+            errorMessage = f"Report file not found: {reportFilePath}"
     except json.JSONDecodeError:
-        error_message = f"Error decoding JSON from report file: {report_file_path}"
+        errorMessage = f"Error decoding JSON from report file: {reportFilePath}"
     except Exception as e:
-        error_message = f"An unexpected error occurred while reading {report_file_path}: {str(e)}"
+        errorMessage = f"An unexpected error occurred while reading {reportFilePath}: {str(e)}"
     return render_template(
         'clientsactivity_list.html',
         utils=utils,
-        env=env,
+        environment=environment,
         realmName=realmName,
         metadata=metadata,
-        error_message=error_message,
-        realm_activity_data=realm_activity_data
+        errorMessage=errorMessage,
+        realmActivityData=realmActivityData
     )

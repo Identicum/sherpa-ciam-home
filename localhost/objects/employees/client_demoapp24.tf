@@ -17,15 +17,14 @@ resource "keycloak_openid_client" "demoapp24" {
   frontchannel_logout_enabled     = true
 }
 
+resource "keycloak_openid_client_optional_scopes" "demoapp24_optionalscopes" {
+  realm_id  = resource.keycloak_realm.realm.id
+  client_id = keycloak_openid_client.demoapp24.id
+  optional_scopes = [ ]
+}
+
 resource "keycloak_openid_client_default_scopes" "demoapp24_defaultscopes" {
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.demoapp24.id
   default_scopes = [ "basic", "profile" ]
-}
-
-resource "keycloak_openid_client_optional_scopes" "demoapp24_optionalscopes" {
-  depends_on = [ keycloak_openid_client_default_scopes.demoapp24_defaultscopes ]
-  realm_id  = resource.keycloak_realm.realm.id
-  client_id = keycloak_openid_client.demoapp24.id
-  optional_scopes = [ ]
 }

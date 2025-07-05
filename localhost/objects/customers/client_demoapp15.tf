@@ -18,15 +18,14 @@ resource "keycloak_openid_client" "demoapp15" {
   access_token_lifespan           = "1800"
 }
 
-resource "keycloak_openid_client_default_scopes" "demoapp15_defaultscopes" {
-  realm_id  = resource.keycloak_realm.realm.id
-  client_id = keycloak_openid_client.demoapp15.id
-  default_scopes = [ "basic", "profile" ]
-}
-
 resource "keycloak_openid_client_optional_scopes" "demoapp15_optionalscopes" {
-  depends_on = [ keycloak_openid_client_default_scopes.demoapp15_defaultscopes ]
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.demoapp15.id
   optional_scopes = [ ]
+}
+
+resource "keycloak_openid_client_default_scopes" "demoapp15_defaultscopes" {
+  realm_id  = resource.keycloak_realm.realm.id
+  client_id = keycloak_openid_client.demoapp15.id
+  default_scopes = [ "basic", "roles", "service_account" ]
 }

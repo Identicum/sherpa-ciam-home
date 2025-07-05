@@ -1,12 +1,12 @@
 {% extends "index.html" %}
 
-{% block title %}Check Clients Warnings for {{env}}, realm: {{realmName}}{% endblock %}
+{% block title %}Check Clients Warnings for {{environment}}, realm: {{realmName}}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Check Clients warnings. Environment: {{env}}, realm: {{realmName}}</h1>
-    {% if error_message %}
-        <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
+    <h1>Check Clients warnings. Environment: {{environment}}, realm: {{realmName}}</h1>
+    {% if errorMessage %}
+        <div class="alert alert-danger" role="alert">Error: {{ errorMessage }}</div>
     {% endif %}
     <p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
     {% if warns and warns|length > 0 %}
@@ -27,12 +27,12 @@
                 {% for warn in warns %}
                     <tr>
                         <td>{{warn.realmName}}</td>
-                        <td><a href="/clientinfo/{{env}}/{{warn.realmName}}/{{warn.client_id}}">{{warn.client_id}}</a></td>
+                        <td><a href="/clientinfo/{{environment}}/{{warn.realmName}}/{{warn.client_id}}">{{warn.client_id}}</a></td>
                         <td>{{warn.tag}}</td>
                         <td>{{warn.name}}</td>
                         <td>{{warn.description}}</td>
-                        <td>{{warn.issue_level}}</td>
-                        <td>{{warn.issue_description}}</td>
+                        <td>{{warn.issueLevel}}</td>
+                        <td>{{warn.issueDescription}}</td>
                     </tr>
                 {% endfor %}
             </tbody>

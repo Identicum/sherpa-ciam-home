@@ -1,11 +1,11 @@
 {% extends "index.html" %}
 
-{% block title %}Clients activity for {{ env }}{% endblock %}
+{% block title %}Clients activity for {{ environment }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Clients activity list for {{ env }}</h1>
-    {% set realms = utils.getRealms(utils.logger, env) %}
+    <h1>Clients activity list for {{ environment }}</h1>
+    {% set realms = utils.getRealms(utils.getLogger(), environment) %}
     {% if realms and realms|length > 0 %}
     <table class="admin-links-table">
         <thead>
@@ -17,7 +17,7 @@
             {% for realmName in realms %}
             <tr>
                 <td>
-                    <a href="/clientsactivity/{{ env }}/{{ realmName }}">
+                    <a href="/clientsactivity/{{ environment }}/{{ realmName }}">
                         {{ realmName }}
                     </a>
                 </td>

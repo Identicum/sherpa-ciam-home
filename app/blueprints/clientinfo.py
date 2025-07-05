@@ -4,14 +4,13 @@ import utils
 
 clientinfo_bp = Blueprint('clientinfo', __name__)
 
-logger = utils.logger
 
-@clientinfo_bp.route('/clientinfo/<env>', methods=["GET"])
-def clientinfo_list_realms(env: str):
+@clientinfo_bp.route('/clientinfo/<environment>', methods=["GET"])
+def clientinfo_list_realms(environment: str):
     """Renders 'Client Info' Realm list template
 
     Args:
-        env (str): Environment name
+        environment (str): Environment name
 
     Returns:
         Template: Realm list rendered HTML Page
@@ -19,33 +18,34 @@ def clientinfo_list_realms(env: str):
     return render_template(
         'clientinfo_list_realms.html',
         utils=utils,
-        env=env
+        environment=environment
     )
 
 
-@clientinfo_bp.route('/clientinfo/<env>/<realmName>', methods=["GET"])
-def clientinfo_list(env: str, realmName: str):
+@clientinfo_bp.route('/clientinfo/<environment>/<realmName>', methods=["GET"])
+def clientinfo_list(environment: str, realmName: str):
     """Renders 'Client Info' Realm's Clients list Template
 
     Args:
-        env (str): Environment name
+        environment (str): Environment name
         realmName (str): Realm name
 
     Returns:
         Template: 'Client Info' Realm's Client List Rendered HTML Page
     """
-    clients = utils.getClients(env, realmName)
+    logger = utils.getLogger()
+    clients = utils.getClients(logger=logger, environment=environment, realmName=realmName)
     return render_template(
         'clientinfo_list.html',
         utils=utils,
-        env=env,
+        environment=environment,
         realmName=realmName,
         clients=clients
     )
 
 
 @clientinfo_bp.route('/clientinfo/<env>/<realmName>/<client_id>', methods=["GET"])
-def clientinfo_detail(env: str, realmName: str, client_id: str):
+def clientinfo_detail(environment: str, realmName: str, client_id: str):
     """Renders 'Client Info' Client Detail Page
  
     Args:
@@ -56,15 +56,16 @@ def clientinfo_detail(env: str, realmName: str, client_id: str):
     Returns:
         Template: 'Client Info' Client Detail Rendered HTML Page
     """
-    client = utils.getClient(env, realmName, client_id)
-    logger.trace("client: {}", client)
-    realm = utils.getRealm(env, realmName)
-    warns = checkclients_report.getClientWarns(logger=logger, env=env, realmName=realmName, client=client)
+    normalizedClient = utils.getClient(logger=logger, environment=environment, realmName=realmName, client_id=client_id)
+    logger = utils.getLogger()
+    logger.trace("client: {}", normalizedClient)
+    realm = utils.getRealm(logger=logger, environment=environment, realmName=realmName)
+    warns = checkclients_report.getClientWarns(logger=logger, environment=environment, realmName=realmName, client=normalizedClient)
     return render_template(
         'clientinfo_detail.html',
         utils=utils,
-        env=env,
+        environment=environment,
         realm=realm,
-        client=client,
+        normalizedClient=normalizedClient,
         warns=warns
     )

@@ -1,10 +1,10 @@
 {% extends "index.html" %}
 
-{% block title %}Links for {{ env }}{% endblock %}
+{% block title %}Links for {{ environment }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Links for {{ env }}</h1>
+    <h1>Links for {{ environment }}</h1>
 
     {# Check if links is a dictionary (mapping) #}
     {% if links and links is mapping %}
@@ -63,7 +63,7 @@
             <p>No use cases links found for this environment.</p>
         {% endif %}
     {% else %}
-        <p>No link data found for the environment: {{ env }}. Please check if the environment exists in links.json or if the data is structured correctly.</p>
+        <p>No link data found for the environment: {{ environment }}. Please check if the environment exists in links.json or if the data is structured correctly.</p>
     {% endif %}
 
     <p><a href="{{ url_for('index') }}">Back to Home</a></p>

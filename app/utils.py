@@ -229,12 +229,11 @@ def getClients(logger: Logger, environment: str, realmName: str) -> list:
         return []
 
 
-def getClientLastActivity(logger: Logger, env: str, elastic: Elasticsearch, realmName: str, client_id: str) -> list:
+def getClientLastActivity(logger: Logger, elastic: Elasticsearch, realmName: str, client_id: str) -> list:
     """List Clients including last activity.
 
     Args:
         logger (Logger): Logger instance
-        env (str): Environment name
         elastic (Elasticsearch): ElasticSearch connection
         realmName (str): Realm name
         client_id (str): client_id

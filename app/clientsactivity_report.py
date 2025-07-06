@@ -32,7 +32,7 @@ def run(logger: Logger, outputPath: str, environment: str) -> list:
 			last_activity = "No Elastic configuration"
 		for client in utils.getClients(logger=logger, environment=environment, realmName=realmName):
 			if elastic:
-				last_activity = utils.getClientLastActivity(logger=logger, environment=environment, elastic=elastic, realmName=realmName, client_id=client["clientId"])
+				last_activity = utils.getClientLastActivity(logger=logger, elastic=elastic, realmName=realmName, client_id=client["clientId"])
 			client_activity = {
 				"client_id": client["clientId"],
                 "name": client.get("name", ""),

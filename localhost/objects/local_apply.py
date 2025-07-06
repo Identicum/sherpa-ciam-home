@@ -23,7 +23,7 @@ def main(arguments):
 			terraform.delete_workspace_state(logger=logger, objectsFolder=realmFolder, workspace=workspace)
 			terraform.create_workspace(logger=logger, objectsFolder=realmFolder, workspace=workspace)
 			terraform.select_workspace(logger=logger, objectsFolder=realmFolder, workspace=workspace)
-			instanceVarFiles = utils.getData().get("realms").get(realmType).get(environment).get(workspace).get("var_files", [])
+			instanceVarFiles = utils.getData(logger=logger).get("realms").get(realmType).get(environment).get(workspace).get("var_files", [])
 			varFiles = environmentVarFiles + instanceVarFiles
 			terraform.apply(logger=logger, objectsFolder=realmFolder, varFiles=varFiles)
 

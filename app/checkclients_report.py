@@ -161,7 +161,7 @@ def checkTag(logger: Logger, normalizedClient: dict) -> list:
         warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="Client has no tag."))
 
     if normalizedClient["tag"]=="[TAG_INVALID]":
-        warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="Client tag is invalid: " + client["tag"]))
+        warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="Client tag is invalid: " + normalizedClient["tag"]))
         
     return warns
 

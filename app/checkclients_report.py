@@ -108,6 +108,8 @@ def getClientWarns(logger: Logger, environment: str, realmName: str, normalizedC
             clientWarns.append(warn)
         for warn in checkScopes(logger=logger, normalizedClient=normalizedClient):
                 clientWarns.append(warn)
+        for warn in checkMappers(logger=logger, normalizedClient=normalizedClient):
+                clientWarns.append(warn)
 
     logger.trace("getClientWarns response. client_name: {}, response: {}", normalizedClient.get("client_name"), clientWarns)
     return clientWarns
@@ -356,6 +358,22 @@ def checkScopes(logger: Logger, normalizedClient: dict) -> list:
                     warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have {} scope.".format(mandatoryScope)))
         case _:
             logger.trace("No controls for {}.", normalizedClient["tag"])
+    return warns
+
+
+def checkMappers(logger: Logger, normalizedClient: dict) -> list:
+    """Checks if a given client has Protocol Mappers set up properly. Returns a list of warnings if not.
+
+    Args:
+		logger (Logger): Logger instance
+        client (dict): Normalized Client Object
+
+    Returns:
+        list: Respective list of warnings should Protocol Mappers not be properly set up. Empty list otherwise.
+    """
+    warns = []
+    for protocolMapper in normalizedClient["protocol_mappers"]:
+        warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client has protocol mapper: {}.".format(protocolMapper["name"])))
     return warns
 
 

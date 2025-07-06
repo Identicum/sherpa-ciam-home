@@ -356,6 +356,7 @@ def getClient(logger: Logger, environment: str, realmName: str, client_id: str) 
         response["web_origins"] = client.get("webOrigins", [])
         response["default_scopes"] = client.get("defaultClientScopes", [])
         response["optional_scopes"] = client.get("optionalClientScopes", [])
+        response["protocol_mappers"] = client.get("protocolMappers", [])
 
         logger.trace("Returning response: {}", response)
         return response

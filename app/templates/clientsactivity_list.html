@@ -11,7 +11,7 @@
     {% if metadata and metadata.timestamp %}
         <p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
     {% endif %}
-    {% if realm_activity_data and realm_activity_data|length > 0 %}
+    {% if realmActivityData and realmActivityData|length > 0 %}
     <table class="admin-links-table">
         <thead>
             <tr>
@@ -22,7 +22,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for client in realm_activity_data %}
+            {% for client in realmActivityData %}
             <tr>
                 <td>
                     <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ client.client_id }}">

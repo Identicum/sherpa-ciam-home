@@ -20,7 +20,8 @@ def terraform_check_report(environment: str):
     reportFilePath = "/data/terraform_check_{}.json".format(environment)
     reportData = None
     errorMessage = None
-    
+    logger = utils.getLogger()
+    data = utils.getData(logger=logger)
     try:
         if os.path.exists(reportFilePath):
             with open(reportFilePath, 'r') as f:
@@ -31,13 +32,13 @@ def terraform_check_report(environment: str):
         errorMessage = f"Error decoding JSON from report file: {reportFilePath}"
     except Exception as e:
         errorMessage = f"An unexpected error occurred while reading {reportFilePath}: {str(e)}"
-        
     return render_template(
         'terraformcheck.html',
         utils=utils,
         environment=environment,
         reportData=reportData,
-        errorMessage=errorMessage
+        errorMessage=errorMessage,
+        data=data
     )
 
 
@@ -50,7 +51,8 @@ def terraform_generate_general_report():
     """
     process_output = []
     logger = utils.getLogger()
-    for environment in utils.getEnvironments(logger=logger):
+    data = utils.getData()
+    for environment in utils.getEnvironments(logger=logger, data=data):
         output = terraformcheck_report.run(
             logger=logger,
             objectsPath="/terraform-objects",
@@ -63,6 +65,7 @@ def terraform_generate_general_report():
         utils=utils,
         environment="All Environments",
         process_output=process_output,
+        data=data
     )
 
 
@@ -77,15 +80,18 @@ def terraform_generate_report(environment: str):
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
     logger = utils.getLogger()
+    data = utils.getData(logger=logger)
     output = terraformcheck_report.run(
         logger=logger,
         objectsPath="/terraform-objects",
         outputPath="/data",
-        environment=environment
+        environment=environment,
+        data=data
     )
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
         environment=environment,
         process_output=output,
+        data=data
     )

@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <h1>Client Info List for {{ environment }}</h1>
-    {% set realms = utils.getRealms(logger=utils.getLogger(), environment=environment) %}
+    {% set realms = utils.getRealms(logger=utils.getLogger(), environment=environment, data=data) %}
     {% if realms and realms|length > 0 %}
     <table class="admin-links-table">
         <thead>
@@ -14,7 +14,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for realmName in utils.getRealms(logger=utils.getLogger(), environment=environment) %}
+            {% for realmName in utils.getRealms(logger=utils.getLogger(), environment=environment, data=data) %}
             <tr>
                 <td>
                     <a href="/clientinfo/{{ environment }}/{{ realmName }}">

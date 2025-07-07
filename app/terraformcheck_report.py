@@ -112,7 +112,7 @@ def initializeOutputFile(logger: Logger, outputFilePath: str):
 	logger.info("Initialized output file: {}".format(outputFilePath))
 
 
-def processWorkspace(logger: Logger, environment: str, realmType: str, realmFolder: str, workspace: str, workspaceFolder: str, outputFilePath: str, environmentVarFiles: str) -> list:
+def processWorkspace(logger: Logger, environment: str, realmType: str, realmFolder: str, workspace: str, workspaceFolder: str, outputFilePath: str, environmentVarFiles: str, data: dict) -> list:
 	"""Runs `terraform plan` for a given workspace (in a given realm (in a given environment)) and outputs the parsed resulting Diff report.
 
 	Args:
@@ -124,6 +124,7 @@ def processWorkspace(logger: Logger, environment: str, realmType: str, realmFold
 		workspaceFolder (str): Workspace's `terraform.tfstate.d` directory
 		outputFilePath (str): **File** Path in which to save the JSON Plan
 		environmentVarFiles (list): List of environment-specific `.tfvars` file paths (should be relative to `realmFolder`) to be supplied in `-var-file` flags
+        data (dict): JSON configuration
 
 	Returns:
 		list: Parsed Diff Report
@@ -138,15 +139,15 @@ def processWorkspace(logger: Logger, environment: str, realmType: str, realmFold
 	instance_var_files = utils.getData(logger=logger).get("realms").get(realmType).get(environment).get(workspace).get("var_files", [])
 	var_files = environmentVarFiles + instance_var_files
 	terraform.plan2binary(logger, realmFolder, binary_plan, var_files)
-	json_plan = "{}/{}_tfplan.json".format(realmFolder, workspace)
-	terraform.show_binary2json(logger, realmFolder, binary_plan, json_plan)
-	parsedChanges = parsePlan(logger, json_plan)
-	realmName = utils.getRealmName(logger, realmType, environment, workspace)
+	jsonPlan = "{}/{}_tfplan.json".format(realmFolder, workspace)
+	terraform.show_binary2json(logger, realmFolder, binary_plan, jsonPlan)
+	parsedChanges = parsePlan(logger=logger, jsonPlan=jsonPlan)
+	realmName = utils.getRealmName(logger=logger, realmType=realmType, environment=environment, workspace=workspace, data=data)
 	storeParsedPlan(logger=logger, environment=environment, realmName=realmName, parsedChanges=parsedChanges, outputFilePath=outputFilePath)
 	return parsedChanges
 
 
-def processRealm(logger: Logger, environment: str, realmType: str, realmFolder: str, outputFilePath: str, environmentVarFiles: list) -> list:
+def processRealm(logger: Logger, environment: str, realmType: str, realmFolder: str, outputFilePath: str, environmentVarFiles: list, data: dict) -> list:
 	"""Will run the Diff Report generation for each worskpace in a given Realm
 
 	Args:
@@ -156,6 +157,7 @@ def processRealm(logger: Logger, environment: str, realmType: str, realmFolder: 
 		realmFolder (str): Realm's directory path, needed for the terraform utility to know where to run commands
 		outputFilePath (str): **File** Path in which to save the JSON Plan
 		environmentVarFiles (list): List of environment-specific `.tfvars` file paths (should be relative to `realm_folder`) to be supplied in `-var-file` flags
+		data (dict): JSON configuration
 
 	Returns:
 		list: Generated Diff Report
@@ -165,14 +167,14 @@ def processRealm(logger: Logger, environment: str, realmType: str, realmFolder: 
 		logger.error("{} directory does not exist.", realmFolder)
 		return
 	process_output = []
-	for workspace in utils.getWorkspaces(logger=logger, realmType=realmType, environment=environment):
+	for workspace in utils.getWorkspaces(logger=logger, realmType=realmType, environment=environment, data=data):
 		workspace_folder = "{}/terraform.tfstate.d/{}".format(realmFolder, workspace)
-		output = processWorkspace(logger, environment, realmType, realmFolder, workspace, workspace_folder, outputFilePath, environmentVarFiles)
+		output = processWorkspace(logger, environment, realmType, realmFolder, workspace, workspace_folder, outputFilePath, environmentVarFiles, data=data)
 		process_output.append(output)
 	return process_output
 
 
-def run(logger: Logger, objectsPath: str, outputPath: str, environment: str) -> list:
+def run(logger: Logger, objectsPath: str, outputPath: str, environment: str, data: dict) -> list:
 	"""Runs Diff Report Generation for a given Environment
 
 	Args:
@@ -187,11 +189,11 @@ def run(logger: Logger, objectsPath: str, outputPath: str, environment: str) -> 
 	logger.info("Checking Terraform plans for environment: {}", environment)
 	outputFilePath = "{}/terraform_check_{}.json".format(outputPath, environment)
 	initializeOutputFile(logger, outputFilePath)
-	environmentVarFiles = utils.getVarFiles(logger, environment)
+	environmentVarFiles = utils.getVarFiles(logger=logger, environment=environment, data=data)
 	processOutput = []
-	for realmType in utils.getRealmTypes(logger):
+	for realmType in utils.getRealmTypes(logger=logger, data=data):
 		realmFolder = "{}/{}".format(objectsPath, realmType)
-		output = processRealm(logger=logger, environment=environment, realmType=realmType, realmFolder=realmFolder, outputFilePath=outputFilePath, environmentVarFiles=environmentVarFiles)
+		output = processRealm(logger=logger, environment=environment, realmType=realmType, realmFolder=realmFolder, outputFilePath=outputFilePath, environmentVarFiles=environmentVarFiles, data=data)
 		processOutput.append(output)
 	return processOutput
 
@@ -202,8 +204,9 @@ def main(arguments):
 	parser.add_argument('objectsPath', type=str, help="Path to terraform objects.")
 	parser.add_argument('outputPath', type=str, help="Path to terraform_check_*.json files.")
 	args = parser.parse_args(arguments)
-	for environment in utils.getEnvironments(logger=logger):
-		run(logger, args.objectsPath, args.outputPath, environment)
+	data = utils.getData(logger=logger)
+	for environment in utils.getEnvironments(logger=logger, data=data):
+		run(logger=logger, objectsPath=args.objectsPath, outputPath=args.outputPath, environment=environment, data=data)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

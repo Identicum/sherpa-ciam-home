@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <h1>Clients activity list for {{ environment }}</h1>
-    {% set realms = utils.getRealms(utils.getLogger(), environment) %}
+    {% set realms = utils.getRealms(logger=utils.getLogger(), environment=environment, data=data) %}
     {% if realms and realms|length > 0 %}
     <table class="admin-links-table">
         <thead>

@@ -8,39 +8,41 @@ from sherpa.utils.basics import Logger
 import utils
 
 
-def getEnvWarns(logger: Logger, environment: str) -> list:
+def getEnvWarns(logger: Logger, environment: str, data: dict) -> list:
     """Returns a list of warnings regarding all of a provided `environment`'s realms
 
     Args:
 		logger (Logger): Logger instance
         environment (str): Environment name
+        data (dict): JSON configuration
 
     Returns:
         list: Warnings for all realms in the environment
     """
     envWarns = []
-    for realmName in utils.getRealms(logger=logger, environment=environment):
-        realmWarns = getRealmWarns(logger=logger, environment=environment, realmName=realmName)
+    for realmName in utils.getRealms(logger=logger, environment=environment, data=data):
+        realmWarns = getRealmWarns(logger=logger, environment=environment, realmName=realmName, data=data)
         for realmWarn in realmWarns:
             envWarns.append(realmWarn)
     return envWarns
 
 
-def getRealmWarns(logger: Logger, environment: str, realmName: str) -> list:
+def getRealmWarns(logger: Logger, environment: str, realmName: str, data: dict) -> list:
     """Returns a list of warnings regarding a provided `realm` in a given `environment`
 
     Args:
 		logger (Logger): Logger instance
         environment (str): Environment name
         realmName (str): Realm name
+        data (dict): JSON configuration
 
     Returns:
         list: List of realm warnings
     """
     realmWarns = []
-    for client in utils.getClients(logger=logger, environment=environment, realmName=realmName):
-        normalizedClient = utils.getClient(logger=logger, environment=environment, realmName=realmName, client_id=client["clientId"])
-        clientWarns = getClientWarns(logger=logger, environment=environment, realmName=realmName, normalizedClient=normalizedClient)
+    for client in utils.getClients(logger=logger, environment=environment, realmName=realmName, data=data):
+        normalizedClient = utils.getClient(logger=logger, environment=environment, realmName=realmName, client_id=client["clientId"], data=data)
+        clientWarns = getClientWarns(logger=logger, environment=environment, realmName=realmName, normalizedClient=normalizedClient, data=data)
         for clientWarn in clientWarns:
             logger.trace("Adding client warning: {}", clientWarn)
             realmWarns.append(clientWarn)
@@ -49,7 +51,7 @@ def getRealmWarns(logger: Logger, environment: str, realmName: str) -> list:
     return realmWarns
 
 
-def getClientWarns(logger: Logger, environment: str, realmName: str, normalizedClient: dict) -> list:
+def getClientWarns(logger: Logger, environment: str, realmName: str, normalizedClient: dict, data: dict) -> list:
     """ # TODO: Add support for SAML clients.
     # SAML clients are not supported yet.
     return warns
@@ -61,6 +63,7 @@ def getClientWarns(logger: Logger, environment: str, realmName: str, normalizedC
         environment (str): Environment name
         realmName (str): Realm name
         normalizedClient (dict): Normalized Client object
+        data (dict): JSON configuration
 
     Returns:
         list: Client's warnings.
@@ -103,7 +106,7 @@ def getClientWarns(logger: Logger, environment: str, realmName: str, normalizedC
                 clientWarns.append(warn)
         for warn in checkPostLogoutRedirectUrls(logger=logger, normalizedClient=normalizedClient, environment=environment):
             clientWarns.append(warn)
-        realm = utils.getRealm(logger=logger, environment=environment, realmName=realmName)
+        realm = utils.getRealm(logger=logger, environment=environment, realmName=realmName, data=data)
         for warn in checkSessionTimeout(logger=logger, normalizedClient=normalizedClient, realm=realm):
             clientWarns.append(warn)
         for warn in checkScopes(logger=logger, normalizedClient=normalizedClient):
@@ -464,20 +467,21 @@ def storeWarns(logger: Logger, warns: list, outputFilePath: str):
 		json.dump(outputContent, f, indent=4)
 
 
-def run(logger: Logger, outputPath: str, environment: str) -> list:
+def run(logger: Logger, outputPath: str, environment: str, data: dict) -> list:
 	"""Runs CheckClients Report Generation for a given Environment
 
 	Args:
 		logger (Logger): Logger instance
 		outputPath (str): **Directory** Path in which to save the JSON output
 		environment (str): Environment in which to run Diff Report Generation
+		data (dict): JSON configuration
 
 	Returns:
 		str: Process output
 	"""
 	logger.info("Checking Client for environment: {}", environment)
 	outputFilePath = "{}/checkclients_{}.json".format(outputPath, environment)
-	environmentWarns = getEnvWarns(logger=logger, environment=environment)
+	environmentWarns = getEnvWarns(logger=logger, environment=environment, data=data)
 	storeWarns(logger=logger, warns=environmentWarns, outputFilePath=outputFilePath)
 	return ""
 
@@ -487,8 +491,9 @@ def main(arguments):
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('outputPath', type=str, help="Path to checkclients_*.json files.")
 	args = parser.parse_args(arguments)
-	for environment in utils.getEnvironments(logger):
-		run(logger, args.outputPath, environment)
+	data = utils.getData(logger=logger)
+	for environment in utils.getEnvironments(logger=logger, data=data):
+		run(logger=logger, outputPath=args.outputPath, environment=environment, data=data)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

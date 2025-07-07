@@ -14,11 +14,12 @@ def main(arguments):
 	environment = "local"
 	objectsPath = "/terraform-objects"
 	environmentVarFiles = ["../env/local.tfvars", "../env/local_secrets.tfvars"]
-	for realmType in utils.getRealmTypes(logger):
+	data = utils.getData(logger)
+	for realmType in utils.getRealmTypes(logger=logger, data=data):
 		realmFolder = "{}/{}".format(objectsPath, realmType)
 		logger.trace("Processing realm: {}, folder: {}", realmType, realmFolder)
 		terraform.init(logger, realmFolder)
-		for workspace in utils.getWorkspaces(logger=logger, realmType=realmType, environment=environment):
+		for workspace in utils.getWorkspaces(logger=logger, realmType=realmType, environment=environment, data=data):
 			logger.trace("Processing workspace: {} for realmType: {}", workspace, realmType)
 			terraform.delete_workspace_state(logger=logger, objectsFolder=realmFolder, workspace=workspace)
 			terraform.create_workspace(logger=logger, objectsFolder=realmFolder, workspace=workspace)

@@ -15,7 +15,13 @@ def index():
     Returns:
         Template: Rendered Index Page HTML
     """
-    return render_template("index.html", utils=utils)
+    logger = utils.getLogger()
+    data = utils.getData(logger=logger)
+    return render_template(
+        "index.html",
+        utils=utils,
+        data=data
+    )
 
 
 @app.route('/health', methods=["GET"])

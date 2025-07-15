@@ -41,7 +41,7 @@ def getRealmWarns(logger: Logger, environment: str, realmName: str, data: dict) 
     """
     realmWarns = []
     for client in utils.getClients(logger=logger, environment=environment, realmName=realmName, data=data):
-        normalizedClient = utils.getClient(logger=logger, environment=environment, realmName=realmName, client_id=client["clientId"], data=data)
+        normalizedClient = utils.getNormalizedClient(logger=logger, environment=environment, realmName=realmName, client_id=client["clientId"], data=data)
         clientWarns = getClientWarns(logger=logger, environment=environment, realmName=realmName, normalizedClient=normalizedClient, data=data)
         for clientWarn in clientWarns:
             logger.trace("Adding client warning: {}", clientWarn)

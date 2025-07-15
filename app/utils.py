@@ -266,7 +266,7 @@ def getClientLastActivity(logger: Logger, elastic: Elasticsearch, realmName: str
         return "No activity"
 
 
-def getClient(logger: Logger, environment: str, realmName: str, client_id: str, data: dict) -> dict:
+def getNormalizedClient(logger: Logger, environment: str, realmName: str, client_id: str, data: dict) -> dict:
     """Will fetch a Client from a given Realm in a given Environment using the provided `client_id` in the Keycloak API, then format the object so as to standardize the output between different client types
 
     Args:

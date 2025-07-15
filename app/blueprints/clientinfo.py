@@ -63,7 +63,7 @@ def clientinfo_detail(environment: str, realmName: str, client_id: str):
     """
     logger = utils.getLogger()
     data = utils.getData(logger=logger)
-    normalizedClient = utils.getClient(logger=logger, environment=environment, realmName=realmName, client_id=client_id, data=data)
+    normalizedClient = utils.getNormalizedClient(logger=logger, environment=environment, realmName=realmName, client_id=client_id, data=data)
     logger.trace("client: {}", normalizedClient)
     realm = utils.getRealm(logger=logger, environment=environment, realmName=realmName, data=data)
     warns = checkclients_report.getClientWarns(logger=logger, environment=environment, realmName=realmName, normalizedClient=normalizedClient, data=data)

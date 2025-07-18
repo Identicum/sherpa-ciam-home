@@ -2,7 +2,7 @@
     "local": {
         "admin": [
             {
-                "url": "https://idp-localhost.identicum.com/auth/admin/",
+                "url": "http://idp:8080/auth/admin/",
                 "displayText": "Admin console",
                 "comment": "(admin/admin)"
             },

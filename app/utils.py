@@ -1,10 +1,13 @@
 from datetime import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from elasticsearch import Elasticsearch
 import json
 import os
 from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
+import smtplib
 
 
 def getLogger():
@@ -105,8 +108,27 @@ def getRealm(logger: Logger, environment: str, realmName: str, config: dict) -> 
         realm = kcAdmin.get_realm(realmName)
         return realm
     except Exception as e:
-        logger.error("Error fetching realm for {}/{}: {}", environment, realm, e)
+        logger.error("Error fetching realm for {}/{}: {}", environment, realmName, e)
         return []
+
+
+def getDiscoveryUrl(logger: Logger, environment: str, realm: dict, config: dict) -> str:
+    """Returns the OpenID Connect Discovery URL for a given environment and realm
+
+    Args:
+        logger (Logger): Logger instance
+        environment (str): Environment name
+        realm (dict): Realm Object from the Keycloak API
+        config (dict): JSON configuration
+
+    Returns:
+        str: Discovery URL
+    """
+    baseUrl = realm.get("attributes", {}).get("frontendUrl", config.get("environments", {}).get(environment, {}).get("keycloak_url"))
+    discoveryUrl = "{}/realms/{}/.well-known/openid-configuration".format(baseUrl, realm["realm"])
+    logger.debug("Discovery URL: {}", discoveryUrl)
+    return discoveryUrl
+
 
 
 def getRealmName(logger: Logger, realmType: str, environment: str, workspace: str, config: dict) -> str:
@@ -314,6 +336,7 @@ def getNormalizedClient(logger: Logger, environment: str, realmName: str, client
                 response["access_type"] = "PUBLIC"
             else:
                 response["access_type"] = "CONFIDENTIAL"
+                response["client_secret"] = client.get("secret", "")
             if client["attributes"]:
                 response["pkce_code_challenge_method"] = client["attributes"].get("pkce.code.challenge.method", None)
 
@@ -429,3 +452,25 @@ def getVarFiles(logger: Logger, environment: str, config: dict) -> list:
         list: List of var_file paths related to the environment
     """
     return list(config.get("environments", {}).get(environment, {}).get("var_files", []))
+
+
+def smtpSend(logger: Logger, host, port, subject, body, from_addr, to_addr, cc_addr=None):
+    """
+    Send SMTP email
+
+    """
+    msg = MIMEMultipart()
+    msg['From'] = from_addr
+    msg['To'] = to_addr
+    recipients = [to_addr]
+    if cc_addr is not None:
+        msg['Cc'] = cc_addr
+        recipients.append(cc_addr)
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'html'))
+    try:
+        with smtplib.SMTP(host, port) as server:
+            server.sendmail(from_addr, recipients, msg.as_string())
+        logger.debug("Email sent.")
+    except Exception as e:
+        logger.error("Error sending email: {}", e)

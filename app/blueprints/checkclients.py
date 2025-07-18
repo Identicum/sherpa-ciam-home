@@ -40,12 +40,12 @@ def checkclientsEnv(environment: str):
     return render_template(
         'checkclients.html',
         utils=utils,
+        config=config,
         environment=environment,
         warns=warns,
         metadata=metadata,
         realmName="All Realms",
-        errorMessage=errorMessage,
-        config=config
+        errorMessage=errorMessage
     )
 
 @checkclients_bp.route('/checkclients/<environment>/generate', methods=["GET"])
@@ -68,8 +68,8 @@ def checkclientsEnvGenerate(environment: str):
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
+        config=config,
         environment=environment,
-        processOutput=processOutput,
-        config=config
+        processOutput=processOutput
     )
 

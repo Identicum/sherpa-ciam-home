@@ -20,8 +20,8 @@ def clientinfo_list_realms(environment: str):
     return render_template(
         'clientinfo_list_realms.html',
         utils=utils,
-        environment=environment,
-        config=config
+        config=config,
+        environment=environment
     )
 
 
@@ -42,10 +42,10 @@ def clientinfo_list(environment: str, realmName: str):
     return render_template(
         'clientinfo_list.html',
         utils=utils,
+        config=config,
         environment=environment,
         realmName=realmName,
-        clients=clients,
-        config=config
+        clients=clients
     )
 
 
@@ -70,9 +70,58 @@ def clientinfo_detail(environment: str, realmName: str, client_id: str):
     return render_template(
         'clientinfo_detail.html',
         utils=utils,
+        config=config,
         environment=environment,
         realm=realm,
         normalizedClient=normalizedClient,
-        warns=warns,
-        config=config
+        warns=warns
+    )
+
+
+@clientinfo_bp.route('/clientinfo/<environment>/<realmName>/<client_id>/sendclientinfo', methods=["GET"])
+def clientinfo_send(environment: str, realmName: str, client_id: str):
+    """Send Client information to owner
+ 
+    Args:
+        environment (str): Environment name
+        realmName (str): Realm name
+        client_id (str): Client ID
+
+    Returns:
+        Feedback page once email was sent.
+    """
+    logger = utils.getLogger()
+    config = utils.getConfig(logger=logger)
+    normalizedClient = utils.getNormalizedClient(logger=logger, environment=environment, realmName=realmName, client_id=client_id, config=config)
+    logger.trace("client: {}", normalizedClient)
+    realm = utils.getRealm(logger=logger, environment=environment, realmName=realmName, config=config)
+
+    smtpConfig = config.get("environments", {}).get(environment, {}).get("smtp", {})
+    host = smtpConfig.get("host", "")
+    port = smtpConfig.get("port", "")
+    from_addr = smtpConfig.get("from_addr", "")
+    to_addr = normalizedClient["owner_email"]
+    subject = "IDP - Client info - {}".format(environment)
+    body = render_template(
+        'email/clientinfo.html',
+        utils=utils,
+        config=config,
+        environment=environment,
+        realm=realm,
+        normalizedClient=normalizedClient
+    )
+    email_status = "OK"
+    try :
+        utils.smtpSend(logger=logger, host=host, port=port, subject=subject, body=body, from_addr=from_addr, to_addr=to_addr)
+    except Exception as e:
+        logger.error("Error sending email: {}", e)
+        email_status = "ERROR"
+    return render_template(
+        'clientinfo_sendemail_feedback.html',
+        utils=utils,
+        config=config,
+        environment=environment,
+        realm=realm,
+        normalizedClient=normalizedClient,
+        email_status=email_status
     )

@@ -40,7 +40,12 @@
             "elastic_configuration": {
                 "urls": []
             },
-            "var_files": ["../env/local_secrets.tfvars", "../env/local.tfvars"]
+            "var_files": ["../env/local_secrets.tfvars", "../env/local.tfvars"],
+            "smtp": {
+                "host": "mailcatcher",
+                "port": 1025,
+                "from_addr": "'Sherpa CIAM' <ciam-home@idsherpa.com>"
+            }
         },
         "dev": {
             "keycloak_url": "https://dev.identicum.com",

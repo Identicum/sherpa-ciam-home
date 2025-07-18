@@ -20,7 +20,14 @@
                 </td>
             </tr>
             <tr><th>Tag</th><td colspan="2">{{ normalizedClient.tag }}</td></tr>
-            <tr><th>Owner email</th><td colspan="2">{{ normalizedClient.owner_email }}</td></tr>
+            <tr><th>Owner email</th>
+                <td>{{ normalizedClient.owner_email }}</td>
+                <td>
+                    {% if normalizedClient.owner_email %}
+                    <a href="/clientinfo/{{ environment }}/{{ realm.realm }}/{{ normalizedClient.client_id }}/sendclientinfo" class="btn btn-primary btn-sm">Send Client info</a>
+                    {% endif %}
+                </td>
+            </tr>
             <tr><th>Description</th><td colspan="2">{{ normalizedClient.description }}</td></tr>
             <tr><th>Access Type</th><td colspan="2">{{ normalizedClient.access_type }}</td></tr>
             <tr>

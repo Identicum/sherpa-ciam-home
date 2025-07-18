@@ -23,8 +23,8 @@ def links(environment: str):
     return render_template(
         'links.html',
         utils=utils,
+        config=config,
         links=links,
-        environment=environment,
-        config=config
+        environment=environment
     )
 

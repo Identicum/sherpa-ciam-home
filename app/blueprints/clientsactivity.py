@@ -22,8 +22,8 @@ def clientsactivity_list_realms(environment: str):
     return render_template(
         'clientsactivity_list_realms.html',
         utils=utils,
-        environment=environment,
-        config=config
+        config=config,
+        environment=environment
     )
 
 
@@ -48,9 +48,9 @@ def clientsactivityEnvGenerate(environment: str):
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
+        config=config,
         environment=environment,
-        processOutput=processOutput,
-        config=config
+        processOutput=processOutput
     )
 
 
@@ -87,10 +87,10 @@ def clientsactivity_list(environment: str, realmName: str):
     return render_template(
         'clientsactivity_list.html',
         utils=utils,
+        config=config,
         environment=environment,
         realmName=realmName,
         metadata=metadata,
         errorMessage=errorMessage,
-        realmActivityData=realmActivityData,
-        config=config
+        realmActivityData=realmActivityData
     )

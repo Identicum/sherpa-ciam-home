@@ -1,0 +1,11 @@
+{% extends "index.html" %}
+
+{% block title %}Client Info for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Send email feedback for {{ environment }}</h1>
+    <h2>Email status: {{ email_status }}</h2>
+    <a href="/clientinfo/{{ environment }}/{{ realm.realm }}/{{ normalizedClient.client_id }}">Back to Client info.</a>
+</div>
+{% endblock %}

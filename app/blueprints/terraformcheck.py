@@ -35,10 +35,10 @@ def terraform_check_report(environment: str):
     return render_template(
         'terraformcheck.html',
         utils=utils,
+        config=config,
         environment=environment,
         reportData=reportData,
-        errorMessage=errorMessage,
-        config=config
+        errorMessage=errorMessage
     )
 
 
@@ -63,9 +63,9 @@ def terraform_generate_general_report():
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
+        config=config,
         environment="All Environments",
-        process_output=process_output,
-        config=config
+        process_output=process_output
     )
 
 
@@ -91,7 +91,7 @@ def terraform_generate_report(environment: str):
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
+        config=config,
         environment=environment,
-        process_output=output,
-        config=config
+        process_output=output
     )

@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+    <body>
+        <span>
+            Dear owner of application, this is the requested information regarding your Client.
+        </span>
+        <h1>General information</h1>
+        <table border="1">
+            <tr>
+                <th>Environment</th>
+                <td>{{ environment }}</td>
+            </tr>
+            <tr>
+                <th>Realm</th>
+                <td>{{ realm.realm }}</td>
+            </tr>
+            <tr>
+                <th>Discovery URL</th>
+                <td>{{ utils.getDiscoveryUrl(logger=utils.getLogger(), environment=environment, realm=realm, config=config) }}</td>
+            </tr>
+        </table>
+        <h1>Client information</h1>
+        <table border="1">
+            <tr>
+                <th>Name</th>
+                <td>{{ normalizedClient.name }}</td>
+            </tr>
+            <tr>
+                <th>client_id</th>
+                <td>{{ normalizedClient.client_id }}</td>
+            </tr>
+            {% if normalizedClient.client_secret %}
+                <tr>
+                    <th>client_secret</th>
+                    <td>{{ normalizedClient.client_secret }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <th>Status</th>
+                <td>{% if normalizedClient.enabled %}Enabled{% else %}Disabled{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Tag</th>
+                <td>{{ normalizedClient.tag }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ normalizedClient.description }}</td>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -354,13 +354,16 @@ def checkScopes(logger: Logger, normalizedClient: dict) -> list:
         list: Respective list of warnings should Scopes not be properly set up. Empty list otherwise.
     """
     warns = []
-    match normalizedClient["tag"]:
-        case "[CLIENT_CREDENTIALS]":
-            for mandatoryScope in ["basic", "roles", "service_account"]:
-                if mandatoryScope not in normalizedClient["default_scopes"]:
-                    warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have {} scope.".format(mandatoryScope)))
-        case _:
-            logger.trace("No controls for {}.", normalizedClient["tag"])
+
+    if normalizedClient["tag"]=="[CLIENT_CREDENTIALS]":
+        for mandatoryScope in ["basic", "roles", "service_account"]:
+            if mandatoryScope not in normalizedClient["default_scopes"]:
+                warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have {} scope.".format(mandatoryScope)))
+    else:
+        for incorrectScope in ["service_account"]:
+            if incorrectScope in normalizedClient["default_scopes"] or incorrectScope in normalizedClient["optional_scopes"]:
+                warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should NOT have {} scope.".format(incorrectScope)))
+
     return warns
 
 

@@ -20,7 +20,7 @@ resource "keycloak_openid_client" "demoapp22" {
 resource "keycloak_openid_client_optional_scopes" "demoapp22_optionalscopes" {
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.demoapp22.id
-  optional_scopes = [ ]
+  optional_scopes = [ "service_account" ]
 }
 
 resource "keycloak_openid_client_default_scopes" "demoapp22_defaultscopes" {

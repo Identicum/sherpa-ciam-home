@@ -17,21 +17,21 @@ def getLocalDatetime() -> str:
     return localNow.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def getData(logger: Logger) -> dict:
-    """Returns the parsed contents of /data/home.json
+def getConfig(logger: Logger) -> dict:
+    """Returns the parsed contents of /conf/home.json
 
     Args:
         logger (Logger): Logger instance
 
     Returns:
-        dict: Parsed contents of /data/home.json
+        dict: Configuration JSON
     """
-    datafile = '/data/home.json'
-    logger.debug("Getting data from '{}'", datafile)
+    configfile = '/conf/home.json'
+    logger.debug("Getting config from '{}'", configfile)
     try:
-        with open(datafile, 'r') as f:
-            data = json.load(f)
-        for environmentName, environmentInfo in data.get("environments", {}).items():
+        with open(configfile, 'r') as f:
+            config = json.load(f)
+        for environmentName, environmentInfo in config.get("environments", {}).items():
             keycloakPassword = environmentInfo.get("password")
             if isinstance(keycloakPassword, str) and keycloakPassword.startswith("$env:"):
                 environmentVariableName = keycloakPassword[5:]
@@ -42,63 +42,63 @@ def getData(logger: Logger) -> dict:
                 environmentVariableName = elasticPassword[5:]
                 logger.trace("Getting Elastic password for env {} from variable '{}'", environmentName, environmentVariableName)
                 environmentInfo["elastic_configuration"]["password"] = os.environ.get(environmentVariableName, "")
-        return data
+        return config
     except FileNotFoundError:
-        logger.error("Data file '{}' not found.", datafile)
+        logger.error("Config file '{}' not found.", configfile)
         return {}
     except json.JSONDecodeError:
-        logger.error("Data file '{}' is not a valid JSON.", datafile)
+        logger.error("Config file '{}' is not a valid JSON.", configfile)
         return {}
 
 
-def getRealmTypes(logger: Logger, data: dict) -> list:
-    """Returns the list of realm types from /data/home.json
+def getRealmTypes(logger: Logger, config: dict) -> list:
+    """Returns the list of realm types in the configuration
 
     Args:
         logger (Logger): Logger instance
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
         list: List of realm types
     """
-    return list(data.get("realms", {}).keys())
+    return list(config.get("realms", {}).keys())
 
 
-def getRealms(logger: Logger, environment: str, data: dict) -> list:
-    """Returns only the list of realms from /data/home.json
+def getRealms(logger: Logger, environment: str, config: dict) -> list:
+    """Returns only the list of realms from the configuration
 
     Args:
         logger (Logger): Logger instance
         environment (str): Environment name
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
-        list: List of realms from /data/home.json
+        list: List of realms in the configuration
     """
     realmsList = []
-    realmTypes = list(data.get("realms", {}).keys())
+    realmTypes = list(config.get("realms", {}).keys())
     for realmType in realmTypes:
         logger.trace("getRealms() processing realmType: {}", realmType)
-        for workspace in getWorkspaces(logger=logger, realmType=realmType, environment=environment, data=data):
+        for workspace in getWorkspaces(logger=logger, realmType=realmType, environment=environment, config=config):
             logger.trace("getRealms() processing workspace: {}", workspace)
-            realmName = getRealmName(logger=logger, realmType=realmType, environment=environment, workspace=workspace, data=data)
+            realmName = getRealmName(logger=logger, realmType=realmType, environment=environment, workspace=workspace, config=config)
             realmsList.append(realmName)
     return realmsList
 
 
-def getRealm(logger: Logger, environment: str, realmName: str, data: dict) -> dict:
+def getRealm(logger: Logger, environment: str, realmName: str, config: dict) -> dict:
     """Will fetch a realm from a given Environment using Keycloak's Admin API and return it
 
     Args:
         logger (Logger): Logger instance
         environment (str): Environment name
         realmName (str): Realm name
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
         dict: Realm Object from the Keycloak API
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, data=data)
+    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         return []
     try:
@@ -109,7 +109,7 @@ def getRealm(logger: Logger, environment: str, realmName: str, data: dict) -> di
         return []
 
 
-def getRealmName(logger: Logger, realmType: str, environment: str, workspace: str, data: dict) -> str:
+def getRealmName(logger: Logger, realmType: str, environment: str, workspace: str, config: dict) -> str:
     """Get realm name from its type, environment and workspace
 
     Args:
@@ -117,61 +117,61 @@ def getRealmName(logger: Logger, realmType: str, environment: str, workspace: st
         realmType (str): Realm type
         environment (str): Environment
         workspace (str): Workspace
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
         str: Realm name
     """
-    realmName = data.get("realms", {}).get(realmType, {}).get(environment, {}).get(workspace, {}).get("realm_name", realmType)
+    realmName = config.get("realms", {}).get(realmType, {}).get(environment, {}).get(workspace, {}).get("realm_name", realmType)
     logger.trace("getRealmName() processing realmType: {}, environment: {}, workspace: {}, realmName: {}", realmType, environment, workspace, realmName)
     return realmName
 
 
-def getEnvironments(logger: Logger, data: dict) -> list:
-    """Returns only the list of environments from /data/home.json
+def getEnvironments(logger: Logger, config: dict) -> list:
+    """Returns the list of environments in the configuration
 
     Args:
         logger (Logger): Logger instance
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
-        list: List of Environments from /data/home.json
+        list: List of environments in the configuration
     """
-    return list(data.get("environments", {}).keys())
+    return list(config.get("environments", {}).keys())
 
 
 
-def getWorkspaces(logger: Logger, realmType: str, environment: str, data: dict) -> list:
+def getWorkspaces(logger: Logger, realmType: str, environment: str, config: dict) -> list:
     """Returns workspaces for a realmType and environment
 
     Args:
         logger (Logger): Logger instance
         realmType (str): Realm type
         environment (str): Environment
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
-        list: List of the given realm's workspaces from /data/home.json
+        list: List of the given realm's workspaces from the configuration
     """
     logger.trace("getWorkspaces() processing realmType: {}, environment: {}", realmType, environment)
-    return list(data.get("realms", {}).get(realmType).get(environment, {}).keys())
+    return list(config.get("realms", {}).get(realmType).get(environment, {}).keys())
 
 
-def getElastic(logger: Logger, environment: str, data: dict):
+def getElastic(logger: Logger, environment: str, config: dict):
     """Returns ElasticSearch connection
 
     Args:
         logger (Logger): Logger instance
         environment (str): Environment
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
         Elasticsearch: ElasticSeach connection
     """
-    urls = data.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("urls", [])
+    urls = config.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("urls", [])
     if urls:
-        username = data.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("username", "")
-        password = data.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("password", "")
+        username = config.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("username", "")
+        password = config.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("password", "")
         if username and password:
             logger.debug("Connecting to urls: {}, username: {}", urls, username)
             return Elasticsearch(urls, http_auth=(username, password))
@@ -183,14 +183,14 @@ def getElastic(logger: Logger, environment: str, data: dict):
         return None
 
 
-def getKeycloakAdmin(logger: Logger, environment: str, realmName: str, data: dict) -> SherpaKeycloakAdmin:
+def getKeycloakAdmin(logger: Logger, environment: str, realmName: str, config: dict) -> SherpaKeycloakAdmin:
     """Creates an instance of SherpaKeycloakAdmin
     See in [sherpa-py-keycloak](https://github.com/Identicum/sherpa-py-keycloak/blob/main/sherpa/keycloak/keycloak_lib.py)
 
     Args:
         environment (str): Environment name
         realmName (str): Realm name
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
         SherpaKeycloakAdmin: SherpaKeycloakAdmin instance
@@ -199,9 +199,9 @@ def getKeycloakAdmin(logger: Logger, environment: str, realmName: str, data: dic
     kcAdmin = SherpaKeycloakAdmin(
             logger=logger, 
             properties=properties, 
-            server_url=data.get("environments", {}).get(environment, {}).get("keycloak_url", ""), 
-            username=data.get("environments", {}).get(environment, {}).get("username", ""), 
-            password=data.get("environments", {}).get(environment, {}).get("password", ""), 
+            server_url=config.get("environments", {}).get(environment, {}).get("keycloak_url", ""), 
+            username=config.get("environments", {}).get(environment, {}).get("username", ""), 
+            password=config.get("environments", {}).get(environment, {}).get("password", ""), 
             user_realm_name="master",
             realm_name=realmName, 
             verify=False
@@ -209,18 +209,18 @@ def getKeycloakAdmin(logger: Logger, environment: str, realmName: str, data: dic
     return kcAdmin
 
 
-def getClients(logger: Logger, environment: str, realmName: str, data: dict) -> list:
+def getClients(logger: Logger, environment: str, realmName: str, config: dict) -> list:
     """Will fetch a given realm in a given environment's client list from the Keycloak API and return it.
 
     Args:
         environment (str): Environment name
         realmName (str): Realm name
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
         list: List of clients in the realm
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, data=data)
+    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         logger.error("Error fetching clients for {}/{}. No kcAdmin.", environment, realmName)
         return []
@@ -266,7 +266,7 @@ def getClientLastActivity(logger: Logger, elastic: Elasticsearch, realmName: str
         return "No activity"
 
 
-def getNormalizedClient(logger: Logger, environment: str, realmName: str, client_id: str, data: dict) -> dict:
+def getNormalizedClient(logger: Logger, environment: str, realmName: str, client_id: str, config: dict) -> dict:
     """Will fetch a Client from a given Realm in a given Environment using the provided `client_id` in the Keycloak API, then format the object so as to standardize the output between different client types
 
     Args:
@@ -274,12 +274,12 @@ def getNormalizedClient(logger: Logger, environment: str, realmName: str, client
         environment (str): Environment name
         realmName (str): Realm name
         client_id (str): Client ID
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
     Returns:
         dict: Resulting Normalized Client object
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, data=data)
+    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         return {}
     try:
@@ -417,15 +417,15 @@ def getClientTag(logger: Logger, description: str, client_id: str, client_type: 
     return tag
 
 
-def getVarFiles(logger: Logger, environment: str, data: dict) -> list:
-    """Returns only the list of var_file paths related to the provided environment - from /data/home.json
+def getVarFiles(logger: Logger, environment: str, config: dict) -> list:
+    """Returns the list of var_file paths related to the provided environment
 
     Args:
         logger (Logger): Logger instance
-        environment (str): Environment name - Must match that of the one in /data/home.json
-        data (dict): JSON configuration
+        environment (str): Environment name
+        config (dict): JSON configuration
 
     Returns:
         list: List of var_file paths related to the environment
     """
-    return list(data.get("environments", {}).get(environment, {}).get("var_files", []))
+    return list(config.get("environments", {}).get(environment, {}).get("var_files", []))

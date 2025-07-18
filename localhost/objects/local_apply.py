@@ -14,17 +14,17 @@ def main(arguments):
 	environment = "local"
 	objectsPath = "/terraform-objects"
 	environmentVarFiles = ["../env/local.tfvars", "../env/local_secrets.tfvars"]
-	data = utils.getData(logger)
-	for realmType in utils.getRealmTypes(logger=logger, data=data):
+	config = utils.getConfig(logger)
+	for realmType in utils.getRealmTypes(logger=logger, config=config):
 		realmFolder = "{}/{}".format(objectsPath, realmType)
 		logger.trace("Processing realm: {}, folder: {}", realmType, realmFolder)
 		terraform.init(logger, realmFolder)
-		for workspace in utils.getWorkspaces(logger=logger, realmType=realmType, environment=environment, data=data):
+		for workspace in utils.getWorkspaces(logger=logger, realmType=realmType, environment=environment, config=config):
 			logger.trace("Processing workspace: {} for realmType: {}", workspace, realmType)
 			terraform.delete_workspace_state(logger=logger, objectsFolder=realmFolder, workspace=workspace)
 			terraform.create_workspace(logger=logger, objectsFolder=realmFolder, workspace=workspace)
 			terraform.select_workspace(logger=logger, objectsFolder=realmFolder, workspace=workspace)
-			instanceVarFiles = utils.getData(logger=logger).get("realms").get(realmType).get(environment).get(workspace).get("var_files", [])
+			instanceVarFiles = utils.getConfig(logger=logger).get("realms").get(realmType).get(environment).get(workspace).get("var_files", [])
 			varFiles = environmentVarFiles + instanceVarFiles
 			terraform.apply(logger=logger, objectsFolder=realmFolder, varFiles=varFiles)
 

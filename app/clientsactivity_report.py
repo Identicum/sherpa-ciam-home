@@ -9,14 +9,14 @@ import utils
 
 
 
-def run(logger: Logger, outputPath: str, environment: str, data: dict) -> list:
+def run(logger: Logger, outputPath: str, environment: str, config: dict) -> list:
 	"""Runs Clients activity report generation
 
 	Args:
 		logger (Logger): Logger instance
 		outputPath (str): **Directory** Path in which to save the JSON output
 		environment (str): Environment in which to run Diff Report Generation
-        data (dict): JSON configuration
+        config (dict): JSON configuration
 
 	Returns:
 		str: Process output
@@ -25,13 +25,13 @@ def run(logger: Logger, outputPath: str, environment: str, data: dict) -> list:
 	output_file_path = "{}/clientsactivity_{}.json".format(outputPath, environment)
 	metadata = { "timestamp": utils.getLocalDatetime() }
 	output_content = { "metadata": metadata, "activity": {} }
-	for realmName in utils.getRealms(logger=logger, environment=environment, data=data):
+	for realmName in utils.getRealms(logger=logger, environment=environment, config=config):
 		logger.debug("Getting Clients activity for realm: {}", realmName)
 		realm_activity = []
-		elastic = utils.getElastic(logger=logger, environment=environment, data=data)
+		elastic = utils.getElastic(logger=logger, environment=environment, config=config)
 		if not elastic:
 			last_activity = "No Elastic configuration"
-		for client in utils.getClients(logger=logger, environment=environment, realmName=realmName, data=data):
+		for client in utils.getClients(logger=logger, environment=environment, realmName=realmName, config=config):
 			if elastic:
 				last_activity = utils.getClientLastActivity(logger=logger, elastic=elastic, realmName=realmName, client_id=client["clientId"])
 			client_activity = {
@@ -53,9 +53,9 @@ def main(arguments):
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('outputPath', type=str, help="Path to clientsactivity_*.json files.")
 	args = parser.parse_args(arguments)
-	data = utils.getData(logger=logger)
-	for environment in utils.getEnvironments(logger=logger, data=data):
-		run(logger=logger, outputPath=args.outputPath, environment=environment, data=data)
+	config = utils.getConfig(logger=logger)
+	for environment in utils.getEnvironments(logger=logger, config=config):
+		run(logger=logger, outputPath=args.outputPath, environment=environment, config=config)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

@@ -16,8 +16,8 @@ def links(environment: str):
         Template: URL List Page Rendered HTML Page
     """
     logger = utils.getLogger()
-    data = utils.getData(logger=logger)
-    with open('/data/links.json') as linksFile:
+    config = utils.getConfig(logger=logger)
+    with open('/conf/links.json') as linksFile:
         linksJson = json.load(linksFile)
     links = linksJson.get(environment, [])
     return render_template(
@@ -25,6 +25,6 @@ def links(environment: str):
         utils=utils,
         links=links,
         environment=environment,
-        data=data
+        config=config
     )
 

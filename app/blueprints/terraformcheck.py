@@ -21,7 +21,7 @@ def terraform_check_report(environment: str):
     reportData = None
     errorMessage = None
     logger = utils.getLogger()
-    data = utils.getData(logger=logger)
+    config = utils.getConfig(logger=logger)
     try:
         if os.path.exists(reportFilePath):
             with open(reportFilePath, 'r') as f:
@@ -38,7 +38,7 @@ def terraform_check_report(environment: str):
         environment=environment,
         reportData=reportData,
         errorMessage=errorMessage,
-        data=data
+        config=config
     )
 
 
@@ -51,8 +51,8 @@ def terraform_generate_general_report():
     """
     process_output = []
     logger = utils.getLogger()
-    data = utils.getData()
-    for environment in utils.getEnvironments(logger=logger, data=data):
+    config = utils.getConfig()
+    for environment in utils.getEnvironments(logger=logger, config=config):
         output = terraformcheck_report.run(
             logger=logger,
             objectsPath="/terraform-objects",
@@ -65,7 +65,7 @@ def terraform_generate_general_report():
         utils=utils,
         environment="All Environments",
         process_output=process_output,
-        data=data
+        config=config
     )
 
 
@@ -80,18 +80,18 @@ def terraform_generate_report(environment: str):
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
     logger = utils.getLogger()
-    data = utils.getData(logger=logger)
+    config = utils.getConfig(logger=logger)
     output = terraformcheck_report.run(
         logger=logger,
         objectsPath="/terraform-objects",
         outputPath="/data",
         environment=environment,
-        data=data
+        config=config
     )
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
         environment=environment,
         process_output=output,
-        data=data
+        config=config
     )

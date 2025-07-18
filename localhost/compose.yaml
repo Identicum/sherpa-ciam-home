@@ -46,7 +46,7 @@ services:
             - LOG_LEVEL=TRACE
         volumes:
             - ../app/:/app/
-            - ./data/:/data/
+            - ./conf/:/conf/
             - ./local.properties:/local.properties
             - ./objects/:/terraform-objects/
         command: "python3 /terraform-objects/local_apply.py"
@@ -68,6 +68,7 @@ services:
             - LOG_LEVEL=DEBUG
         volumes:
             - ../app/:/app/
+            - ./conf/:/conf/
             - ./data/:/data/
             - ./local.properties:/local.properties
             - ./objects/:/terraform-objects/

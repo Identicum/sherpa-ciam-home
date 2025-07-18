@@ -23,7 +23,7 @@ def checkclientsEnv(environment: str):
     warns = []
     metadata = {}
     logger = utils.getLogger()
-    data = utils.getData(logger=logger)
+    config = utils.getConfig(logger=logger)
     try:
         if os.path.exists(report_file_path):
             with open(report_file_path, 'r') as f:
@@ -45,7 +45,7 @@ def checkclientsEnv(environment: str):
         metadata=metadata,
         realmName="All Realms",
         errorMessage=errorMessage,
-        data=data
+        config=config
     )
 
 @checkclients_bp.route('/checkclients/<environment>/generate', methods=["GET"])
@@ -59,7 +59,7 @@ def checkclientsEnvGenerate(environment: str):
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
     logger = utils.getLogger()
-    data = utils.getData(logger=logger)
+    config = utils.getConfig(logger=logger)
     processOutput = checkclients_report.run(
         logger=logger,
         outputPath="/data",
@@ -70,6 +70,6 @@ def checkclientsEnvGenerate(environment: str):
         utils=utils,
         environment=environment,
         processOutput=processOutput,
-        data=data
+        config=config
     )
 

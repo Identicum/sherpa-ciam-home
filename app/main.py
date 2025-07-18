@@ -16,11 +16,11 @@ def index():
         Template: Rendered Index Page HTML
     """
     logger = utils.getLogger()
-    data = utils.getData(logger=logger)
+    config = utils.getConfig(logger=logger)
     return render_template(
         "index.html",
         utils=utils,
-        data=data
+        config=config
     )
 
 

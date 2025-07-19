@@ -8,7 +8,23 @@
     {% if normalizedClient %}
     <table class="table table-bordered" style="max-width:700px;">
         <tbody>
-            <tr><th class="w-25">Client ID</th><td colspan="2">{{ normalizedClient.client_id }}</td></tr>
+            <tr><th class="w-25">client_id</th><td colspan="2">{{ normalizedClient.client_id }}</td></tr>
+            <tr>
+                <th>client_secret</th>
+                <td>
+                    <form action="/clientinfo/{{environment}}/{{realm.realm}}/{{normalizedClient.client_id}}" method="post">
+                        <input type="text" name="secret" id="secret" placeholder="Enter client secret">
+                        <button id="btn-form" style="margin: 0px;">Validate</button>
+                    </form>
+                </td>
+                <td>
+                    {% if secretVerification %}
+                        <span class="text-success">{{ secretVerification }}</span>
+                    {% else %}
+                        <span class="text-danger">Not verified</span>
+                    {% endif %}
+                </td>
+            </tr>
             <tr><th>Name</th><td colspan="2">{{ normalizedClient.name }}</td></tr>
             <tr><th>Status</th>
                 <td colspan="2">

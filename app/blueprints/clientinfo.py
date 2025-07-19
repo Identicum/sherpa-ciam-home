@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 import checkclients_report
 import utils
 
@@ -49,7 +49,7 @@ def clientinfo_list(environment: str, realmName: str):
     )
 
 
-@clientinfo_bp.route('/clientinfo/<environment>/<realmName>/<client_id>', methods=["GET"])
+@clientinfo_bp.route('/clientinfo/<environment>/<realmName>/<client_id>', methods=["GET", "POST"])
 def clientinfo_detail(environment: str, realmName: str, client_id: str):
     """Renders 'Client Info' Client Detail Page
  
@@ -67,6 +67,15 @@ def clientinfo_detail(environment: str, realmName: str, client_id: str):
     logger.trace("client: {}", normalizedClient)
     realm = utils.getRealm(logger=logger, environment=environment, realmName=realmName, config=config)
     warns = checkclients_report.getClientWarns(logger=logger, environment=environment, realmName=realmName, normalizedClient=normalizedClient, config=config)
+    secretVerification = ""
+    if request.method == "POST":
+        form_secret = request.form.get("secret", "")
+        logger.trace("Processing form submission with secret: {}", form_secret)
+        if form_secret and form_secret.strip()==normalizedClient.get('client_secret'):
+            secretVerification = "OK"
+        else:
+            secretVerification = "INCORRECT"
+    logger.debug("secretVerification: {}", secretVerification)
     return render_template(
         'clientinfo_detail.html',
         utils=utils,
@@ -74,7 +83,8 @@ def clientinfo_detail(environment: str, realmName: str, client_id: str):
         environment=environment,
         realm=realm,
         normalizedClient=normalizedClient,
-        warns=warns
+        warns=warns,
+        secretVerification=secretVerification
     )
 
 

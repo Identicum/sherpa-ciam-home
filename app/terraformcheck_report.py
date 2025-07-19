@@ -188,7 +188,7 @@ def run(logger: Logger, objectsPath: str, outputPath: str, environment: str, con
 		list: Parsed Diff Report for the provided Environment
 	"""
 	logger.info("Checking Terraform plans for environment: {}", environment)
-	outputFilePath = "{}/terraform_check_{}.json".format(outputPath, environment)
+	outputFilePath = "{}/terraformcheck_{}.json".format(outputPath, environment)
 	initializeOutputFile(logger, outputFilePath)
 	environmentVarFiles = utils.getVarFiles(logger=logger, environment=environment, config=config)
 	processOutput = []
@@ -203,7 +203,7 @@ def main(arguments):
 	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraformcheck_report.log")
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('objectsPath', type=str, help="Path to terraform objects.")
-	parser.add_argument('outputPath', type=str, help="Path to terraform_check_*.json files.")
+	parser.add_argument('outputPath', type=str, help="Path to terraformcheck_*.json files.")
 	args = parser.parse_args(arguments)
 	config = utils.getConfig(logger=logger)
 	for environment in utils.getEnvironments(logger=logger, config=config):

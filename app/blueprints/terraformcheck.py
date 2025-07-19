@@ -8,7 +8,7 @@ terraformcheck_bp = Blueprint('terraformcheck', __name__, template_folder='../te
 
 
 @terraformcheck_bp.route('/terraformcheck/<environment>', methods=["GET"])
-def terraform_check_report(environment: str):
+def terraformcheck_report(environment: str):
     """Renders 'Terraform Check' Diff Report Page
 
     Args:
@@ -17,7 +17,7 @@ def terraform_check_report(environment: str):
     Returns:
         Template: 'Terraform Check' Diff Report Rendered HTML Page
     """
-    reportFilePath = "/data/terraform_check_{}.json".format(environment)
+    reportFilePath = "/data/terraformcheck_{}.json".format(environment)
     reportData = None
     errorMessage = None
     logger = utils.getLogger()

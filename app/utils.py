@@ -35,16 +35,13 @@ def getConfig(logger: Logger) -> dict:
         with open(configfile, 'r') as f:
             config = json.load(f)
         for environmentName, environmentInfo in config.get("environments", {}).items():
-            keycloakPassword = environmentInfo.get("password")
-            if isinstance(keycloakPassword, str) and keycloakPassword.startswith("$env:"):
-                environmentVariableName = keycloakPassword[5:]
-                logger.trace("Getting KC password for env {} from variable '{}'", environmentName, environmentVariableName)
-                environmentInfo["password"] = os.environ.get(environmentVariableName, "")
-            elasticPassword = environmentInfo.get("elastic_configuration", {}).get("password", "")
-            if isinstance(elasticPassword, str) and elasticPassword.startswith("$env:"):
-                environmentVariableName = elasticPassword[5:]
-                logger.trace("Getting Elastic password for env {} from variable '{}'", environmentName, environmentVariableName)
-                environmentInfo["elastic_configuration"]["password"] = os.environ.get(environmentVariableName, "")
+            for key in ["keycloak_password", "elastic_password"]:
+                json_value = environmentInfo.get(key, "")
+                if isinstance(json_value, str) and json_value.startswith("$env:"):
+                    environmentVariableName = json_value[5:]
+                    logger.trace("Getting {} for env {} from variable '{}'", key, environmentName, environmentVariableName)
+                    environmentInfo[key] = os.environ.get(environmentVariableName, "")
+        logger.trace("Config loaded: {}", config)
         return config
     except FileNotFoundError:
         logger.error("Config file '{}' not found.", configfile)
@@ -190,10 +187,10 @@ def getElastic(logger: Logger, environment: str, config: dict):
     Returns:
         Elasticsearch: ElasticSeach connection
     """
-    urls = config.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("urls", [])
+    urls = config.get("environments", {}).get(environment, {}).get("elastic_urls", [])
     if urls:
-        username = config.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("username", "")
-        password = config.get("environments", {}).get(environment, {}).get("elastic_configuration", {}).get("password", "")
+        username = config.get("environments", {}).get(environment, {}).get("elastic_username", "")
+        password = config.get("environments", {}).get(environment, {}).get("elastic_password", "")
         if username and password:
             logger.debug("Connecting to urls: {}, username: {}", urls, username)
             return Elasticsearch(urls, http_auth=(username, password))
@@ -202,6 +199,30 @@ def getElastic(logger: Logger, environment: str, config: dict):
             return Elasticsearch(urls)
     else:
         logger.debug("No Elastic URLs provided.")
+        return None
+
+
+def getKibanaUrl(logger: Logger, environment: str, config: dict, realmName: str, client_id: str) -> str:
+    """Returns Kibana URL connection
+
+    Args:
+        logger (Logger): Logger instance
+        environment (str): Environment
+        config (dict): JSON configuration
+        realmName (str): Realm name
+        client_id (str): client_id
+
+    Returns:
+        str: Kibana URL
+    """
+    base_url = config.get("environments", {}).get(environment, {}).get("kibana_url", "")
+    if base_url:
+        kibana_index = config.get("environments", {}).get(environment, {}).get("kibana_index")
+        kibana_url = f"{base_url}/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-4w,to:now))&_a=(columns:!(),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'{kibana_index}',key:idp.client_id,negate:!f,params:(query:'{client_id}'),type:phrase),query:(match_phrase:(idp.client_id:'{client_id}'))),('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'{kibana_index}',key:idp.realm,negate:!f,params:(query:'{realmName}'),type:phrase),query:(match_phrase:(idp.realm:'{realmName}')))),index:'{kibana_index}',interval:auto,query:(language:kuery,query:''),sort:!(!('@timestamp',desc)))"
+        logger.trace("Kibana URL: {}", kibana_url)
+        return kibana_url
+    else:
+        logger.debug("No Kibana URL provided.")
         return None
 
 
@@ -222,8 +243,8 @@ def getKeycloakAdmin(logger: Logger, environment: str, realmName: str, config: d
             logger=logger, 
             properties=properties, 
             server_url=config.get("environments", {}).get(environment, {}).get("keycloak_url", ""), 
-            username=config.get("environments", {}).get(environment, {}).get("username", ""), 
-            password=config.get("environments", {}).get(environment, {}).get("password", ""), 
+            username=config.get("environments", {}).get(environment, {}).get("keycloak_username", ""), 
+            password=config.get("environments", {}).get(environment, {}).get("keycloak_password", ""), 
             user_realm_name="master",
             realm_name=realmName, 
             verify=False
@@ -384,6 +405,10 @@ def getNormalizedClient(logger: Logger, environment: str, realmName: str, client
         response["default_scopes"] = client.get("defaultClientScopes", [])
         response["optional_scopes"] = client.get("optionalClientScopes", [])
         response["protocol_mappers"] = client.get("protocolMappers", [])
+
+        activity_url = getKibanaUrl(logger=logger, environment=environment, config=config, realmName=realmName, client_id=response["client_id"])
+        if activity_url:
+            response["activity_url"] = activity_url
 
         logger.trace("Returning response: {}", response)
         return response

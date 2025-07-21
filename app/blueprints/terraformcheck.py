@@ -51,7 +51,7 @@ def terraform_generate_general_report():
     """
     process_output = []
     logger = utils.getLogger()
-    config = utils.getConfig()
+    config = utils.getConfig(logger=logger)
     for environment in utils.getEnvironments(logger=logger, config=config):
         output = terraformcheck_report.run(
             logger=logger,

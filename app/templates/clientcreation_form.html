@@ -1,0 +1,27 @@
+{% extends "index.html" %}
+
+{% block title %}Request Client{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Request Client</h1>
+
+    <form method="post" action="/clientcreation">
+        <div class="form-group">
+            <label for="clientName">Client Name:</label>
+            <input type="text" id="clientName" name="clientName" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="clientEmail">Client Email:</label>
+            <input type="email" id="clientEmail" name="clientEmail" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="clientMessage">Message:</label>
+            <textarea id="clientMessage" name="clientMessage" class="form-control" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+    </form>
+
+    <p><a href="{{ url_for('index') }}">Back to Home</a></p>
+</div>
+{% endblock %}

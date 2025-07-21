@@ -1,0 +1,15 @@
+{% extends "index.html" %}
+
+{% block title %}Request Client{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Request Client</h1>
+
+    <span class="alert alert-success" role="alert">
+        Thank you for your request! We will get back to you shortly.
+    </span>
+
+    <p><a href="{{ url_for('index') }}">Back to Home</a></p>
+</div>
+{% endblock %}

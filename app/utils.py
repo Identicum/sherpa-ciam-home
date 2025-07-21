@@ -528,3 +528,21 @@ def smtpSend(logger: Logger, host, port, subject, body, from_addr, to_addr, cc_a
         logger.debug("Email sent.")
     except Exception as e:
         logger.error("Error sending email: {}", e)
+
+
+def formatUrl(logger: Logger, url: str, rootUrl: str) -> str:
+    """
+    Format URL adding rootUrl if necessary.
+
+    :param url (str): URL to format.
+    :param rootUrl (str): URL base to prefix, if url is relative.
+    :return str: URL formateada.
+    """
+    logger.trace("Processing URL: {}, rootUrl: {}", url, rootUrl)
+    if url == None:
+        return ""
+    if url.startswith("http"):
+        return url
+    if url in [ "*", "+" ]:
+        return "*"
+    return f"{rootUrl}{url}"

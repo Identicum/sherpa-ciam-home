@@ -5,6 +5,7 @@ clientcreation.integration_type=Integration type
 clientcreation.realm_type=Realm type
 clientcreation.client_name=Nombre de Cliente
 clientcreation.client_name_constraints=Name must have between 8 and 16 characters, lowercase and hyphens.
+clientcreation.client_description=Description
 clientcreation.contact_email=Contact email
 clientcreation.submit_request=Submit request
 

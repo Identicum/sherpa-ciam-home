@@ -1,0 +1,39 @@
+{% extends "index.html" %}
+
+{% block title %}{{ messages['clientcreation.title'] }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ messages['clientcreation.title'] }}</h1>
+
+    <form method="post" action="/clientcreation">
+        <div class="form-group">
+            <label for="integrationType">{{ messages['clientcreation.integration_type'] }}</label>
+            <select type="text" id="integrationType" name="integrationType" class="form-control" required>
+                {% for integrationType in [ "SPA_NGINX", "CLIENT_CREDENTIALS", "WEB_BACKEND" ] %}
+                <option value="{{integrationType}}">{{integrationType}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="realmType">{{ messages['clientcreation.realm_type'] }}:</label>
+            <select type="text" id="realmType" name="realmType" class="form-control" required>
+                {% for realmType in utils.getRealmTypes(logger=utils.getLogger(), config=config) %}
+                <option value="{{realmType}}">{{realmType}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="clientName">{{ messages['clientcreation.client_name'] }}:</label>
+            <input type="text" id="clientName" name="clientName" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label for="contactEmail">{{ messages['clientcreation.contact_email'] }}:</label>
+            <input type="email" id="contactEmail" name="contactEmail" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">{{ messages['clientcreation.submit_request'] }}</button>
+    </form>
+
+    <p><a href="{{ url_for('index') }}">{{ messages['back_home'] }}</a></p>
+</div>
+{% endblock %}

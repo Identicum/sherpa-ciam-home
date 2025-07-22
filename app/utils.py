@@ -10,6 +10,35 @@ from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
 
 
+def load_messages():
+    """
+    Load messages from default.messages, optionally overridden by custom.messages
+    :return: dict of messages
+    """
+    def read_properties(path):
+        props = {}
+        if path and os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or line.startswith('#'):
+                            continue
+                        if '=' in line:
+                            key, value = line.split('=', 1)
+                            props[key.strip()] = value.strip()
+            except Exception:
+                pass
+        return props
+
+    default_path = os.path.join(os.path.dirname(__file__), 'default.messages')
+    override_path = '/conf/custom.messages'
+    messages = read_properties(default_path)
+    override_messages = read_properties(override_path)
+    messages.update(override_messages)
+    return messages
+
+
 def getLogger():
     return Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
 
@@ -499,3 +528,21 @@ def smtpSend(logger: Logger, host, port, subject, body, from_addr, to_addr, cc_a
         logger.debug("Email sent.")
     except Exception as e:
         logger.error("Error sending email: {}", e)
+
+
+def formatUrl(logger: Logger, url: str, rootUrl: str) -> str:
+    """
+    Format URL adding rootUrl if necessary.
+
+    :param url (str): URL to format.
+    :param rootUrl (str): URL base to prefix, if url is relative.
+    :return str: URL formateada.
+    """
+    logger.trace("Processing URL: {}, rootUrl: {}", url, rootUrl)
+    if url == None:
+        return ""
+    if url.startswith("http"):
+        return url
+    if url in [ "*", "+" ]:
+        return "*"
+    return f"{rootUrl}{url}"

@@ -18,10 +18,12 @@
                     </form>
                 </td>
                 <td>
-                    {% if secretVerification %}
+                    {% if secretVerification == "" %}
+                        <span class="text">Not verified</span>
+                    {% elif secretVerification == "OK" %}
                         <span class="text-success">{{ secretVerification }}</span>
                     {% else %}
-                        <span class="text-danger">Not verified</span>
+                        <span class="text-danger">{{ secretVerification }}</span>
                     {% endif %}
                 </td>
             </tr>
@@ -78,13 +80,13 @@
                 </td>
             </tr>
             <tr><th>Root URL</th><td colspan="2">{{ normalizedClient.root_url }}</td></tr>
-            <tr><th>Base URL</th><td colspan="2">{{ normalizedClient.base_url }}</td></tr>
+            <tr><th>Base URL</th><td colspan="2">{{ utils.formatUrl(logger=utils.getLogger(), url=normalizedClient.base_url, rootUrl=normalizedClient.root_url) }}</td></tr>
             <tr>
                 <th>Redirect URIs</th>
                 <td colspan="2">
                     <ul class="list-unstyled mb-0">
-                        {% for uri in normalizedClient.redirect_uris %}
-                        <li>{{ uri }}</li>
+                        {% for url in normalizedClient.redirect_uris %}
+                        <li>{{ utils.formatUrl(logger=utils.getLogger(), url=url, rootUrl=normalizedClient.root_url) }}</li>
                         {% endfor %}
                     </ul>
                 </td>
@@ -93,8 +95,8 @@
                 <th>Post Logout Redirect URIs</th>
                 <td colspan="2">
                     <ul class="list-unstyled mb-0">
-                        {% for uri in normalizedClient.post_logout_redirect_uris %}
-                        <li>{{ uri }}</li>
+                        {% for url in normalizedClient.post_logout_redirect_uris %}
+                        <li>{{ utils.formatUrl(logger=utils.getLogger(), url=url, rootUrl=normalizedClient.root_url) }}</li>
                         {% endfor %}
                     </ul>
                 </td>

@@ -3,10 +3,21 @@ from blueprints.clientinfo import clientinfo_bp
 from blueprints.clientsactivity import clientsactivity_bp
 from blueprints.checkclients import checkclients_bp
 from blueprints.terraformcheck import terraformcheck_bp
+from blueprints.clientcreation import clientcreation_bp
 from flask import Flask, render_template
+import os
 import utils
 
 app = Flask(__name__)
+
+
+# Load messages at startup
+MESSAGES = utils.load_messages()
+
+# Context processor to inject messages into all templates
+@app.context_processor
+def inject_messages():
+    return dict(messages=MESSAGES)
 
 @app.route('/', methods=["GET"])
 def index():
@@ -39,6 +50,7 @@ app.register_blueprint(clientinfo_bp)
 app.register_blueprint(clientsactivity_bp)
 app.register_blueprint(checkclients_bp)
 app.register_blueprint(terraformcheck_bp)
+app.register_blueprint(clientcreation_bp)
 
 
 if __name__ == '__main__':

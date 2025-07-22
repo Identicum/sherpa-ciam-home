@@ -15,16 +15,22 @@
                 <td>{{ realm.realm }}</td>
             </tr>
             <tr>
-                <th>Discovery URL</th>
-                <td>{{ utils.getDiscoveryUrl(logger=utils.getLogger(), environment=environment, realm=realm, config=config) }}</td>
+                <th>Application name</th>
+                <td>{{ normalizedClient.name }}</td>
             </tr>
+            <tr>
+                <th>Integration type</th>
+                <td>{{ normalizedClient.tag }}</td>
+            </tr>
+            {% if normalizedClient.type == 'oidc' %}
+                <tr>
+                    <th>Discovery URL</th>
+                    <td>{{ utils.getDiscoveryUrl(logger=utils.getLogger(), environment=environment, realm=realm, config=config) }}</td>
+                </tr>
+            {% endif %}
         </table>
         <h1>Client information</h1>
         <table border="1">
-            <tr>
-                <th>Name</th>
-                <td>{{ normalizedClient.name }}</td>
-            </tr>
             <tr>
                 <th>client_id</th>
                 <td>{{ normalizedClient.client_id }}</td>
@@ -36,16 +42,24 @@
                 </tr>
             {% endif %}
             <tr>
-                <th>Status</th>
-                <td>{% if normalizedClient.enabled %}Enabled{% else %}Disabled{% endif %}</td>
+                <th>redirect_uris</th>
+                <td>
+                    <ul>
+                    {% for url in normalizedClient.redirect_uris %}
+                        <li>{{ utils.formatUrl(logger=utils.getLogger(), url=url, rootUrl=normalizedClient.root_url) }}</li>
+                    {% endfor %}
+                    </ul>
+                </td>
             </tr>
             <tr>
-                <th>Tag</th>
-                <td>{{ normalizedClient.tag }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ normalizedClient.description }}</td>
+                <th>post_logout_redirect_uris</th>
+                <td>
+                    <ul>
+                    {% for url in normalizedClient.post_logout_redirect_uris %}
+                        <li>{{ utils.formatUrl(logger=utils.getLogger(), url=url, rootUrl=normalizedClient.root_url) }}</li>
+                    {% endfor %}
+                    </ul>
+                </td>
             </tr>
         </table>
     </body>

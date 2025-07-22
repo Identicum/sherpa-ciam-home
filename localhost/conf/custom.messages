@@ -1,0 +1,13 @@
+menu.clientcreation=Alta de Cliente
+
+clientcreation.title=Alta de nueva aplicación (Client) en IDP
+clientcreation.integration_type=Tipo de integración
+clientcreation.realm_type=Seleccione un grupo de usuarios
+clientcreation.client_name=Nombre de la App
+clientcreation.client_name_constraints=El nombre debe tener entre 8 y 16 caracteres, solo minúsculas y guiones.
+clientcreation.contact_email=Email de contacto
+clientcreation.submit_request=Crear solicitud
+
+back_home=Volver al inicio
+
+welcome_message=Bienvenido a Sherpa CIAM Home!

@@ -2,7 +2,7 @@
     "local": {
         "admin": [
             {
-                "url": "http://idp:8080/auth/admin/",
+                "url": "http://idp:8080/admin/",
                 "displayText": "Admin console",
                 "comment": "(admin/admin)"
             },

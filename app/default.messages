@@ -1,5 +1,15 @@
 menu.clientcreation=Client creation
 
+clientcreation.title=Request Client
+clientcreation.integration_type=Integration type
+clientcreation.realm_type=Realm type
+clientcreation.client_name=Nombre de Cliente
+clientcreation.client_name_constraints=Name must have between 8 and 16 characters, lowercase and hyphens.
+clientcreation.contact_email=Contact email
+clientcreation.submit_request=Submit request
+
+back_home=Back home
+
 welcome_message=Welcome to Sherpa CIAM Home!
 client_created=Client has been successfully created.
 error_generic=An error has occurred. Please try again.

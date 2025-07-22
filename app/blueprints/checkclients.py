@@ -63,7 +63,8 @@ def checkclientsEnvGenerate(environment: str):
     processOutput = checkclients_report.run(
         logger=logger,
         outputPath="/data",
-        environment=environment
+        environment=environment,
+        config=config
     )
     return render_template(
         'terraformcheck_output.html',

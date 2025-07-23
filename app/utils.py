@@ -1,8 +1,11 @@
 from datetime import datetime
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from elasticsearch import Elasticsearch
 import json
+import mimetypes
 import os
 from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
@@ -508,10 +511,9 @@ def getVarFiles(logger: Logger, environment: str, config: dict) -> list:
     return list(config.get("environments", {}).get(environment, {}).get("var_files", []))
 
 
-def smtpSend(logger: Logger, host, port, subject, body, from_addr, to_addr, cc_addr=None):
+def smtpSend(logger: Logger, host: str, port, subject, body, from_addr, to_addr, cc_addr=None, attached_files=[]):
     """
-    Send SMTP email
-
+    Send SMTP email with optional file attachments.
     """
     msg = MIMEMultipart()
     msg['From'] = from_addr
@@ -522,6 +524,22 @@ def smtpSend(logger: Logger, host, port, subject, body, from_addr, to_addr, cc_a
         recipients.append(cc_addr)
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'html'))
+
+    # Attach files if provided
+    for file_path in attached_files:
+        try:
+            ctype, encoding = mimetypes.guess_type(file_path)
+            if ctype is None or encoding is not None:
+                ctype = 'application/octet-stream'
+            maintype, subtype = ctype.split('/', 1)
+            with open(file_path, 'rb') as f:
+                part = MIMEBase(maintype, subtype)
+                part.set_payload(f.read())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f'attachment; filename="{os.path.basename(file_path)}"')
+                msg.attach(part)
+        except Exception as e:
+            logger.error("Error attaching file '{}': {}", file_path, e)
     try:
         with smtplib.SMTP(host, port) as server:
             server.sendmail(from_addr, recipients, msg.as_string())

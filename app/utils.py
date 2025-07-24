@@ -83,6 +83,19 @@ def getConfig(logger: Logger) -> dict:
         return {}
 
 
+def getIntegrationTypes(logger: Logger, config: dict) -> list:
+    """Returns the list of integration types in the configuration
+
+    Args:
+        logger (Logger): Logger instance
+        config (dict): JSON configuration
+
+    Returns:
+        list: List of integration types
+    """
+    return ["SPA_NGINX", "MOBILE", "WEB_BACKEND", "CLIENT_CREDENTIALS"]
+
+
 def getRealmTypes(logger: Logger, config: dict) -> list:
     """Returns the list of realm types in the configuration
 
@@ -204,6 +217,24 @@ def getRealmWorkspaces(logger: Logger, realmType: str, environment: str, config:
     """
     logger.trace("Processing realmType: {}, environment: {}", realmType, environment)
     return list(config.get("realms", {}).get(realmType).get(environment, {}).keys())
+
+
+def getRealmTypeWorkspaces(logger: Logger, realmType: str, config: dict) -> list:
+    """Returns workspaces for a realmType (for /clientcreation)
+
+    Args:
+        logger (Logger): Logger instance
+        realmType (str): Realm type
+        config (dict): JSON configuration
+
+    Returns:
+        list: List of workspaces
+    """
+    match realmType:
+        case "customers":
+            return ["AR", "US"]
+        case _:
+            return ["AR"]
 
 
 def getElastic(logger: Logger, environment: str, config: dict):

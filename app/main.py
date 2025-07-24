@@ -9,7 +9,7 @@ import os
 import utils
 
 app = Flask(__name__)
-
+app.config['SECRET_KEY'] = 'your-very-secret-key'
 
 # Load messages at startup
 MESSAGES = utils.load_messages()

@@ -19,7 +19,7 @@ def main(arguments):
 		realmFolder = "{}/{}".format(objectsPath, realmType)
 		logger.trace("Processing realm: {}, folder: {}", realmType, realmFolder)
 		terraform.init(logger, realmFolder)
-		for workspace in utils.getWorkspaces(logger=logger, realmType=realmType, environment=environment, config=config):
+		for workspace in utils.getRealmWorkspaces(logger=logger, realmType=realmType, environment=environment, config=config):
 			logger.trace("Processing workspace: {} for realmType: {}", workspace, realmType)
 			terraform.delete_workspace_state(logger=logger, objectsFolder=realmFolder, workspace=workspace)
 			terraform.create_workspace(logger=logger, objectsFolder=realmFolder, workspace=workspace)

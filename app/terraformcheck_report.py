@@ -167,7 +167,7 @@ def processRealm(logger: Logger, environment: str, realmType: str, realmFolder: 
 		logger.error("{} directory does not exist.", realmFolder)
 		return
 	process_output = []
-	for workspace in utils.getWorkspaces(logger=logger, realmType=realmType, environment=environment, config=config):
+	for workspace in utils.getRealmWorkspaces(logger=logger, realmType=realmType, environment=environment, config=config):
 		workspace_folder = "{}/terraform.tfstate.d/{}".format(realmFolder, workspace)
 		output = processWorkspace(logger, environment, realmType, realmFolder, workspace, workspace_folder, outputFilePath, environmentVarFiles, config=config)
 		process_output.append(output)

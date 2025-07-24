@@ -108,10 +108,9 @@ def getRealms(logger: Logger, environment: str, config: dict) -> list:
         list: List of realms in the configuration
     """
     realmsList = []
-    realmTypes = list(config.get("realms", {}).keys())
-    for realmType in realmTypes:
+    for realmType in getRealmTypes(logger=logger, config=config):
         logger.trace("getRealms() processing realmType: {}", realmType)
-        for workspace in getWorkspaces(logger=logger, realmType=realmType, environment=environment, config=config):
+        for workspace in getRealmWorkspaces(logger=logger, realmType=realmType, environment=environment, config=config):
             logger.trace("getRealms() processing workspace: {}", workspace)
             realmName = getRealmName(logger=logger, realmType=realmType, environment=environment, workspace=workspace, config=config)
             realmsList.append(realmName)
@@ -191,8 +190,7 @@ def getEnvironments(logger: Logger, config: dict) -> list:
     return list(config.get("environments", {}).keys())
 
 
-
-def getWorkspaces(logger: Logger, realmType: str, environment: str, config: dict) -> list:
+def getRealmWorkspaces(logger: Logger, realmType: str, environment: str, config: dict) -> list:
     """Returns workspaces for a realmType and environment
 
     Args:
@@ -204,7 +202,7 @@ def getWorkspaces(logger: Logger, realmType: str, environment: str, config: dict
     Returns:
         list: List of the given realm's workspaces from the configuration
     """
-    logger.trace("getWorkspaces() processing realmType: {}, environment: {}", realmType, environment)
+    logger.trace("Processing realmType: {}, environment: {}", realmType, environment)
     return list(config.get("realms", {}).get(realmType).get(environment, {}).keys())
 
 

@@ -106,10 +106,6 @@ def clientinfo_send(environment: str, realmName: str, client_id: str):
     logger.trace("client: {}", normalizedClient)
     realm = utils.getRealm(logger=logger, environment=environment, realmName=realmName, config=config)
 
-    smtpConfig = config.get("environments", {}).get(environment, {}).get("smtp", {})
-    host = smtpConfig.get("host", "")
-    port = smtpConfig.get("port", "")
-    from_addr = smtpConfig.get("from_addr", "")
     to_addr = normalizedClient["owner_email"]
     subject = "IDP - Client info - {}".format(environment)
     body = render_template(
@@ -122,7 +118,7 @@ def clientinfo_send(environment: str, realmName: str, client_id: str):
     )
     email_status = "OK"
     try :
-        utils.smtpSend(logger=logger, host=host, port=port, subject=subject, body=body, from_addr=from_addr, to_addr=to_addr)
+        utils.smtpSend(logger=logger, subject=subject, body=body, to_addr=to_addr)
     except Exception as e:
         logger.error("Error sending email: {}", e)
         email_status = "ERROR"

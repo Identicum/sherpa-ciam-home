@@ -13,4 +13,8 @@ RUN curl https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
     unzip terraform.zip -d /bin && \
     rm -f terraform.zip
 
+ENV SMTP_HOST="localhost"
+ENV SMTP_PORT="25"
+ENV SMTP_FROM_ADDR="sherpa@localhost"
+
 COPY ./app/ /app

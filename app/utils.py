@@ -509,10 +509,13 @@ def getVarFiles(logger: Logger, environment: str, config: dict) -> list:
     return list(config.get("environments", {}).get(environment, {}).get("var_files", []))
 
 
-def smtpSend(logger: Logger, host: str, port, subject, body, from_addr, to_addr, cc_addr=None, attached_files=[]):
+def smtpSend(logger: Logger, subject, body, to_addr, cc_addr=None, attached_files=[]):
     """
     Send SMTP email with optional file attachments.
     """
+    host = os.environ.get("SMTP_HOST")
+    port = int(os.environ.get("SMTP_PORT"))
+    from_addr = os.environ.get("SMTP_FROM_ADDR")
     msg = MIMEMultipart()
     msg['From'] = from_addr
     msg['To'] = to_addr

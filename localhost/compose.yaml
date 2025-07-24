@@ -66,6 +66,9 @@ services:
             - ./home.secrets
         environment:
             - LOG_LEVEL=DEBUG
+            - SMTP_HOST=mailcatcher
+            - SMTP_PORT=1025
+            - SMTP_FROM_ADDR=ciam-home@idsherpa.com
         volumes:
             - ../app/:/app/
             - ./conf/:/conf/

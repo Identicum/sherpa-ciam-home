@@ -40,12 +40,7 @@
             "elastic_urls": [],
             "kibana_url": "http://local-kibana.idsherpa.com:5601/s/idp",
             "kibana_index": "some_uuid",
-            "var_files": ["../env/local_secrets.tfvars", "../env/local.tfvars"],
-            "smtp": {
-                "host": "mailcatcher",
-                "port": 1025,
-                "from_addr": "'Sherpa CIAM' <ciam-home@idsherpa.com>"
-            }
+            "var_files": ["../env/local_secrets.tfvars", "../env/local.tfvars"]
         },
         "dev": {
             "keycloak_url": "https://dev.identicum.com",

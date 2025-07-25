@@ -8,6 +8,7 @@ clientcreation.client_name_constraints=El nombre debe tener entre 8 y 16 caracte
 clientcreation.client_description=Descripción
 clientcreation.contact_email=Email de contacto
 clientcreation.submit_request=Crear solicitud
+clientcreation_feedback.success=¡Solicitud creada! Tu solicitud ha sido creada. Recibirás un correo con la confirmación.
 
 back_home=Volver al inicio
 

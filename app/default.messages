@@ -3,11 +3,12 @@ menu.clientcreation=Client creation
 clientcreation.title=Request Client
 clientcreation.integration_type=Integration type
 clientcreation.realm_type=Realm type
-clientcreation.client_name=Nombre de Cliente
+clientcreation.client_name=Client name
 clientcreation.client_name_constraints=Name must have between 8 and 16 characters, lowercase and hyphens.
 clientcreation.client_description=Description
 clientcreation.contact_email=Contact email
 clientcreation.submit_request=Submit request
+clientcreation_feedback.success=Thank you for your request! We will get back to you shortly.
 
 back_home=Back home
 

@@ -8,7 +8,7 @@ terraformcheck_bp = Blueprint('terraformcheck', __name__, template_folder='../te
 
 
 @terraformcheck_bp.route('/terraformcheck/<environment>', methods=["GET"])
-def terraformcheck_report(environment: str):
+def terraformcheck_show_report(environment: str):
     """Renders 'Terraform Check' Diff Report Page
 
     Args:
@@ -42,35 +42,8 @@ def terraformcheck_report(environment: str):
     )
 
 
-@terraformcheck_bp.route('/terraformcheck/generate', methods=["GET"])
-def terraform_generate_general_report():
-    """Renders General 'Terraform Check' Diff Report **GENERATION** Page (All environments)
-
-    Returns:
-        Template: General 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
-    """
-    process_output = []
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
-    for environment in utils.getEnvironments(logger=logger, config=config):
-        output = terraformcheck_report.run(
-            logger=logger,
-            objectsPath="/terraform-objects",
-            outputPath="/data",
-            environment=environment
-        )
-        process_output.append(output)
-    return render_template(
-        'terraformcheck_output.html',
-        utils=utils,
-        config=config,
-        environment="All Environments",
-        process_output=process_output
-    )
-
-
-@terraformcheck_bp.route('/terraformcheck/generate/<environment>', methods=["GET"])
-def terraform_generate_report(environment: str):
+@terraformcheck_bp.route('/terraformcheck/<environment>/generate', methods=["GET"])
+def terraformcheck_generate_report(environment: str):
     """Renders Environment-Specific 'Terraform Check' Diff Report **GENERATION** Page
 
     Args:

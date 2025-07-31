@@ -28,7 +28,7 @@ def clientsactivity_list_realms(environment: str):
 
 
 @clientsactivity_bp.route('/clientsactivity/<environment>/generate', methods=["GET"])
-def clientsactivityEnvGenerate(environment: str):
+def clientsactivity_generate_report(environment: str):
     """Renders Environment-Specific 'Clients activity' Report **GENERATION** Page
 
     Args:
@@ -55,7 +55,7 @@ def clientsactivityEnvGenerate(environment: str):
 
 
 @clientsactivity_bp.route('/clientsactivity/<environment>/<realmName>', methods=["GET"])
-def clientsactivity_list(environment: str, realmName: str):
+def clientsactivity_show_report(environment: str, realmName: str):
     """Renders 'Clients Activity' Realm's Clients list Template
 
     Args:

@@ -8,7 +8,7 @@ checkclients_bp = Blueprint('checkclients', __name__)
 
 
 @checkclients_bp.route('/checkclients/<environment>', methods=["GET"])
-def checkclientsEnv(environment: str):
+def checkclients_show_report(environment: str):
     """Renders `Check Clients` template for all of a provided `environment`'s realms
 
     Args:
@@ -49,7 +49,7 @@ def checkclientsEnv(environment: str):
     )
 
 @checkclients_bp.route('/checkclients/<environment>/generate', methods=["GET"])
-def checkclientsEnvGenerate(environment: str):
+def checkclient_generate_report(environment: str):
     """Renders Environment-Specific 'Terraform Check' Diff Report **GENERATION** Page
 
     Args:

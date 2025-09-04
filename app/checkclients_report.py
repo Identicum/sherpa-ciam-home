@@ -395,14 +395,19 @@ def checkWebOrigins(logger: Logger, normalizedClient: dict) -> list:
     """
     warns = []
     web_origins_count = len(normalizedClient["web_origins"])
-    if normalizedClient["tag"] == "[SPA_PUBLIC]":
-        if web_origins_count > 1:
-            warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should only have 1 web origins but has {}.".format(web_origins_count)))
-        elif web_origins_count == 0:
-            warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have 1 web origins but has none."))
-    else:
-        if web_origins_count > 0:
-            warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should not have web origins but has {}.".format(web_origins_count)))
+    
+    TAG = normalizedClient["tag"]
+    match TAG:
+        case "[SPA_PUBLIC]":
+            # Appending corresponding warns for [SPA_PUBLIC] clients
+            if web_origins_count > 1:
+                warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should only have 1 web origins but has {}.".format(web_origins_count)))
+            elif web_origins_count == 0:
+                warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have 1 web origins but has none."))
+        case _:
+            # Default Case - Appends corresponding warns if client is not [SAML]
+            if TAG != "[SAML]" and web_origins_count > 0:
+                warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should not have web origins but has {}.".format(web_origins_count)))
     return warns
 
 

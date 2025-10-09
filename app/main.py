@@ -1,10 +1,5 @@
-from blueprints.links import links_bp
-from blueprints.clientinfo import clientinfo_bp
-from blueprints.clientsactivity import clientsactivity_bp
-from blueprints.checkclients import checkclients_bp
-from blueprints.terraformcheck import terraformcheck_bp
-from blueprints.clientcreation import clientcreation_bp
-from flask import Flask, render_template
+import importlib
+from flask import Flask, render_template, Blueprint
 import os
 import utils
 
@@ -44,14 +39,23 @@ def getHealth():
     """
     return 'OK'
 
+# Dinamycly load blueprints from ./blueprints dir
+blueprints_dir = 'blueprints'
+blueprint_path = os.path.join(os.path.dirname(__file__), blueprints_dir)
 
-app.register_blueprint(links_bp)
-app.register_blueprint(clientinfo_bp)
-app.register_blueprint(clientsactivity_bp)
-app.register_blueprint(checkclients_bp)
-app.register_blueprint(terraformcheck_bp)
-app.register_blueprint(clientcreation_bp)
-
+for filename in os.listdir(blueprint_path):
+    if filename.endswith('.py') and not filename.startswith('__'):
+        module_name = filename[:-3]
+        try:
+            module = importlib.import_module(f'blueprints.{module_name}')
+            for attr_name in dir(module):
+                attr = getattr(module, attr_name)
+                if isinstance(attr, Blueprint):
+                    app.register_blueprint(attr)
+                    print(f"Blueprint '{attr.name}' registrado desde {filename}")
+                    break
+        except Exception as e:
+            print(f"Error cargando {filename}: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

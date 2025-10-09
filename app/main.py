@@ -52,10 +52,10 @@ for filename in os.listdir(blueprint_path):
                 attr = getattr(module, attr_name)
                 if isinstance(attr, Blueprint):
                     app.register_blueprint(attr)
-                    print(f"Blueprint '{attr.name}' registrado desde {filename}")
+                    print(f"Blueprint '{attr.name}' registered from {filename}")
                     break
         except Exception as e:
-            print(f"Error cargando {filename}: {e}")
+            print(f"Error loading {filename}: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

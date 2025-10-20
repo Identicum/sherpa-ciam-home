@@ -16,6 +16,12 @@ data "keycloak_role" "master_view_clients" {
   name     = "view-clients"
 }
 
+data "keycloak_role" "master_view_users" {
+  realm_id = data.keycloak_realm.realm.id
+  client_id = data.keycloak_openid_client.master_realm_client.id
+  name     = "view-users"
+}
+
 # CUSTOMERS
 data "keycloak_openid_client" "customersar_realm_client" {
   realm_id  = data.keycloak_realm.realm.id
@@ -34,6 +40,12 @@ data "keycloak_role" "customersar_view_clients" {
   name      = "view-clients"
 }
 
+data "keycloak_role" "customersar_view_users" {
+  realm_id  = data.keycloak_realm.realm.id
+  client_id = data.keycloak_openid_client.customersar_realm_client.id
+  name      = "view-users"
+}
+
 data "keycloak_openid_client" "customersus_realm_client" {
   realm_id  = data.keycloak_realm.realm.id
   client_id = "customers-us-realm"
@@ -49,6 +61,12 @@ data "keycloak_role" "customersus_view_clients" {
   realm_id  = data.keycloak_realm.realm.id
   client_id = data.keycloak_openid_client.customersus_realm_client.id
   name      = "view-clients"
+}
+
+data "keycloak_role" "customersus_view_users" {
+  realm_id  = data.keycloak_realm.realm.id
+  client_id = data.keycloak_openid_client.customersus_realm_client.id
+  name      = "view-users"
 }
 
 # EMPLOYEES
@@ -69,6 +87,12 @@ data "keycloak_role" "employees_view_clients" {
   name      = "view-clients"
 }
 
+data "keycloak_role" "employees_view_users" {
+  realm_id  = data.keycloak_realm.realm.id
+  client_id = data.keycloak_openid_client.employees_realm_client.id
+  name      = "view-users"
+}
+
 # ROLES
 resource "keycloak_role" "idp_readonly" {
   realm_id  = data.keycloak_realm.realm.id
@@ -76,11 +100,15 @@ resource "keycloak_role" "idp_readonly" {
   composite_roles = [
     data.keycloak_role.master_view_realm.id,
     data.keycloak_role.master_view_clients.id,
+    data.keycloak_role.master_view_users.id,
     data.keycloak_role.customersar_view_realm.id,
     data.keycloak_role.customersar_view_clients.id,
+    data.keycloak_role.customersar_view_users.id,
     data.keycloak_role.customersus_view_realm.id,
     data.keycloak_role.customersus_view_clients.id,
+    data.keycloak_role.customersus_view_users.id,
     data.keycloak_role.employees_view_realm.id,
-    data.keycloak_role.employees_view_clients.id
+    data.keycloak_role.employees_view_clients.id,
+    data.keycloak_role.employees_view_users.id
   ]
 }

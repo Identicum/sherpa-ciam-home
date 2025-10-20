@@ -11,6 +11,7 @@ from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
+import uuid
 
 
 def load_messages():
@@ -399,20 +400,36 @@ def getNormalizedClient(logger: Logger, environment: str, realmName: str, client
             response["frontchannel_logout_enabled"] = client.get("frontchannelLogout", False)
             response["frontchannel_logout_url"] = client["attributes"].get("frontchannel.logout.url", "")
 
-            response["access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", 0))
-            response["effective_access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0)))
+            response["access_token_lifespan"] = client["attributes"].get("access.token.lifespan", "(inherit)")
+            response["effective_access_token_lifespan"] = client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0))
             response["realm_access_token_lifespan"] = realm["accessTokenLifespan"]
 
-            response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", 0)
-            effective_realm_client_session_idle = realm["clientSessionIdleTimeout"]
-            if effective_realm_client_session_idle == 0:
+            response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", "(inherit)")
+
+            response["realm_client_session_idle"] = realm["clientSessionIdleTimeout"]
+            if response["realm_client_session_idle"] == 0:
                 effective_realm_client_session_idle = realm["ssoSessionIdleTimeout"]
-            response["realm_client_session_idle"] = effective_realm_client_session_idle
+            else:
+                effective_realm_client_session_idle = response["realm_client_session_idle"]
             response["effective_client_session_idle"] = int(client["attributes"].get("client.session.idle.timeout", effective_realm_client_session_idle))
 
-            response["client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", 0))
-            response["effective_client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", 0)))
+            response["client_session_max"] = client["attributes"].get("client.session.max.lifespan", "(inherit)")
+            response["effective_client_session_max"] = client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", 0))
             response["realm_client_session_max"] = realm.get("clientSessionMaxLifespan", "")
+
+            response["client_offline_session_idle"] = client["attributes"].get("client.offline.session.idle.timeout", "(inherit)")
+            # response["realm_client_offline_session_idle"] = realm["offlineSessionIdleTimeout"]
+            response["realm_offline_session_idle"] = realm["offlineSessionIdleTimeout"]
+            response["effective_client_offline_session_idle"] = client["attributes"].get("client.offline.session.idle.timeout", response["realm_offline_session_idle"])
+            response["realm_offline_session_max_lifespan_enabled"] = realm["offlineSessionMaxLifespanEnabled"]
+            
+            response["client_offline_session_max"] = client["attributes"].get("client.offline.session.max.lifespan", "(inherit)")
+            response["effective_client_offline_session_max"] = client["attributes"].get("client.offline.session.max.lifespan", realm.get("offlineSessionMaxLifespan", 0))
+            if response["realm_offline_session_max_lifespan_enabled"]:
+                response["realm_offline_session_max"] = realm.get("offlineSessionMaxLifespan", "")
+            else:
+                response["realm_offline_session_max"] = ""
+
 
         # SAML Exclusive Client Attributes
         if response["type"] == "saml":
@@ -565,3 +582,73 @@ def formatUrl(logger: Logger, url: str, rootUrl: str) -> str:
     if url in [ "*", "+" ]:
         return "*"
     return f"{rootUrl}{url}"
+
+
+def getUserSessions(environment: str, realm: str, identifier: str, config: dict) -> dict:
+    """Retrieves all of a user's sessions in a given environment and realm
+
+    Args:
+        environment (str)
+        realm (str)
+        identifier (str): May be a username or user's UUID
+        config (dict): Inherited config for the Keycloak Admin
+
+    Returns:
+        dict: _description_
+    """
+    logger = getLogger()
+
+    # Validate identifier integrity
+    if not identifier:
+        return {
+            "success": False,
+            "message": "Username or UUID not provided."
+        }
+    if len(identifier) > 36:
+        return {
+            "success": False,
+            "message": "Provided Identifier string's length is greater than a username or UUID's."
+        }
+    
+    logger.debug("Identifier is valid")
+    
+    # Define identifier type
+    id_type = ""
+    try:
+        uuid.UUID(identifier)
+        id_type = "UUID"
+    except ValueError:
+        id_type = "username"
+
+    logger.debug("ID Type {}", id_type)
+    
+    kc_admin = getKeycloakAdmin(
+        logger=logger,
+        environment=environment,
+        realmName=realm,
+        config=config
+    )
+    
+    if id_type == "username":
+        identifier = kc_admin.get_user_id(identifier)
+    logger.debug("ID is {}", identifier)
+    
+    try:
+        sessions = kc_admin.get_sessions(identifier)
+        for session in sessions:
+            session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
+            session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
+        logger.trace("Sessions: {}", sessions)
+        return {
+            "sessions": sessions,
+            "success": True,
+            "message": "OK"
+        }
+    except Exception as e:
+        logger.error(e)
+        return {
+            "sessions": None,
+            "success": False,
+            "message": e
+        }
+        

@@ -118,6 +118,9 @@
             <tr><th>Client Session Max</th><td>{{normalizedClient.realm_client_session_max}}</td><td><strong>{{normalizedClient.client_session_max}}</strong></td></tr>
             <tr><th>SSO Session Idle Timeout</th><td colspan="2"><strong>{{realm.ssoSessionIdleTimeout}}</strong></td></tr>
             <tr><th>SSO Session Max Lifespan</th><td colspan="2"><strong>{{realm.ssoSessionMaxLifespan}}</strong></td></tr>
+            <tr><th>Offline Session Idle</th><td>{{normalizedClient.realm_offline_session_idle}}</td><td><strong>{{normalizedClient.client_offline_session_idle}}</strong></td></tr>
+            <tr><th>Offline Session Max Lifespan Enabled</th><td colspan="2">{{normalizedClient.realm_offline_session_max_lifespan_enabled}}</td></tr>
+            <tr><th>Offline Session Max</th><td>{{normalizedClient.realm_offline_session_max}}</td><td><strong>{{normalizedClient.client_offline_session_max}}</strong></td></tr>
             <tr class="table-group-divider"><th colspan="3"></th></tr>
             {% if warns %}
                 <tr>

@@ -56,6 +56,21 @@
             <li>
                 <a href="/clientcreation">{{ messages['menu.clientcreation'] }}</a>
             </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.usersessionslookup'] }}</a>
+                <div class="dropdown-content">
+                    {% for environment in utils.getEnvironments(logger=utils.getLogger(), config=config) %}
+                        <div class="submenu-parent">
+                            <a href="/user-sessions-lookup/{{environment}}">{{environment}} &raquo;</a>
+                            <div class="dropdown-submenu">
+                                {% for realm in utils.getRealms(logger=utils.getLogger(), environment=environment, config=config) %}
+                                    <a href="/user-sessions-lookup/{{environment}}/{{realm}}">{{realm}}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </li>
         </ul>
     </nav>
 </header>

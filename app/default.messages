@@ -1,4 +1,5 @@
 menu.clientcreation=Client creation
+menu.usersessionslookup=Sessions Lookup
 
 clientcreation.title=Request Client
 clientcreation.integration_type=Integration type
@@ -9,6 +10,23 @@ clientcreation.client_description=Description
 clientcreation.contact_email=Contact email
 clientcreation.submit_request=Submit request
 clientcreation_feedback.success=Thank you for your request! We will get back to you shortly.
+
+usersessionslookup.title=Consulta de Sesiones de Usuario
+usersessionslookup.identifier_input_label=Username / UUID
+usersessionslookup.submit_request=Listar Sesiones
+usersessionslookup.success=Usuario Encontrado
+usersessionslookup.sessions_title=Sesiones de
+usersessionslookup.username=Nombre de Usuario
+usersessionslookup.userId=ID de Usuario
+usersessionslookup.table.id=ID
+usersessionslookup.table.ipAddress=IP
+usersessionslookup.table.start=Inicio
+usersessionslookup.table.lastAccess=Último Acceso
+usersessionslookup.table.rememberMe=Remember Me
+usersessionslookup.table.clients=Clients
+usersessionslookup.table.transientUser=Transient User
+usersessionslookup.no_sessions=No se encontraron sesiones.
+usersessionslookup.error=Hubo un error
 
 back_home=Back home
 

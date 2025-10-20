@@ -399,20 +399,36 @@ def getNormalizedClient(logger: Logger, environment: str, realmName: str, client
             response["frontchannel_logout_enabled"] = client.get("frontchannelLogout", False)
             response["frontchannel_logout_url"] = client["attributes"].get("frontchannel.logout.url", "")
 
-            response["access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", 0))
-            response["effective_access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0)))
+            response["access_token_lifespan"] = client["attributes"].get("access.token.lifespan", "(inherit)")
+            response["effective_access_token_lifespan"] = client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0))
             response["realm_access_token_lifespan"] = realm["accessTokenLifespan"]
 
-            response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", 0)
-            effective_realm_client_session_idle = realm["clientSessionIdleTimeout"]
-            if effective_realm_client_session_idle == 0:
+            response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", "(inherit)")
+
+            response["realm_client_session_idle"] = realm["clientSessionIdleTimeout"]
+            if response["realm_client_session_idle"] == 0:
                 effective_realm_client_session_idle = realm["ssoSessionIdleTimeout"]
-            response["realm_client_session_idle"] = effective_realm_client_session_idle
+            else:
+                effective_realm_client_session_idle = response["realm_client_session_idle"]
             response["effective_client_session_idle"] = int(client["attributes"].get("client.session.idle.timeout", effective_realm_client_session_idle))
 
-            response["client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", 0))
-            response["effective_client_session_max"] = int(client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", 0)))
+            response["client_session_max"] = client["attributes"].get("client.session.max.lifespan", "(inherit)")
+            response["effective_client_session_max"] = client["attributes"].get("client.session.max.lifespan", realm.get("clientSessionMaxLifespan", 0))
             response["realm_client_session_max"] = realm.get("clientSessionMaxLifespan", "")
+
+            response["client_offline_session_idle"] = client["attributes"].get("client.offline.session.idle.timeout", "(inherit)")
+            # response["realm_client_offline_session_idle"] = realm["offlineSessionIdleTimeout"]
+            response["realm_offline_session_idle"] = realm["offlineSessionIdleTimeout"]
+            response["effective_client_offline_session_idle"] = client["attributes"].get("client.offline.session.idle.timeout", response["realm_offline_session_idle"])
+            response["realm_offline_session_max_lifespan_enabled"] = realm["offlineSessionMaxLifespanEnabled"]
+            
+            response["client_offline_session_max"] = client["attributes"].get("client.offline.session.max.lifespan", "(inherit)")
+            response["effective_client_offline_session_max"] = client["attributes"].get("client.offline.session.max.lifespan", realm.get("offlineSessionMaxLifespan", 0))
+            if response["realm_offline_session_max_lifespan_enabled"]:
+                response["realm_offline_session_max"] = realm.get("offlineSessionMaxLifespan", "")
+            else:
+                response["realm_offline_session_max"] = ""
+
 
         # SAML Exclusive Client Attributes
         if response["type"] == "saml":

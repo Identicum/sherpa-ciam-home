@@ -11,6 +11,7 @@ from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
+import uuid
 
 
 def load_messages():
@@ -581,3 +582,73 @@ def formatUrl(logger: Logger, url: str, rootUrl: str) -> str:
     if url in [ "*", "+" ]:
         return "*"
     return f"{rootUrl}{url}"
+
+
+def getUserSessions(environment: str, realm: str, identifier: str, config: dict) -> dict:
+    """Retrieves all of a user's sessions in a given environment and realm
+
+    Args:
+        environment (str)
+        realm (str)
+        identifier (str): May be a username or user's UUID
+        config (dict): Inherited config for the Keycloak Admin
+
+    Returns:
+        dict: _description_
+    """
+    logger = getLogger()
+
+    # Validate identifier integrity
+    if not identifier:
+        return {
+            "success": False,
+            "message": "Username or UUID not provided."
+        }
+    if len(identifier) > 36:
+        return {
+            "success": False,
+            "message": "Provided Identifier string's length is greater than a username or UUID's."
+        }
+    
+    logger.debug("Identifier is valid")
+    
+    # Define identifier type
+    id_type = ""
+    try:
+        uuid.UUID(identifier)
+        id_type = "UUID"
+    except ValueError:
+        id_type = "username"
+
+    logger.debug("ID Type {}", id_type)
+    
+    kc_admin = getKeycloakAdmin(
+        logger=logger,
+        environment=environment,
+        realmName=realm,
+        config=config
+    )
+    
+    if id_type == "username":
+        identifier = kc_admin.get_user_id(identifier)
+    logger.debug("ID is {}", identifier)
+    
+    try:
+        sessions = kc_admin.get_sessions(identifier)
+        for session in sessions:
+            session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
+            session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
+        logger.trace("Sessions: {}", sessions)
+        return {
+            "sessions": sessions,
+            "success": True,
+            "message": "OK"
+        }
+    except Exception as e:
+        logger.error(e)
+        return {
+            "sessions": None,
+            "success": False,
+            "message": e
+        }
+        

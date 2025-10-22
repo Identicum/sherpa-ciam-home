@@ -604,12 +604,6 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
             "success": False,
             "message": "Username or UUID not provided."
         }
-    if len(identifier) > 36:
-        return {
-            "success": False,
-            "message": "Provided Identifier string's length is greater than a username or UUID's."
-        }
-    
     logger.debug("Identifier is valid")
     
     # Define identifier type

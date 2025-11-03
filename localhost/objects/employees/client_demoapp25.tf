@@ -18,13 +18,13 @@ resource "keycloak_openid_client" "demoapp25" {
   frontchannel_logout_url         = "https://demoapp25/frontchannel_logout"
 }
 
-resource "keycloak_openid_client_optional_scopes" "demoapp25_optionalscopes" {
+resource "keycloak_openid_client_optional_scopes" "demoapp25" {
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.demoapp25.id
   optional_scopes = [ ]
 }
 
-resource "keycloak_openid_client_default_scopes" "demoapp25_defaultscopes" {
+resource "keycloak_openid_client_default_scopes" "demoapp25" {
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.demoapp25.id
   default_scopes = [ "basic", "profile" ]

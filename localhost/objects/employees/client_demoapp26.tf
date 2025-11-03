@@ -11,7 +11,7 @@ resource "keycloak_saml_client" "demoapp26" {
   name_id_format                  = "username"
 }
 
-resource "keycloak_saml_client_default_scopes" "demoapp26_defaultscopes" {
+resource "keycloak_saml_client_default_scopes" "demoapp26" {
   realm_id       = keycloak_realm.realm.id
   client_id      = keycloak_saml_client.demoapp26.id
   default_scopes = [ keycloak_saml_client_scope.saml_scope.name ]

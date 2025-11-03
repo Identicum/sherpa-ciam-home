@@ -15,13 +15,13 @@ resource "keycloak_openid_client" "demoapp17" {
   client_session_idle_timeout     = "2800"
 }
 
-resource "keycloak_openid_client_optional_scopes" "demoapp17_optionalscopes" {
+resource "keycloak_openid_client_optional_scopes" "demoapp17" {
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.demoapp17.id
   optional_scopes = [ ]
 }
 
-resource "keycloak_openid_client_default_scopes" "demoapp17_defaultscopes" {
+resource "keycloak_openid_client_default_scopes" "demoapp17" {
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.demoapp17.id
   default_scopes = [ "basic", "roles", "service_account" ]

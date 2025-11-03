@@ -12,14 +12,14 @@ resource "keycloak_openid_client" "sherpaciamhome" {
   service_accounts_enabled     = true
 }
 
-resource "keycloak_openid_client_default_scopes" "sherpaciamhome_defaultscopes" {
+resource "keycloak_openid_client_default_scopes" "sherpaciamhome" {
   realm_id  = data.keycloak_realm.realm.id
   client_id = keycloak_openid_client.sherpaciamhome.id
   default_scopes = [ "basic", "roles" ]
 }
 
-resource "keycloak_openid_client_optional_scopes" "sherpaciamhome_optionalscopes" {
-  depends_on = [ keycloak_openid_client_default_scopes.sherpaciamhome_defaultscopes ]
+resource "keycloak_openid_client_optional_scopes" "sherpaciamhome" {
+  depends_on = [ keycloak_openid_client_default_scopes.sherpaciamhome ]
   realm_id  = data.keycloak_realm.realm.id
   client_id = keycloak_openid_client.sherpaciamhome.id
   optional_scopes = [ ]

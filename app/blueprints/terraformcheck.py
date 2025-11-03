@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, current_app
 import terraformcheck_report
 import json
 import os
@@ -8,6 +8,7 @@ terraformcheck_bp = Blueprint('terraformcheck', __name__, template_folder='../te
 
 
 @terraformcheck_bp.route('/terraformcheck/<environment>', methods=["GET"])
+@utils.require_oidc_login
 def terraformcheck_show_report(environment: str):
     """Renders 'Terraform Check' Diff Report Page
 

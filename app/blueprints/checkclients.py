@@ -8,6 +8,7 @@ checkclients_bp = Blueprint('checkclients', __name__)
 
 
 @checkclients_bp.route('/checkclients/<environment>', methods=["GET"])
+@utils.require_oidc_login
 def checkclients_show_report(environment: str):
     """Renders `Check Clients` template for all of a provided `environment`'s realms
 

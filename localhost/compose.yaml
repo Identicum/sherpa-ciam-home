@@ -69,11 +69,11 @@ services:
             - SMTP_HOST=mailcatcher
             - SMTP_PORT=1025
             - SMTP_FROM_ADDR=ciam-home@idsherpa.com
-            - OIDC_ISSUER='http://idp:8080/realms/employees'
-            - OIDC_CLIENT_ID='sherpaciamhome_client_id'
-            - OIDC_CLIENT_SECRET='sherpaciamhome_client_secret'
-            - OIDC_REDIRECT_URI='http://localhost:5000/oidc_callback'
-            - OIDC_REALM='cacho'
+            - OIDC_ISSUER=http://idp:8080/realms/employees
+            - OIDC_CLIENT_ID=sherpaciamhome_client_id
+            - OIDC_CLIENT_SECRET=sherpaciamhome_client_secret
+            - OIDC_REDIRECT_URI=http://localhost/oidc_callback
+            - OIDC_REALM=cacho
         volumes:
             - ../app/:/app/
             - ./conf/:/conf/

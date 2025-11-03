@@ -6,6 +6,7 @@ user_sessions_lookup_bp = Blueprint('user-sessions-lookup', __name__)
 
 
 @user_sessions_lookup_bp.route('/user-sessions-lookup/<environment>', methods=["GET"])
+@utils.require_oidc_login
 def user_sessions_lookup_realm_list(environment: str):
     """Renders Realm List for User Sessions Lookup Form
 
@@ -23,6 +24,7 @@ def user_sessions_lookup_realm_list(environment: str):
     )
 
 @user_sessions_lookup_bp.route('/user-sessions-lookup/<environment>/<realm>', methods=["GET"])
+@utils.require_oidc_login
 def user_sessions_lookup_form(environment: str, realm: str):
     """Renders User Sessions Lookup Form for the provided Environment and Realm
 
@@ -44,6 +46,7 @@ def user_sessions_lookup_form(environment: str, realm: str):
 
 
 @user_sessions_lookup_bp.route('/user-sessions-lookup/<environment>/<realm>/<identifier>', methods=["GET"])
+@utils.require_oidc_login
 def user_sessions_lookup_detail(environment: str, realm: str, identifier: str):
     """Renders the User Sessions Lookup result page for the provided Environment, Realm and Provided User
 

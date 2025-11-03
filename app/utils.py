@@ -4,6 +4,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from elasticsearch import Elasticsearch
+from functools import wraps
 import json
 import mimetypes
 import os
@@ -12,6 +13,18 @@ from sherpa.utils.basics import Logger
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
 import uuid
+
+
+def make_require_oidc_login(oidc):
+    def require_oidc_login(f):
+        from functools import wraps
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not oidc.user_loggedin:
+                return oidc.redirect_to_auth_server()
+            return f(*args, **kwargs)
+        return decorated_function
+    return require_oidc_login
 
 
 def load_messages():

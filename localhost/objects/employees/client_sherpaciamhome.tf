@@ -9,10 +9,10 @@ resource "keycloak_openid_client" "sherpaciamhome" {
   implicit_flow_enabled           = false
   direct_access_grants_enabled    = false
   service_accounts_enabled        = false
-  root_url                        = "https://sherpaciamhome.example.com"
+  root_url                        = "http://localhost"
   base_url                        = "/"
-  valid_redirect_uris             = [ "/private/redirect_uri", "/private/info" ]
-  valid_post_logout_redirect_uris = [ "/logoutSuccess.html" ]
+  valid_redirect_uris             = [ "/oidc_callback" ]
+  valid_post_logout_redirect_uris = [ "/logoutSuccess" ]
   frontchannel_logout_enabled     = false
 }
 
@@ -25,5 +25,5 @@ resource "keycloak_openid_client_optional_scopes" "sherpaciamhome" {
 resource "keycloak_openid_client_default_scopes" "sherpaciamhome" {
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.sherpaciamhome.id
-  default_scopes = [ "basic", "profile" ]
+  default_scopes = [ "basic", "email", "profile" ]
 }

@@ -1,5 +1,5 @@
 import importlib
-from flask import Flask, render_template, Blueprint, jsonify
+from flask import Flask, render_template, Blueprint
 from flask_oidc import OpenIDConnect
 import os
 import utils
@@ -45,17 +45,17 @@ app.config.update({
             'auth_uri': oidc_endpoints['auth_uri'],
             'token_uri': oidc_endpoints['token_uri'],
             'userinfo_uri': oidc_endpoints['userinfo_uri'],
-            'issuer': os.environ.get('OIDC_ISSUER'),
-            'redirect_uris': [os.environ.get('OIDC_REDIRECT_URI', 'http://localhost:5000/oidc_callback')]
+            'issuer': os.environ.get('OIDC_ISSUER')
         }
     },
     'OIDC_ID_TOKEN_COOKIE_SECURE': False,
-    'OIDC_REQUIRE_VERIFIED_EMAIL': False,
     'OIDC_USER_INFO_ENABLED': True,
+    'OIDC_OVERWRITE_REDIRECT_URI': os.environ.get('OIDC_REDIRECT_URI', 'http://localhost:5000/oidc_callback'),
     'OIDC_OPENID_REALM': os.environ.get('OIDC_REALM', 'your-realm'),
     'OIDC_SCOPES': ['openid', 'email', 'profile'],
 })
 oidc = OpenIDConnect(app)
+utils.require_oidc_login = utils.make_require_oidc_login(oidc)
 
 # Load messages at startup
 MESSAGES = utils.load_messages()
@@ -66,7 +66,6 @@ def inject_messages():
     return dict(messages=MESSAGES)
 
 @app.route('/', methods=["GET"])
-@oidc.require_login
 def index():
     """Renders Index Page with user info
 
@@ -75,12 +74,13 @@ def index():
     """
     logger = utils.getLogger()
     config = utils.getConfig(logger=logger)
-    user_info = oidc.user_getinfo(['email', 'sub', 'name'])
+    # user_info = oidc.user_getinfo(['email', 'sub', 'name'])
     return render_template(
         "index.html",
         utils=utils,
-        config=config,
-        user_info=user_info
+        config=config
+        # ,
+        # user_info=user_info
     )
 
 

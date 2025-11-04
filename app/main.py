@@ -93,9 +93,9 @@ def login():
     return oidc.redirect_to_auth_server()
 
 
-@app.route('/sherpaLogout')
+@app.route('/homeLogout')
 # @oidc.require_login
-def sherpaLogout():
+def homeLogout():
     refresh_token = oidc.get_refresh_token()
     utils.logger.debug("refresh_token: {}", refresh_token)
     oidc.logout()

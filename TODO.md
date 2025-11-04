@@ -16,7 +16,7 @@
 
 ## header
 - agregar user autenticado o anonymous
-- agregar link a /SherpaLogout
+- agregar link a /homeLogout
 - dibujar links solemante a usuarios autenticados?
 
 ## General

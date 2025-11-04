@@ -39,7 +39,6 @@ def checkclients_show_report(environment: str):
     return render_template(
         'checkclients.html',
         utils=utils,
-        config=utils.config,
         environment=environment,
         warns=warns,
         metadata=metadata,
@@ -66,7 +65,6 @@ def checkclient_generate_report(environment: str):
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
-        config=utils.config,
         environment=environment,
         processOutput=processOutput
     )

@@ -499,8 +499,8 @@ def main(arguments):
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('outputPath', type=str, help="Path to checkclients_*.json files.")
 	args = parser.parse_args(arguments)
-	for environment in utils.getEnvironments(logger=logger, config=shared.config):
-		run(logger=logger, outputPath=args.outputPath, environment=environment, config=shared.config)
+	for environment in utils.getEnvironments(logger=logger, config=utils.config):
+		run(logger=logger, outputPath=args.outputPath, environment=environment, config=utils.config)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

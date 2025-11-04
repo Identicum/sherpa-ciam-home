@@ -21,7 +21,6 @@ def links(environment: str):
     return render_template(
         'links.html',
         utils=utils,
-        config=utils.config,
         links=links,
         environment=environment
     )

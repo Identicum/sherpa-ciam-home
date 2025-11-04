@@ -16,8 +16,7 @@ def user_sessions_lookup_realm_list(environment: str):
     return render_template(
         'user_sessions_lookup_list_realms.html',
         utils=utils,
-        environment=environment,
-        config=utils.config
+        environment=environment
     )
 
 @user_sessions_lookup_bp.route('/user-sessions-lookup/<environment>/<realm>', methods=["GET"])
@@ -34,8 +33,7 @@ def user_sessions_lookup_form(environment: str, realm: str):
         'user_sessions_lookup_form.html',
         environment=environment,
         realm=realm,
-        utils=utils,
-        config=utils.config
+        utils=utils
     )
 
 
@@ -56,6 +54,5 @@ def user_sessions_lookup_detail(environment: str, realm: str, identifier: str):
         success=response.get('success', False),
         sessions=response.get('sessions', []),
         message=response.get('message', ''),
-        config=utils.config,
         identifier=identifier
     )

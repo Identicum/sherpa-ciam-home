@@ -34,7 +34,6 @@ def terraformcheck_show_report(environment: str):
     return render_template(
         'terraformcheck.html',
         utils=utils,
-        config=utils.config,
         environment=environment,
         reportData=reportData,
         errorMessage=errorMessage
@@ -61,7 +60,6 @@ def terraformcheck_generate_report(environment: str):
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
-        config=utils.config,
         environment=environment,
         process_output=output
     )

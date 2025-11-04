@@ -71,7 +71,6 @@ def index():
     return render_template(
         "index.html",
         utils=utils,
-        config=utils.config
         # ,
         # user_info=user_info
     )

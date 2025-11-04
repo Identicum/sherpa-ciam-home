@@ -14,8 +14,7 @@ def clientcreation_form():
     """
     return render_template(
         'clientcreation_form.html',
-        utils=utils,
-        config=utils.config
+        utils=utils
     )
 
 @clientcreation_bp.route('/clientcreation', methods=["POST"])
@@ -30,6 +29,5 @@ def clientcreation():
 
     return render_template(
         'clientcreation_feedback.html',
-        utils=utils,
-        config=utils.config
+        utils=utils
     )

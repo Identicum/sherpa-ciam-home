@@ -80,13 +80,13 @@
                 </td>
             </tr>
             <tr><th>Root URL</th><td colspan="2">{{ normalizedClient.root_url }}</td></tr>
-            <tr><th>Base URL</th><td colspan="2">{{ utils.formatUrl(logger=utils.getLogger(), url=normalizedClient.base_url, rootUrl=normalizedClient.root_url) }}</td></tr>
+            <tr><th>Base URL</th><td colspan="2">{{ utils.formatUrl(logger=utils.logger, url=normalizedClient.base_url, rootUrl=normalizedClient.root_url) }}</td></tr>
             <tr>
                 <th>Redirect URIs</th>
                 <td colspan="2">
                     <ul class="list-unstyled mb-0">
                         {% for url in normalizedClient.redirect_uris %}
-                        <li>{{ utils.formatUrl(logger=utils.getLogger(), url=url, rootUrl=normalizedClient.root_url) }}</li>
+                        <li>{{ utils.formatUrl(logger=utils.logger, url=url, rootUrl=normalizedClient.root_url) }}</li>
                         {% endfor %}
                     </ul>
                 </td>
@@ -96,7 +96,7 @@
                 <td colspan="2">
                     <ul class="list-unstyled mb-0">
                         {% for url in normalizedClient.post_logout_redirect_uris %}
-                        <li>{{ utils.formatUrl(logger=utils.getLogger(), url=url, rootUrl=normalizedClient.root_url) }}</li>
+                        <li>{{ utils.formatUrl(logger=utils.logger, url=url, rootUrl=normalizedClient.root_url) }}</li>
                         {% endfor %}
                     </ul>
                 </td>

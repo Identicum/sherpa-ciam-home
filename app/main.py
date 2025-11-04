@@ -1,40 +1,34 @@
 import importlib
-from flask import Flask, render_template, Blueprint
+from flask import Flask, Blueprint, redirect, render_template, session, url_for
 from flask_oidc import OpenIDConnect
+from keycloak import KeycloakOpenID
 import os
 import utils
 import requests
 
 app = Flask(__name__)
 
-def get_oidc_config():
+def get_oidc_config(issuer=None):
     """Fetch OIDC configuration from well-known endpoint"""
-    issuer = os.environ.get('OIDC_ISSUER')
     if not issuer:
-        raise ValueError("OIDC_ISSUER environment variable is required")
-    
+        raise ValueError("Issuer variable is required")
     try:
         well_known_url = f"{issuer.rstrip('/')}/.well-known/openid-configuration"
         response = requests.get(well_known_url)
         response.raise_for_status()
         config = response.json()
-        
         return {
             'auth_uri': config['authorization_endpoint'],
+            'logout_uri': config['end_session_endpoint'],
             'token_uri': config['token_endpoint'],
             'userinfo_uri': config['userinfo_endpoint'],
         }
     except requests.RequestException as e:
         print(f"Error fetching OIDC configuration: {e}")
-        # Fallback to environment variables if provided
-        return {
-            'auth_uri': os.environ.get('OIDC_AUTH_URI'),
-            'token_uri': os.environ.get('OIDC_TOKEN_URI'),
-            'userinfo_uri': os.environ.get('OIDC_USERINFO_URI'),
-        }
+        return { }
 
-# Fetch OIDC configuration
-oidc_endpoints = get_oidc_config()
+issuer = os.environ.get('IDP_BASE_URL') + '/realms/' + os.environ.get('OIDC_REALM')
+oidc_endpoints = get_oidc_config(issuer)
 
 app.config.update({
     'SECRET_KEY': os.environ.get('SECRET_KEY', 'default-secret-key-change-me'),
@@ -45,14 +39,14 @@ app.config.update({
             'auth_uri': oidc_endpoints['auth_uri'],
             'token_uri': oidc_endpoints['token_uri'],
             'userinfo_uri': oidc_endpoints['userinfo_uri'],
-            'issuer': os.environ.get('OIDC_ISSUER')
+            'issuer': issuer
         }
     },
     'OIDC_ID_TOKEN_COOKIE_SECURE': False,
     'OIDC_USER_INFO_ENABLED': True,
-    'OIDC_OVERWRITE_REDIRECT_URI': os.environ.get('OIDC_REDIRECT_URI', 'http://localhost:5000/oidc_callback'),
-    'OIDC_OPENID_REALM': os.environ.get('OIDC_REALM', 'your-realm'),
-    'OIDC_SCOPES': ['openid', 'email', 'profile'],
+    'OIDC_OVERWRITE_REDIRECT_URI': os.environ.get('OIDC_REDIRECT_URI'),
+    'OIDC_OPENID_REALM': os.environ.get('OIDC_REALM'),
+    'OIDC_SCOPES': ['openid', 'email', 'profile']
 })
 oidc = OpenIDConnect(app)
 utils.require_oidc_login = utils.make_require_oidc_login(oidc)
@@ -72,13 +66,12 @@ def index():
     Returns:
         Template: Rendered Index Page HTML
     """
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
+    # ToDo: identify logged in session, before attempting to get user info
     # user_info = oidc.user_getinfo(['email', 'sub', 'name'])
     return render_template(
         "index.html",
         utils=utils,
-        config=config
+        config=utils.config
         # ,
         # user_info=user_info
     )
@@ -93,18 +86,38 @@ def getHealth():
     """
     return 'OK'
 
+
 @app.route('/login')
 def login():
     """Trigger OIDC login"""
     return oidc.redirect_to_auth_server()
 
-@app.route('/logout')
-def logout():
-    """Logout and clear session"""
-    oidc.logout()
-    return 'Logged out'
 
-# Dinamycly load blueprints from ./blueprints dir
+@app.route('/sherpaLogout')
+# @oidc.require_login
+def sherpaLogout():
+    refresh_token = oidc.get_refresh_token()
+    utils.logger.debug("refresh_token: {}", refresh_token)
+    oidc.logout()
+    utils.logger.debug("Local session logged out.")
+    keycloak_openid = KeycloakOpenID(server_url="http://idp:8080/",
+                                 client_id=os.environ.get('OIDC_CLIENT_ID'),
+                                 realm_name=os.environ.get('OIDC_REALM'),
+                                 client_secret_key=os.environ.get('OIDC_CLIENT_SECRET'))
+    utils.logger.debug("Logging out IDP session.")
+    keycloak_openid.logout(refresh_token=refresh_token)
+    # post_logout_redirect_uri = os.environ.get('APP_BASE_URL') + url_for('logout_success')
+    # utils.logger.debug("Redirecting to post_logout_redirect_uri: {}.", post_logout_redirect_uri)
+    return redirect("/logout")
+
+
+@app.route('/logoutSuccess')
+def logout_success():
+    """Handle logout callback from IDP"""
+    return redirect('/')
+
+
+# Dynamically load blueprints from ./blueprints dir
 blueprints_dir = 'blueprints'
 blueprint_path = os.path.join(os.path.dirname(__file__), blueprints_dir)
 
@@ -121,6 +134,7 @@ for filename in os.listdir(blueprint_path):
                     break
         except Exception as e:
             print(f"Error loading {filename}: {e}")
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

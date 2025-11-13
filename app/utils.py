@@ -635,7 +635,7 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
         logger.trace("Online Sessions: {}", sessions)
 
         for client in kc_admin.get_clients():
-            for session in kc_admin.sherpa_get_user_client_offlinesessions(identifier, client["clientId"]):
+            for session in kc_admin.sherpa_get_user_client_offlinesessions(user_id=identifier, client_id=client["clientId"]):
                 sessions.append({
                     **session,
                     "is_offline_session": True

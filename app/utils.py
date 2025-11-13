@@ -632,7 +632,11 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
         for session in sessions:
             session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
             session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
-        logger.trace("Sessions: {}", sessions)
+        logger.trace("Online Sessions: {}", sessions)
+
+        for client in kc_admin.get_clients():
+            sessions += kc_admin.sherpa_get_user_client_offlinesessions(identifier, client["clientId"])
+            
         return {
             "sessions": sessions,
             "success": True,

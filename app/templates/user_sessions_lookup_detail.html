@@ -21,6 +21,7 @@
                             <th>{{ messages['usersessionslookup.table.lastAccess'] }}</th>
                             <th>{{ messages['usersessionslookup.table.rememberMe'] }}</th>
                             <th>{{ messages['usersessionslookup.table.clients'] }}</th>
+                            <th>{{ messages['usersessionslookup.table.is_offline_session'] }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -38,6 +39,7 @@
                                     {% endfor %}
                                 </ul>
                             </td>
+                            <td>{{ True if session.is_offline_session else False}}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

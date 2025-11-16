@@ -25,6 +25,7 @@ usersessionslookup.table.lastAccess=Último Acceso
 usersessionslookup.table.rememberMe=Remember Me
 usersessionslookup.table.clients=Clients
 usersessionslookup.table.transientUser=Transient User
+usersessionslookup.table.is_offline_session=Offline Session
 usersessionslookup.no_sessions=No se encontraron sesiones.
 usersessionslookup.error=Hubo un error
 

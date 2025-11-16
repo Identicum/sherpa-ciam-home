@@ -168,8 +168,8 @@ def getRealmName(logger, realmType: str, environment: str, workspace: str, confi
     Returns:
         str: Realm name
     """
-    realmName = config.get("realms", {}).get(realmType, {}).get(environment, {}).get(workspace, {}).get("realm_name", realmType)
-    logger.trace("getRealmName() processing realmType: {}, environment: {}, workspace: {}, realmName: {}", realmType, environment, workspace, realmName)
+    realmName = config.get("realms").get(realmType).get("environments").get(environment).get(workspace).get("realm_name", realmType)
+    logger.trace("getRealmName({}, {}, {}) returning: {}", realmType, environment, workspace, realmName)
     return realmName
 
 
@@ -199,7 +199,7 @@ def getRealmWorkspaces(logger, realmType: str, environment: str, config: dict) -
         list: List of the given realm's workspaces from the configuration
     """
     logger.trace("Processing realmType: {}, environment: {}", realmType, environment)
-    return list(config.get("realms", {}).get(realmType).get(environment, {}).keys())
+    return list(config.get("realms").get(realmType).get("environments").get(environment, {}).keys())
 
 
 def getElastic(logger, environment: str, config: dict):

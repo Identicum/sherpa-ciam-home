@@ -66,9 +66,15 @@ services:
             - ./home.secrets
         environment:
             - LOG_LEVEL=DEBUG
+            - APP_BASE_URL=http://localhost
             - SMTP_HOST=mailcatcher
             - SMTP_PORT=1025
             - SMTP_FROM_ADDR=ciam-home@idsherpa.com
+            - IDP_BASE_URL=http://idp:8080
+            - OIDC_CLIENT_ID=sherpaciamhome_client_id
+            - OIDC_CLIENT_SECRET=sherpaciamhome_client_secret
+            - OIDC_REDIRECT_URI=http://localhost/oidc_callback
+            - OIDC_REALM=employees
         volumes:
             - ../app/:/app/
             - ./conf/:/conf/

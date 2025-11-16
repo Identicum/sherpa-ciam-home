@@ -8,6 +8,7 @@ clientsactivity_bp = Blueprint('clientsactivity', __name__)
 
 
 @clientsactivity_bp.route('/clientsactivity/<environment>', methods=["GET"])
+@utils.require_oidc_login
 def clientsactivity_list_realms(environment: str):
     """Renders 'Clients Activity' Realm list template
 
@@ -49,6 +50,7 @@ def clientsactivity_generate_report(environment: str):
 
 
 @clientsactivity_bp.route('/clientsactivity/<environment>/<realmName>', methods=["GET"])
+@utils.require_oidc_login
 def clientsactivity_show_report(environment: str, realmName: str):
     """Renders 'Clients Activity' Realm's Clients list Template
 

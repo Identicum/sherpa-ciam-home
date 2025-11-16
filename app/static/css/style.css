@@ -179,3 +179,34 @@ header nav ul li a {
 .use-cases-links-table a:hover {
     text-decoration: underline;
 }
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+}
+
+nav ul.user-menu-right {
+    margin-left: auto;
+}
+
+nav ul li {
+    position: relative;
+}
+
+nav ul.user-menu-right {
+    margin-left: auto;
+    display: flex;
+}
+
+nav ul.user-menu-right li {
+    list-style: none;
+}

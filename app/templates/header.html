@@ -13,6 +13,25 @@
                 </div>
             </li>
             <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">Client Info</a>
+                <div class="dropdown-content">
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
+                        <div class="submenu-parent">
+                            <a href="/clientinfo/{{environment}}">{{environment}} &raquo;</a>
+                            <div class="dropdown-submenu">
+                                {% for realm in utils.getRealms(logger=utils.logger, environment=environment, config=utils.config) %}
+                                    <a href="/clientinfo/{{environment}}/{{realm}}">{{realm}}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </li>
+            <li>
+                <a href="/clientcreation">{{ messages['menu.clientcreation'] }}</a>
+            </li>
+            {% if session.get('username') %}
+            <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Check clients</a>
                 <div class="dropdown-content">
                     {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
@@ -31,30 +50,12 @@
                 </div>
             </li>
             <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">Client Info</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
-                        <div class="submenu-parent">
-                            <a href="/clientinfo/{{environment}}">{{environment}} &raquo;</a>
-                            <div class="dropdown-submenu">
-                                {% for realm in utils.getRealms(logger=utils.logger, environment=environment, config=utils.config) %}
-                                    <a href="/clientinfo/{{environment}}/{{realm}}">{{realm}}</a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Terraform check</a>
                 <div class="dropdown-content">
                     {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
                     <a href="/terraformcheck/{{environment}}">{{environment}}</a>
                     {% endfor %}
                 </div>
-            </li>
-            <li>
-                <a href="/clientcreation">{{ messages['menu.clientcreation'] }}</a>
             </li>
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.usersessionslookup'] }}</a>
@@ -69,6 +70,19 @@
                             </div>
                         </div>
                     {% endfor %}
+                </div>
+            </li>
+            {% endif %}
+        </ul>
+        <ul class="user-menu-right">
+            <li class="dropdown user-menu">
+                <a href="javascript:void(0)" class="dropbtn">👤 {{ session.get('username', 'Not logged in') }}</a>
+                <div class="dropdown-content">
+                    {% if session.get('username') %}
+                        <a href="/homeLogout">Logout</a>
+                    {% else %}
+                        <a href="/login">Login</a>
+                    {% endif %}
                 </div>
             </li>
         </ul>

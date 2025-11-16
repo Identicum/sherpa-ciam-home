@@ -17,12 +17,9 @@ def clientsactivity_list_realms(environment: str):
     Returns:
         Template: Realm list rendered HTML Page
     """
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     return render_template(
         'clientsactivity_list_realms.html',
         utils=utils,
-        config=config,
         environment=environment
     )
 
@@ -37,18 +34,15 @@ def clientsactivity_generate_report(environment: str):
     Returns:
         Template: Environment-Specific 'Clients activity' Report **GENERATION** Rendered Page HTML
     """
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     processOutput = clientsactivity_report.run(
-        logger=logger,
+        logger=utils.logger,
         outputPath="/data",
         environment=environment,
-        config=config
+        config=utils.config
     )
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
-        config=config,
         environment=environment,
         processOutput=processOutput
     )
@@ -70,8 +64,6 @@ def clientsactivity_show_report(environment: str, realmName: str):
     errorMessage = None
     metadata = {}
     realmActivityData = []
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     try:
         if os.path.exists(reportFilePath):
             with open(reportFilePath, 'r') as f:
@@ -87,7 +79,6 @@ def clientsactivity_show_report(environment: str, realmName: str):
     return render_template(
         'clientsactivity_list.html',
         utils=utils,
-        config=config,
         environment=environment,
         realmName=realmName,
         metadata=metadata,

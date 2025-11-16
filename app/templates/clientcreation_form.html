@@ -18,7 +18,7 @@
         <div class="form-group">
             <label for="realmType">{{ messages['clientcreation.realm_type'] }}:</label>
             <select type="text" id="realmType" name="realmType" class="form-control" required>
-                {% for realmType in utils.getRealmTypes(logger=utils.getLogger(), config=config) %}
+                {% for realmType in utils.getRealmTypes(logger=utils.logger, config=utils.config) %}
                 <option value="{{realmType}}">{{realmType}}</option>
                 {% endfor %}
             </select>

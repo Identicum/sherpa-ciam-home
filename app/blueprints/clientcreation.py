@@ -12,14 +12,9 @@ def clientcreation_form():
     Returns:
         Template: Rendered HTML page with Request Client form
     """
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
-
-
     return render_template(
         'clientcreation_form.html',
-        utils=utils,
-        config=config
+        utils=utils
     )
 
 @clientcreation_bp.route('/clientcreation', methods=["POST"])
@@ -29,13 +24,10 @@ def clientcreation():
     Returns:
         Template: Rendered HTML page with Request Client form
     """
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     data = request.form.to_dict()
     logger.debug(f"Received data: {data}")
 
     return render_template(
         'clientcreation_feedback.html',
-        utils=utils,
-        config=config
+        utils=utils
     )

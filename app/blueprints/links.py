@@ -15,15 +15,12 @@ def links(environment: str):
     Returns:
         Template: URL List Page Rendered HTML Page
     """
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     with open('/conf/links.json') as linksFile:
         linksJson = json.load(linksFile)
     links = linksJson.get(environment, [])
     return render_template(
         'links.html',
         utils=utils,
-        config=config,
         links=links,
         environment=environment
     )

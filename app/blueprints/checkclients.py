@@ -22,8 +22,6 @@ def checkclients_show_report(environment: str):
     errorMessage = None
     warns = []
     metadata = {}
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     try:
         if os.path.exists(report_file_path):
             with open(report_file_path, 'r') as f:
@@ -36,11 +34,10 @@ def checkclients_show_report(environment: str):
         errorMessage = f"Error decoding JSON from report file: {report_file_path}"
     except Exception as e:
         errorMessage = f"An unexpected error occurred while reading {report_file_path}: {str(e)}"
-        
+    utils.logger.debug("Rendering CheckClients for environment: {}", environment)
     return render_template(
         'checkclients.html',
         utils=utils,
-        config=config,
         environment=environment,
         warns=warns,
         metadata=metadata,
@@ -58,18 +55,15 @@ def checkclient_generate_report(environment: str):
     Returns:
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     processOutput = checkclients_report.run(
-        logger=logger,
+        logger=utils.logger,
         outputPath="/data",
         environment=environment,
-        config=config
+        config=utils.config
     )
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
-        config=config,
         environment=environment,
         processOutput=processOutput
     )

@@ -20,8 +20,6 @@ def terraformcheck_show_report(environment: str):
     reportFilePath = "/data/terraformcheck_{}.json".format(environment)
     reportData = None
     errorMessage = None
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     try:
         if os.path.exists(reportFilePath):
             with open(reportFilePath, 'r') as f:
@@ -35,7 +33,6 @@ def terraformcheck_show_report(environment: str):
     return render_template(
         'terraformcheck.html',
         utils=utils,
-        config=config,
         environment=environment,
         reportData=reportData,
         errorMessage=errorMessage
@@ -52,19 +49,16 @@ def terraformcheck_generate_report(environment: str):
     Returns:
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
-    logger = utils.getLogger()
-    config = utils.getConfig(logger=logger)
     output = terraformcheck_report.run(
-        logger=logger,
+        logger=utils.logger,
         objectsPath="/terraform-objects",
         outputPath="/data",
         environment=environment,
-        config=config
+        config=utils.config
     )
     return render_template(
         'terraformcheck_output.html',
         utils=utils,
-        config=config,
         environment=environment,
         process_output=output
     )

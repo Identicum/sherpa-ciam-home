@@ -43,21 +43,17 @@ def load_messages():
     return messages
 
 
-def getLogger():
-    return Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/python-flask.log")
-
-
 def getLocalDatetime() -> str:
     """Return the current local date/time as an ISO string with timezone offset."""
     localNow = datetime.now().astimezone()
     return localNow.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def getConfig(logger: Logger) -> dict:
+def getConfig(logger) -> dict:
     """Returns the parsed contents of /conf/home.json
 
     Args:
-        logger (Logger): Logger instance
+        logger instance
 
     Returns:
         dict: Configuration JSON
@@ -84,11 +80,11 @@ def getConfig(logger: Logger) -> dict:
         return {}
 
 
-def getRealmTypes(logger: Logger, config: dict) -> list:
+def getRealmTypes(logger, config: dict) -> list:
     """Returns the list of realm types in the configuration
 
     Args:
-        logger (Logger): Logger instance
+        logger instance
         config (dict): JSON configuration
 
     Returns:
@@ -97,11 +93,11 @@ def getRealmTypes(logger: Logger, config: dict) -> list:
     return list(config.get("realms", {}).keys())
 
 
-def getRealms(logger: Logger, environment: str, config: dict) -> list:
+def getRealms(logger, environment: str, config: dict) -> list:
     """Returns only the list of realms from the configuration
 
     Args:
-        logger (Logger): Logger instance
+        logger instance
         environment (str): Environment name
         config (dict): JSON configuration
 
@@ -118,11 +114,11 @@ def getRealms(logger: Logger, environment: str, config: dict) -> list:
     return realmsList
 
 
-def getRealm(logger: Logger, environment: str, realmName: str, config: dict) -> dict:
+def getRealm(logger, environment: str, realmName: str, config: dict) -> dict:
     """Will fetch a realm from a given Environment using Keycloak's Admin API and return it
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         environment (str): Environment name
         realmName (str): Realm name
         config (dict): JSON configuration
@@ -141,11 +137,11 @@ def getRealm(logger: Logger, environment: str, realmName: str, config: dict) -> 
         return []
 
 
-def getDiscoveryUrl(logger: Logger, environment: str, realm: dict, config: dict) -> str:
+def getDiscoveryUrl(logger, environment: str, realm: dict, config: dict) -> str:
     """Returns the OpenID Connect Discovery URL for a given environment and realm
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         environment (str): Environment name
         realm (dict): Realm Object from the Keycloak API
         config (dict): JSON configuration
@@ -159,12 +155,11 @@ def getDiscoveryUrl(logger: Logger, environment: str, realm: dict, config: dict)
     return discoveryUrl
 
 
-
-def getRealmName(logger: Logger, realmType: str, environment: str, workspace: str, config: dict) -> str:
+def getRealmName(logger, realmType: str, environment: str, workspace: str, config: dict) -> str:
     """Get realm name from its type, environment and workspace
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         realmType (str): Realm type
         environment (str): Environment
         workspace (str): Workspace
@@ -178,11 +173,11 @@ def getRealmName(logger: Logger, realmType: str, environment: str, workspace: st
     return realmName
 
 
-def getEnvironments(logger: Logger, config: dict) -> list:
+def getEnvironments(logger, config: dict) -> list:
     """Returns the list of environments in the configuration
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         config (dict): JSON configuration
 
     Returns:
@@ -191,11 +186,11 @@ def getEnvironments(logger: Logger, config: dict) -> list:
     return list(config.get("environments", {}).keys())
 
 
-def getRealmWorkspaces(logger: Logger, realmType: str, environment: str, config: dict) -> list:
+def getRealmWorkspaces(logger, realmType: str, environment: str, config: dict) -> list:
     """Returns workspaces for a realmType and environment
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         realmType (str): Realm type
         environment (str): Environment
         config (dict): JSON configuration
@@ -207,11 +202,11 @@ def getRealmWorkspaces(logger: Logger, realmType: str, environment: str, config:
     return list(config.get("realms", {}).get(realmType).get(environment, {}).keys())
 
 
-def getElastic(logger: Logger, environment: str, config: dict):
+def getElastic(logger, environment: str, config: dict):
     """Returns ElasticSearch connection
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         environment (str): Environment
         config (dict): JSON configuration
 
@@ -233,11 +228,11 @@ def getElastic(logger: Logger, environment: str, config: dict):
         return None
 
 
-def getKibanaUrl(logger: Logger, environment: str, config: dict, realmName: str, client_id: str) -> str:
+def getKibanaUrl(logger, environment: str, config: dict, realmName: str, client_id: str) -> str:
     """Returns Kibana URL connection
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         environment (str): Environment
         config (dict): JSON configuration
         realmName (str): Realm name
@@ -257,7 +252,7 @@ def getKibanaUrl(logger: Logger, environment: str, config: dict, realmName: str,
         return None
 
 
-def getKeycloakAdmin(logger: Logger, environment: str, realmName: str, config: dict) -> SherpaKeycloakAdmin:
+def getKeycloakAdmin(logger, environment: str, realmName: str, config: dict) -> SherpaKeycloakAdmin:
     """Creates an instance of SherpaKeycloakAdmin
     See in [sherpa-py-keycloak](https://github.com/Identicum/sherpa-py-keycloak/blob/main/sherpa/keycloak/keycloak_lib.py)
 
@@ -283,7 +278,7 @@ def getKeycloakAdmin(logger: Logger, environment: str, realmName: str, config: d
     return kcAdmin
 
 
-def getClients(logger: Logger, environment: str, realmName: str, config: dict) -> list:
+def getClients(logger, environment: str, realmName: str, config: dict) -> list:
     """Will fetch a given realm in a given environment's client list from the Keycloak API and return it.
 
     Args:
@@ -306,11 +301,11 @@ def getClients(logger: Logger, environment: str, realmName: str, config: dict) -
         return []
 
 
-def getClientLastActivity(logger: Logger, elastic: Elasticsearch, realmName: str, client_id: str) -> list:
+def getClientLastActivity(logger, elastic: Elasticsearch, realmName: str, client_id: str) -> list:
     """List Clients including last activity.
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         elastic (Elasticsearch): ElasticSearch connection
         realmName (str): Realm name
         client_id (str): client_id
@@ -340,11 +335,11 @@ def getClientLastActivity(logger: Logger, elastic: Elasticsearch, realmName: str
         return "No activity"
 
 
-def getNormalizedClient(logger: Logger, environment: str, realmName: str, client_id: str, config: dict) -> dict:
+def getNormalizedClient(logger, environment: str, realmName: str, client_id: str, config: dict) -> dict:
     """Will fetch a Client from a given Realm in a given Environment using the provided `client_id` in the Keycloak API, then format the object so as to standardize the output between different client types
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         environment (str): Environment name
         realmName (str): Realm name
         client_id (str): Client ID
@@ -464,11 +459,11 @@ def getNormalizedClient(logger: Logger, environment: str, realmName: str, client
         return {}
 
 
-def splitDescription(logger: Logger, description: str, position: int, defaultValue: str) -> str:
+def splitDescription(logger, description: str, position: int, defaultValue: str) -> str:
     """Extracts whichever detail it finds in the provided `position` inside of a client `description` (also provided). Will return the provided default value if it finds nothing.
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         description (str): Client Description - Custom Syntax
         position (str): Desired detail's position in the description
         defaultValue (str): Value to be provided if nothing is found
@@ -486,12 +481,12 @@ def splitDescription(logger: Logger, description: str, position: int, defaultVal
         return defaultValue
 
 
-def getClientTag(logger: Logger, description: str, client_id: str, client_type: str) -> str:
+def getClientTag(logger, description: str, client_id: str, client_type: str) -> str:
     """Extracts a client tag from a provided description (Custom Syntax) \n
     Will automatically filter Native keycloak client tags using the provided client_id and mark unsupported tags as [TAG_INVALID]
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         description (str): _description_
         client_id (str): _description_
         client_type (str): realm / openid-connect / saml
@@ -512,11 +507,11 @@ def getClientTag(logger: Logger, description: str, client_id: str, client_type: 
     return tag
 
 
-def getVarFiles(logger: Logger, environment: str, config: dict) -> list:
+def getVarFiles(logger, environment: str, config: dict) -> list:
     """Returns the list of var_file paths related to the provided environment
 
     Args:
-        logger (Logger): Logger instance
+        logger: Logger instance
         environment (str): Environment name
         config (dict): JSON configuration
 
@@ -526,7 +521,7 @@ def getVarFiles(logger: Logger, environment: str, config: dict) -> list:
     return list(config.get("environments", {}).get(environment, {}).get("var_files", []))
 
 
-def smtpSend(logger: Logger, subject, body, to_addr, cc_addr=None, attached_files=[]):
+def smtpSend(logger, subject, body, to_addr, cc_addr=None, attached_files=[]):
     """
     Send SMTP email with optional file attachments.
     """
@@ -566,7 +561,7 @@ def smtpSend(logger: Logger, subject, body, to_addr, cc_addr=None, attached_file
         logger.error("Error sending email: {}", e)
 
 
-def formatUrl(logger: Logger, url: str, rootUrl: str) -> str:
+def formatUrl(logger, url: str, rootUrl: str) -> str:
     """
     Format URL adding rootUrl if necessary.
 
@@ -596,8 +591,6 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
     Returns:
         dict: _description_
     """
-    logger = getLogger()
-
     # Validate identifier integrity
     if not identifier:
         return {
@@ -640,7 +633,6 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
                     **session,
                     "is_offline_session": True
                 })
-            
         return {
             "sessions": sessions,
             "success": True,
@@ -653,4 +645,14 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
             "success": False,
             "message": e
         }
-        
+
+
+# Create a single logger instance
+logger = Logger(
+    "sherpa-ciam-home", 
+    os.environ.get("LOG_LEVEL"), 
+    "/tmp/python-flask.log"
+)
+
+# Create a single config instance
+config = getConfig(logger=logger)

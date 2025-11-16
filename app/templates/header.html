@@ -7,7 +7,7 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Links</a>
                 <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=utils.getLogger(), config=config) %}
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
                     <a href="/links/{{environment}}">{{environment}}</a>
                     {% endfor %}
                 </div>
@@ -15,7 +15,7 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Check clients</a>
                 <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=utils.getLogger(), config=config) %}
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
                         <div class="submenu-parent">
                             <a href="/checkclients/{{environment}}">{{environment}}</a>
                         </div>
@@ -25,7 +25,7 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Clients Activity</a>
                 <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=utils.getLogger(), config=config) %}
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
                     <a href="/clientsactivity/{{environment}}">{{environment}}</a>
                     {% endfor %}
                 </div>
@@ -33,11 +33,11 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Client Info</a>
                 <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=utils.getLogger(), config=config) %}
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
                         <div class="submenu-parent">
                             <a href="/clientinfo/{{environment}}">{{environment}} &raquo;</a>
                             <div class="dropdown-submenu">
-                                {% for realm in utils.getRealms(logger=utils.getLogger(), environment=environment, config=config) %}
+                                {% for realm in utils.getRealms(logger=utils.logger, environment=environment, config=utils.config) %}
                                     <a href="/clientinfo/{{environment}}/{{realm}}">{{realm}}</a>
                                 {% endfor %}
                             </div>
@@ -48,7 +48,7 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">Terraform check</a>
                 <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=utils.getLogger(), config=config) %}
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
                     <a href="/terraformcheck/{{environment}}">{{environment}}</a>
                     {% endfor %}
                 </div>
@@ -59,11 +59,11 @@
             <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.usersessionslookup'] }}</a>
                 <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=utils.getLogger(), config=config) %}
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
                         <div class="submenu-parent">
                             <a href="/user-sessions-lookup/{{environment}}">{{environment}} &raquo;</a>
                             <div class="dropdown-submenu">
-                                {% for realm in utils.getRealms(logger=utils.getLogger(), environment=environment, config=config) %}
+                                {% for realm in utils.getRealms(logger=utils.logger, environment=environment, config=utils.config) %}
                                     <a href="/user-sessions-lookup/{{environment}}/{{realm}}">{{realm}}</a>
                                 {% endfor %}
                             </div>

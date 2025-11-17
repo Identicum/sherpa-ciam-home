@@ -87,7 +87,7 @@ def homeLogout():
     oidc.logout()
     session.clear()
     utils.logger.debug("Local session logged out.")
-    keycloak_openid = KeycloakOpenID(server_url="http://idp:8080/",
+    keycloak_openid = KeycloakOpenID(server_url=os.environ.get('IDP_BASE_URL'),
                                  client_id=os.environ.get('OIDC_CLIENT_ID'),
                                  realm_name=os.environ.get('OIDC_REALM'),
                                  client_secret_key=os.environ.get('OIDC_CLIENT_SECRET'))

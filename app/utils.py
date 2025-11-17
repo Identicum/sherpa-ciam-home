@@ -264,7 +264,6 @@ def getKeycloakAdmin(logger, environment: str, realmName: str, config: dict) -> 
     Returns:
         SherpaKeycloakAdmin: SherpaKeycloakAdmin instance
     """
-    properties = Properties("/local.properties", "/local.properties")
     kcAdmin = SherpaKeycloakAdmin(
             logger=logger, 
             properties=properties, 
@@ -653,6 +652,9 @@ logger = Logger(
     os.environ.get("LOG_LEVEL"), 
     "/tmp/python-flask.log"
 )
+
+# Create a single properties instance
+properties = Properties("/local.properties", "/local.properties")
 
 # Create a single config instance
 config = getConfig(logger=logger)

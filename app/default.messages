@@ -26,6 +26,13 @@ usersessionslookup.table.rememberMe=Remember Me
 usersessionslookup.table.clients=Clients
 usersessionslookup.table.transientUser=Transient User
 usersessionslookup.table.is_offline_session=Offline Session
+usersessionslookup.table.actions=Kill Sessions
+usersessionslookup.kill_all_sessions=Eliminar Todas las Sesiones
+usersessionslookup.kill_session=Eliminar
+usersessionslookup.kill_session_success=Sesión eliminada exitosamente
+usersessionslookup.kill_session_error=Error al eliminar sesión
+usersessionslookup.kill_all_sessions_success=Todas las sesiones eliminadas exitosamente
+usersessionslookup.kill_all_sessions_error=Error al eliminar sesiones
 usersessionslookup.no_sessions=No se encontraron sesiones.
 usersessionslookup.error=Hubo un error
 

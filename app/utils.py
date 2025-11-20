@@ -646,6 +646,20 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
         }
 
 
+def getTestReports(logger: Logger, environment: str):
+    REPORT_DIR = f"/app/templates/idp_testing_reports/{environment}/"
+    if not os.path.exists(REPORT_DIR):
+        logger.error("Test reports path '{}' not found or not configured.", REPORT_DIR)
+        return []
+    try:
+        logger.debug(f"Returning list of test report filenames in directory {REPORT_DIR}")
+        REPORTS_LIST = [report_name for report_name in os.listdir(REPORT_DIR) if os.path.isdir(os.path.join(REPORT_DIR, report_name))]
+        logger.debug(f"Returning Reports: {REPORTS_LIST}")
+        return REPORTS_LIST
+    except Exception as e:
+        logger.error("Error listing test reports: {}", e)
+        return []
+
 # Create a single logger instance
 logger = Logger(
     "sherpa-ciam-home", 

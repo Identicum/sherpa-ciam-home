@@ -12,6 +12,7 @@ from sherpa.utils.basics import Logger
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
 import uuid
+import requests
 
 
 def load_messages():
@@ -629,9 +630,14 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
 
         for client in kc_admin.get_clients():
             for session in kc_admin.sherpa_get_user_client_offlinesessions(user_id=identifier, client_id=client["clientId"]):
+                if "start" in session:
+                    session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
+                if "lastAccess" in session:
+                    session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
                 sessions.append({
                     **session,
-                    "is_offline_session": True
+                    "is_offline_session": True,
+                    "clientId": client["clientId"]
                 })
         return {
             "sessions": sessions,
@@ -645,6 +651,266 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
             "success": False,
             "message": e
         }
+
+
+def _delete_all_offline_sessions(kc_admin, user_id: str, realm: str, config: dict, environment: str, username: str = None):
+    """Helper function to delete all offline sessions for a user across all clients and realms
+    
+    Args:
+        kc_admin: SherpaKeycloakAdmin instance (for the current realm)
+        user_id: User UUID in the current realm
+        realm: Realm name
+        config: Configuration dict
+        environment: Environment name
+        username: Optional username to find user in other realms
+    """
+    server_url = config.get("environments", {}).get(environment, {}).get("keycloak_url", "")
+    normalized_server_url = server_url.rstrip('/')
+    access_token = _get_admin_access_token(server_url)
+    headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+    
+    realms_to_check = [realm]
+    if realm != "master":
+        realms_to_check.append("master")
+    
+    for target_realm in realms_to_check:
+        try:
+            target_user_id = user_id
+            target_kc_admin = kc_admin
+            
+            if target_realm != realm:
+                target_kc_admin = getKeycloakAdmin(logger=logger, environment=environment, realmName=target_realm, config=config)
+                if username:
+                    try:
+                        target_user_id = target_kc_admin.get_user_id(username)
+                        if target_user_id is None:
+                            logger.debug("User {} not found in realm {} (get_user_id returned None)", username, target_realm)
+                            continue
+                        logger.debug("Found user {} in realm {} with ID {}", username, target_realm, target_user_id)
+                    except Exception as e:
+                        logger.debug("User {} not found in realm {}: {}", username, target_realm, e)
+                        continue
+                else:
+                    logger.debug("No username provided, skipping realm {}", target_realm)
+                    continue
+            
+            if not target_user_id:
+                logger.debug("No valid user_id for realm {}, skipping", target_realm)
+                continue
+            
+            clients = target_kc_admin.get_clients()
+            deleted_count = 0
+            for client in clients:
+                client_id = client.get("clientId")
+                if client_id:
+                    try:
+                        offline_sessions = target_kc_admin.sherpa_get_user_client_offlinesessions(user_id=target_user_id, client_id=client_id)
+                        for offline_session in offline_sessions:
+                            try:
+                                target_kc_admin.delete_session(offline_session.get('id'), isOffline=True)
+                                deleted_count += 1
+                                logger.debug("Deleted offline session {} for client {} in realm {}", offline_session.get('id'), client_id, target_realm)
+                            except Exception as e:
+                                logger.debug("Error deleting offline session {}: {}", offline_session.get('id'), e)
+                                try:
+                                    client_uuid = target_kc_admin.get_client_id(client_id)
+                                    delete_url = f"{normalized_server_url}/admin/realms/{target_realm}/users/{target_user_id}/offline-sessions/{client_uuid}"
+                                    delete_response = requests.delete(delete_url, headers=headers, verify=False)
+                                    if delete_response.status_code in [200, 204]:
+                                        deleted_count += len(offline_sessions)
+                                        logger.debug("Deleted all {} offline sessions for client {} in realm {} using direct endpoint", len(offline_sessions), client_id, target_realm)
+                                        break
+                                except Exception as e2:
+                                    logger.warning("Both methods failed for client {} in realm {}: {}", client_id, target_realm, e2)
+                    except Exception as e:
+                        logger.warning("Error processing offline sessions for client {} in realm {}: {}", client_id, target_realm, e)
+            
+            if deleted_count > 0:
+                logger.info("Deleted {} offline sessions in realm {}", deleted_count, target_realm)
+        except Exception as e:
+            logger.warning("Error deleting offline sessions in realm {}: {}", target_realm, e)
+
+
+def killSession(environment: str, realm: str, identifier: str, session_id: str, config: dict, is_offline_session: bool = False, client_id: str = None) -> dict:
+    """Kills a specific user session in a given environment and realm
+
+    Args:
+        environment (str)
+        realm (str)
+        identifier (str): May be a username or user's UUID
+        session_id (str): Session ID to kill
+        config (dict): Inherited config for the Keycloak Admin
+        is_offline_session (bool): Whether this is an offline session
+        client_id (str): Client ID for offline sessions (required for offline sessions)
+
+    Returns:
+        dict: Result with success status and message
+    """
+    if not identifier or not session_id:
+        return {"success": False, "message": "Username/UUID or session ID not provided."}
+    
+    kc_admin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realm, config=config)
+    
+    username = None
+    try:
+        uuid.UUID(identifier)
+        try:
+            username = kc_admin.get_user(identifier).get("username")
+        except Exception:
+            pass
+    except ValueError:
+        username = identifier
+        identifier = kc_admin.get_user_id(identifier)
+    
+    try:
+        server_url = config.get("environments", {}).get(environment, {}).get("keycloak_url", "")
+        access_token = _get_admin_access_token(server_url)
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        
+        if is_offline_session:
+            return _kill_offline_session(kc_admin, identifier, session_id, client_id, realm, server_url, headers)
+        else:
+            return _kill_online_session(kc_admin, identifier, session_id, realm, server_url, headers, config, environment, username)
+    except requests.exceptions.HTTPError as e:
+        logger.error("HTTP error killing session {}: {}", session_id, e)
+        return {"success": False, "message": f"HTTP Error: {str(e)}"}
+    except Exception as e:
+        logger.error("Error killing session {}: {}", session_id, e)
+        return {"success": False, "message": str(e)}
+
+
+def _get_admin_access_token(server_url: str) -> str:
+    """Get admin access token for Keycloak Admin API"""
+    token_url = f"{server_url}/realms/master/protocol/openid-connect/token"
+    token_response = requests.post(token_url, data={
+        "grant_type": "password",
+        "client_id": "admin-cli",
+        "username": "admin",
+        "password": "admin"
+    }, verify=False)
+    token_response.raise_for_status()
+    return token_response.json()["access_token"]
+
+
+def _kill_offline_session(kc_admin, user_id: str, session_id: str, client_id: str, realm: str, server_url: str, headers: dict) -> dict:
+    """Kill a specific offline session (and online session with same ID)"""
+    if not client_id:
+        return {"success": False, "message": "Client ID is required for offline sessions"}
+    
+    normalized_server_url = server_url.rstrip('/')
+    
+    try:
+        online_delete_url = f"{normalized_server_url}/admin/realms/{realm}/sessions/{session_id}"
+        online_response = requests.delete(online_delete_url, headers=headers, verify=False)
+        if online_response.status_code in [200, 204]:
+            logger.debug("Deleted online session {} (same ID as offline)", session_id)
+    except Exception as e:
+        logger.debug("Online session {} not found or already deleted: {}", session_id, e)
+    
+    try:
+        kc_admin.delete_session(session_id, isOffline=True)
+        logger.debug("Successfully deleted offline session {} for client {} using delete_session", session_id, client_id)
+        return {"success": True, "message": "Offline session killed successfully"}
+    except Exception as e:
+        logger.debug("delete_session failed, trying direct endpoint: {}", e)
+        try:
+            client_uuid = kc_admin.get_client_id(client_id)
+            offline_delete_url = f"{normalized_server_url}/admin/realms/{realm}/users/{user_id}/offline-sessions/{client_uuid}"
+            offline_response = requests.delete(offline_delete_url, headers=headers, verify=False)
+            if offline_response.status_code in [200, 204]:
+                logger.debug("Successfully deleted offline session {} for client {} using direct endpoint", session_id, client_id)
+                return {"success": True, "message": "Offline session killed successfully"}
+            offline_response.raise_for_status()
+        except Exception as e2:
+            logger.error("Both methods failed to delete offline session {}: {}", session_id, e2)
+            return {"success": False, "message": f"Failed to delete offline session: {str(e2)}"}
+
+
+def _kill_online_session(kc_admin, user_id: str, session_id: str, realm: str, server_url: str, headers: dict, config: dict, environment: str, username: str) -> dict:
+    """Kill a specific online session (and offline sessions with same ID)"""
+    normalized_server_url = server_url.rstrip('/')
+    delete_url = f"{normalized_server_url}/admin/realms/{realm}/sessions/{session_id}"
+    delete_response = requests.delete(delete_url, headers=headers, verify=False)
+    
+    if delete_response.status_code in [403, 404]:
+        logout_url = f"{normalized_server_url}/admin/realms/{realm}/users/{user_id}/logout"
+        requests.post(logout_url, headers=headers, verify=False).raise_for_status()
+        _delete_all_offline_sessions(kc_admin, user_id, realm, config, environment, username)
+        return {"success": True, "message": "All user sessions closed successfully"}
+    
+    delete_response.raise_for_status()
+    
+    try:
+        clients = kc_admin.get_clients()
+        for client in clients:
+            client_id = client.get("clientId")
+            if client_id:
+                try:
+                    offline_sessions = kc_admin.sherpa_get_user_client_offlinesessions(user_id=user_id, client_id=client_id)
+                    for offline_session in offline_sessions:
+                        if offline_session.get('id') == session_id:
+                            try:
+                                kc_admin.delete_session(session_id, isOffline=True)
+                                logger.debug("Deleted offline session {} for client {} (same ID as online)", session_id, client_id)
+                                break
+                            except Exception as e:
+                                logger.debug("Error deleting offline session {} for client {}: {}", session_id, client_id, e)
+                except Exception as e:
+                    logger.debug("Error checking/deleting offline session for client {}: {}", client_id, e)
+    except Exception as e:
+        logger.debug("Error deleting offline sessions with ID {}: {}", session_id, e)
+    
+    logger.debug("Successfully deleted online session {} and related offline sessions", session_id)
+    return {"success": True, "message": "Session killed successfully"}
+
+
+def killAllSessions(environment: str, realm: str, identifier: str, config: dict) -> dict:
+    """Kills all user sessions (online and offline) in a given environment and realm
+
+    Args:
+        environment (str)
+        realm (str)
+        identifier (str): May be a username or user's UUID
+        config (dict): Inherited config for the Keycloak Admin
+
+    Returns:
+        dict: Result with success status and message
+    """
+    if not identifier:
+        return {"success": False, "message": "Username/UUID not provided."}
+    
+    kc_admin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realm, config=config)
+    
+    username = None
+    try:
+        uuid.UUID(identifier)
+        try:
+            username = kc_admin.get_user(identifier).get("username")
+        except Exception:
+            pass
+    except ValueError:
+        username = identifier
+        identifier = kc_admin.get_user_id(identifier)
+    
+    try:
+        server_url = config.get("environments", {}).get(environment, {}).get("keycloak_url", "")
+        access_token = _get_admin_access_token(server_url)
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        
+        logout_url = f"{server_url}/admin/realms/{realm}/users/{identifier}/logout"
+        logout_response = requests.post(logout_url, headers=headers, verify=False)
+        logout_response.raise_for_status()
+        
+        _delete_all_offline_sessions(kc_admin, identifier, realm, config, environment, username)
+        logger.debug("Successfully deleted all offline sessions for user {}", identifier)
+        
+        return {"success": True, "message": "All user sessions (online and offline) closed successfully"}
+    except requests.exceptions.HTTPError as e:
+        logger.error("HTTP error killing all sessions for user {}: {}", identifier, e)
+        return {"success": False, "message": f"HTTP Error: {str(e)}"}
+    except Exception as e:
+        logger.error("Error killing all sessions for user {}: {}", identifier, e)
+        return {"success": False, "message": str(e)}
 
 
 # Create a single logger instance

@@ -1,6 +1,8 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 import json
 import utils
+
+MESSAGES = utils.load_messages()
 
 user_sessions_lookup_bp = Blueprint('user-sessions-lookup', __name__)
 
@@ -54,5 +56,58 @@ def user_sessions_lookup_detail(environment: str, realm: str, identifier: str):
         success=response.get('success', False),
         sessions=response.get('sessions', []),
         message=response.get('message', ''),
-        identifier=identifier
+        identifier=identifier,
+        environment=environment,
+        realm=realm
     )
+
+
+@user_sessions_lookup_bp.route('/user-sessions-lookup/<environment>/<realm>/<identifier>/kill-session', methods=["POST"])
+@utils.require_oidc_login
+def kill_session(environment: str, realm: str, identifier: str):
+    """Kills a specific user session
+
+    Returns:
+        Redirect: Redirects back to the user sessions detail page
+    """
+    session_id = request.form.get('session_id')
+    is_offline_session = request.form.get('is_offline_session', 'false').lower() == 'true'
+    client_id = request.form.get('client_id')
+    
+    if not session_id:
+        utils.logger.error("Session ID not provided")
+        return redirect(url_for('user-sessions-lookup.user_sessions_lookup_detail', 
+                              environment=environment, realm=realm, identifier=identifier))
+    
+    response = utils.killSession(environment, realm, identifier, session_id, utils.config, is_offline_session, client_id)
+    utils.logger.info(f"killSession: {response}")
+    
+    if response.get('success'):
+        flash(MESSAGES.get('usersessionslookup.kill_session_success', 'Sesión eliminada exitosamente'), 'success')
+    else:
+        error_msg = MESSAGES.get('usersessionslookup.kill_session_error', 'Error al eliminar sesión')
+        flash(f'{error_msg}: {response.get("message", "Error desconocido")}', 'error')
+    
+    return redirect(url_for('user-sessions-lookup.user_sessions_lookup_detail', 
+                          environment=environment, realm=realm, identifier=identifier))
+
+
+@user_sessions_lookup_bp.route('/user-sessions-lookup/<environment>/<realm>/<identifier>/kill-all-sessions', methods=["POST"])
+@utils.require_oidc_login
+def kill_all_sessions(environment: str, realm: str, identifier: str):
+    """Kills all user sessions
+
+    Returns:
+        Redirect: Redirects back to the user sessions detail page
+    """
+    response = utils.killAllSessions(environment, realm, identifier, utils.config)
+    utils.logger.info(f"killAllSessions: {response}")
+    
+    if response.get('success'):
+        flash(MESSAGES.get('usersessionslookup.kill_all_sessions_success', 'Todas las sesiones eliminadas exitosamente'), 'success')
+    else:
+        error_msg = MESSAGES.get('usersessionslookup.kill_all_sessions_error', 'Error al eliminar sesiones')
+        flash(f'{error_msg}: {response.get("message", "Error desconocido")}', 'error')
+    
+    return redirect(url_for('user-sessions-lookup.user_sessions_lookup_detail', 
+                          environment=environment, realm=realm, identifier=identifier))

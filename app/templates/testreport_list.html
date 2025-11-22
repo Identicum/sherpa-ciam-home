@@ -1,0 +1,32 @@
+{% extends "index.html" %}
+
+{% block title %} Test Execution Reports for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Test Report List for {{ environment }}</h1>
+    {% set reports = utils.getTestReports(logger=utils.logger, environment=environment) %}
+    {% if reports and reports|length > 0 %}
+    <table class="admin-links-table">
+        <thead>
+            <tr>
+                <th>Report</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for timestamp in reports %}
+            <tr>
+                <td>
+                    <a href="/testreport/{{ environment }}/{{ timestamp }}" target=”_blank”>
+                        {{ timestamp }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No reports found for this environment.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,5 +1,6 @@
 menu.clientcreation=Client creation
 menu.usersessionslookup=Sessions Lookup
+menu.testreports=Test Reports
 
 clientcreation.title=Request Client
 clientcreation.integration_type=Integration type

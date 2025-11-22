@@ -79,6 +79,7 @@ services:
             - ../app/:/app/
             - ./conf/:/conf/
             - ./data/:/data/
+            - ./idp_testing_reports/:/app/templates/idp_testing_reports/
             - ./local.properties:/local.properties
             - ./objects/:/terraform-objects/
         depends_on:

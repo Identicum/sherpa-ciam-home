@@ -22,14 +22,14 @@
         ],
         "useCases": [
             {
-                "url": "http://demoapp1",
+                "url": "http://idp:8080/realms/customers-ar/account/",
                 "displayText": "demoapp1",
-                "realm": "customers",
+                "realm": "customers-ar",
                 "comments": "Demo app 1",
                 "credentials": "jdoe / Sherpa.2025"
             },
             {
-                "url": "http://demoapp2/",
+                "url": "http://idp:8080/realms/employees/account/",
                 "displayText": "demoapp2",
                 "realm": "employees",
                 "comments": "Demo app 2",

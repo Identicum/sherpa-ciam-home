@@ -1,12 +1,12 @@
 {% extends "index.html" %}
 
-{% block title %}{{ messages['usersessionslookup.title'] }}{% endblock %}
+{% block title %}{{ messages['usersesssions.title'] }}{% endblock %}
 
 {% block content %}
 
 <script>
     /**
-     * Prevents the form's default behavior so as to lead to /user-sessions-lookup/{{environment}}/{{realm}}/{{identifier}} instead of adding the identifier as a query parameter
+     * Prevents the form's default behavior so as to lead to /user-sessions/{{environment}}/{{realm}}/{{identifier}} instead of adding the identifier as a query parameter
      * @param {HTMLFormElement} form The submitted form element.
      */
     function handleFormSubmission(form) {
@@ -19,7 +19,7 @@
 
         // 3. Construct the new URL path.
         // We use the 'action' attribute as the base path: 
-        // e.g., /user-sessions-lookup/{{environment}}/{{realm}}
+        // e.g., /user-sessions/{{environment}}/{{realm}}
         const baseUrl = form.getAttribute('action');
         
         // Append the encoded identifier value to the path: 
@@ -33,18 +33,18 @@
 </script>
 
 <div class="container">
-    <h1>{{ messages['usersessionslookup.title'] }}</h1>
+    <h1>{{ messages['usersesssions.title'] }}</h1>
 
     <form 
         method="get" 
-        action="/user-sessions-lookup/{{environment}}/{{realm}}"    
+        action="/user-sessions/{{environment}}/{{realm}}"    
         onsubmit="handleFormSubmission(this)"
     >
         <div class="form-group">
-            <label for="identifier">{{ messages['usersessionslookup.identifier_input_label'] }}</label>
+            <label for="identifier">{{ messages['usersesssions.identifier_input_label'] }}</label>
             <input type="text" id="identifier" name="identifier" class="form-control" required></input>
         </div>
-        <button type="submit" class="btn btn-primary">{{ messages['usersessionslookup.submit_request'] }}</button>
+        <button type="submit" class="btn btn-primary">{{ messages['usersesssions.submit_request'] }}</button>
     </form>
 
     <p><a href="{{ url_for('index') }}">{{ messages['back_home'] }}</a></p>

@@ -647,7 +647,7 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
 
 
 def getTestReports(logger: Logger, environment: str):
-    REPORT_DIR = f"/app/templates/idp_testing_reports/{environment}/"
+    REPORT_DIR = f"/data/idp_testing_reports/{environment}/"
     if not os.path.exists(REPORT_DIR):
         logger.error("Test reports path '{}' not found or not configured.", REPORT_DIR)
         return []

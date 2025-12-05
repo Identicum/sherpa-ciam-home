@@ -1,0 +1,151 @@
+{% extends "index.html" %}
+
+{% block title %}Test Report for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Test Report for {{ environment }}</h1>
+
+    {% if error_message %}
+        <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
+    {% elif json_report %}
+        {% if json_report.data and json_report.data[0].attributes.created_at %}
+            <p><strong>Report generated on:</strong> {{ json_report.data[0].attributes.created_at }}</p>
+        {% else %}
+            <p><em>Report data missing.</em></p>
+        {% endif %}
+        <hr>
+        
+        {% if json_report.included %}
+            <table class="table table-bordered table-hover" style="margin-top: 10px; width: 100%;">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 5%;"></th> {# For expand/collapse icon #}
+                        <th style="width: 15%;">ID</th>
+                        <th style="width: 30%;">Name</th>
+                        <th style="width: 15%;">Outcome</th>
+                        <th style="width: 15%;">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test_object in json_report.included %}
+                        {# Sanitize ID for use in HTML #}
+                        {% set detail_id = "test-details-" ~ test_object.id | string | replace('.', '_') | replace('-', '_') %}
+
+                        <tr class="expandable-summary-row" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
+                            <td class="text-center"><span class="toggle-icon">&#9658;</span></td>
+                            <td>{{ test_object.id }}</td>
+                            <td>{{ test_object.attributes.name }}</td>
+                            <td>
+                                {% if test_object.attributes.outcome == 'passed' %}
+                                    <span class="badge bg-success">{{ test_object.attributes.outcome | upper }}</span>
+                                {% elif test_object.attributes.outcome == 'failed' %}
+                                    <span class="badge bg-danger">{{ test_object.attributes.outcome | upper }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ test_object.attributes.outcome | upper }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.2f"|format(test_object.attributes.duration) }}s</td>
+                        </tr>
+
+                        <tr class="collapse" id="{{ detail_id }}">
+                            <td colspan="5" class="p-0">
+                                <div class="p-3">
+                                    {# Test Phases Table #}
+                                    <h6>Test Phases</h6>
+                                    <table class="table table-sm table-striped mb-3">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th style="width: 20%;">Phase</th>
+                                                <th style="width: 15%;">Outcome</th>
+                                                <th style="width: 15%;">Duration</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if test_object.attributes.setup %}
+                                            <tr>
+                                                <td>Setup</td>
+                                                <td>
+                                                    {% if test_object.attributes.setup.outcome == 'passed' %}
+                                                        <span class="badge bg-success">{{ test_object.attributes.setup.outcome | upper }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">{{ test_object.attributes.setup.outcome | upper }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ "%.2f"|format(test_object.attributes.setup.duration) }}s</td>
+                                            </tr>
+                                            {% endif %}
+                                            
+                                            {% if test_object.attributes.call %}
+                                            <tr>
+                                                <td>Call</td>
+                                                <td>
+                                                    {% if test_object.attributes.call.outcome == 'passed' %}
+                                                        <span class="badge bg-success">{{ test_object.attributes.call.outcome | upper }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">{{ test_object.attributes.call.outcome | upper }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ "%.2f"|format(test_object.attributes.call.duration) }}s</td>
+                                            </tr>
+                                            {% endif %}
+                                            
+                                            {% if test_object.attributes.teardown %}
+                                            <tr>
+                                                <td>Teardown</td>
+                                                <td>
+                                                    {% if test_object.attributes.teardown.outcome == 'passed' %}
+                                                        <span class="badge bg-success">{{ test_object.attributes.teardown.outcome | upper }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">{{ test_object.attributes.teardown.outcome | upper }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ "%.2f"|format(test_object.attributes.teardown.duration) }}s</td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+
+                                    {# Captured Logs #}
+                                    {% if test_object.attributes.call and test_object.attributes.call.metadata and test_object.attributes.call.metadata.captured_logs %}
+                                    <h6>Captured Logs</h6>
+                                    <div class="card mb-3">
+                                        <div class="card-body" style="background-color: #f8f9fa;">
+                                            <pre class="mb-0" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.875rem;">{% for log in test_object.attributes.call.metadata.captured_logs %}{{ log }}
+{% endfor %}</pre>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {# Error Details (if failed) #}
+                                    {% if test_object.attributes.call and test_object.attributes.call.longrepr %}
+                                    <h6>Error Details</h6>
+                                    <div class="card mb-3">
+                                        <div class="card-body bg-danger bg-opacity-10">
+                                            <pre class="mb-0 text-danger" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.875rem;">{{ test_object.attributes.call.longrepr }}</pre>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {# Test Media Directory #}
+                                    {% if test_object.attributes.call and test_object.attributes.call.metadata and test_object.attributes.call.metadata.test_media_dir %}
+                                    <h6>Test Media Directory</h6>
+                                    <p><code>{{ test_object.attributes.call.metadata.test_media_dir }}</code></p>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                No tests found in the report.
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-warning" role="alert">No test report data available and no error message. This usually means the report file could not be processed.</div>
+    {% endif %}
+</div>
+<script src="{{ url_for('static', filename='js/expandable_table.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{
+    "data": [
+        {
+            "type": "report",
+            "id": 1,
+            "attributes": {
+                "environment": {
+                    "Python": "3.12.3",
+                    "Platform": "Linux-6.12.54-linuxkit-aarch64-with-glibc2.39"
+                },
+                "summary": {
+                    "passed": 1,
+                    "failed": 1,
+                    "num_tests": 2,
+                    "duration": 6.567260503768921
+                },
+                "created_at": "2025-12-05 15:14:41.862020"
+            },
+            "relationships": {
+                "tests": {
+                    "data": [
+                        {
+                            "id": 1,
+                            "type": "test"
+                        },
+                        {
+                            "id": 2,
+                            "type": "test"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "included": [
+        {
+            "id": 1,
+            "type": "test",
+            "attributes": {
+                "name": "tests/test_simple.py::TestSimple::test_simple_success[chromium]",
+                "duration": 1.3986555840010624,
+                "run_index": 0,
+                "setup": {
+                    "name": "setup",
+                    "duration": 0.38576491700041515,
+                    "outcome": "passed"
+                },
+                "call": {
+                    "name": "call",
+                    "duration": 0.5567433330002132,
+                    "outcome": "passed",
+                    "metadata": {
+                        "captured_logs": [
+                            "2025-12-05 15:14:35.690 || INFO || Simple Logger || test_simple_success || Navigating to google.com main page.",
+                            "2025-12-05 15:14:36.229 || DEBUG || Simple Logger || test_simple_success || Validating Title - Expecting 'Google'"
+                        ],
+                        "test_media_dir": "tests-test-simple-py-testsimple-test-simple-success-chromium"
+                    }
+                },
+                "teardown": {
+                    "name": "teardown",
+                    "duration": 0.0703824170000189,
+                    "outcome": "passed"
+                },
+                "outcome": "passed"
+            }
+        },
+        {
+            "id": 2,
+            "type": "test",
+            "attributes": {
+                "name": "tests/test_simple.py::TestSimple::test_simple_failure[chromium]",
+                "duration": 5.535427710999556,
+                "run_index": 1,
+                "setup": {
+                    "name": "setup",
+                    "duration": 0.01461041699985799,
+                    "outcome": "passed"
+                },
+                "call": {
+                    "name": "call",
+                    "duration": 5.427509294000174,
+                    "outcome": "failed",
+                    "metadata": {
+                        "captured_logs": [
+                            "2025-12-05 15:14:36.333 || INFO || Simple Logger || test_simple_failure || Navigating to google.com main page.",
+                            "2025-12-05 15:14:36.752 || DEBUG || Simple Logger || test_simple_failure || Validating Title - Expecting 'Gooogle'"
+                        ],
+                        "test_media_dir": "tests-test-simple-py-testsimple-test-simple-failure-chromium"
+                    },
+                    "longrepr": "tests/test_simple.py:22: in test_simple_failure\n    expect(page).to_have_title(\"Gooogle\")\nE   AssertionError: Page title expected to be 'Gooogle'\nE   Actual value: Google \nE   Call log:\nE     - Expect \"to_have_title\" with timeout 5000ms\nE       9 \u00d7 unexpected value \"Google\""
+                },
+                "teardown": {
+                    "name": "teardown",
+                    "duration": 0.07869758299966634,
+                    "outcome": "passed"
+                },
+                "outcome": "failed"
+            }
+        }
+    ]
+}

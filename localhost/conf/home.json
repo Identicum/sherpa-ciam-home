@@ -51,17 +51,32 @@
         "dev": {
             "keycloak_url": "https://dev.identicum.com",
             "elastic_urls": [],
-            "var_files": []
+            "var_files": [],
+            "testing_custom_envs": [
+                "dev",
+                "dev_sandbox",
+                "dev_staging"
+            ]
         },
         "test": {
             "keycloak_url": "https://test-idp.identicum.com",
             "elastic_urls": [],
-            "var_files": []
+            "var_files": [],
+            "testing_custom_envs": [
+                "test",
+                "test_sandbox",
+                "test_private_balancer"
+            ]
         },
         "prod": {
             "keycloak_url": "https://idp.identicum.com",
             "elastic_urls": [],
-            "var_files": []
+            "var_files": [],
+            "testing_custom_envs": [
+                "prod",
+                "prod_sandbox",
+                "prod_private_balancer"
+            ]
         }
     }
 }

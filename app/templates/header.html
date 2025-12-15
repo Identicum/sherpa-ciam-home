@@ -80,6 +80,16 @@
                     {% endfor %}
                 </div>
             </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.testrunner'] }}</a>
+                <div class="dropdown-content">
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
+                        <div class="submenu-parent">
+                            <a href="/testrunner/{{environment}}">{{environment}} &raquo;</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </li>
             {% endif %}
         </ul>
         <ul class="user-menu-right">

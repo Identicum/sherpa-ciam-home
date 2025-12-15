@@ -1,6 +1,7 @@
 menu.clientcreation=Client creation
 menu.usersessionslookup=Sessions Lookup
 menu.testreports=Test Reports
+menu.testrunner=Test Runner
 
 clientcreation.title=Request Client
 clientcreation.integration_type=Integration type
@@ -29,6 +30,7 @@ usersessionslookup.table.transientUser=Transient User
 usersessionslookup.table.is_offline_session=Offline Session
 usersessionslookup.no_sessions=No se encontraron sesiones.
 usersessionslookup.error=Hubo un error
+testrunner.title=Correr Pruebas en
 
 back_home=Back home
 

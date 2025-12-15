@@ -659,6 +659,81 @@ def getTestReports(logger: Logger, environment: str):
     except Exception as e:
         logger.error("Error listing test reports: {}", e)
         return []
+    
+
+def getCustomTestExecEnvNames(logger: Logger, environment: str, config: dict):
+    """Searches the config for the provided environment's list of custom test execution environments and returns it.
+
+    Args:
+        logger (Logger): sherpa-py-utils Logger instance
+        environment (str): Environment name
+        config (dict): Parsed contents of /conf/home.json
+    """
+
+    logger.info("Returning custom test execution environments for {}", environment)
+    ENVIRONMENTS = config.get("environments", {})
+    logger.trace("Environments: {}", ENVIRONMENTS)
+    ENVIRONMENT = ENVIRONMENTS.get(environment, {})
+    logger.trace("Environment: {}", ENVIRONMENT)
+    CUSTOM_ENVS = ENVIRONMENT.get("testing_custom_envs", [])
+    logger.trace("Custom Envs: {}", CUSTOM_ENVS)
+    
+    return CUSTOM_ENVS
+
+
+def requestTestExecution(logger: Logger, exec_env: str, environment: str):
+    """Requests test execution with the provided details, placing an <environment>.execute file in the pid files directory, containing the specific environment in which to run tests
+
+    Args:
+        logger (Logger): Sherpa Logger Instance
+        exec_env (str): 'Fine Grained' Test Execution Environment
+        environment (str): Basic environment name for test execution
+    """
+    # Set test .pid files directory
+    PID_FILES_DIRPATH = "/app/testrunner/pidfiles/"
+    logger.info("PID_FILES_DIRPATH: {}", PID_FILES_DIRPATH)
+
+    # Create the directory if missing
+    PID_FILES_DIRECTORY = os.path.dirname(PID_FILES_DIRPATH)
+    if not os.path.exists(PID_FILES_DIRECTORY):
+        logger.info("PID Files directory missing, creating it.")
+        os.makedirs(PID_FILES_DIRECTORY, exist_ok=True)
+    
+    # Placing .pid file with environment name as filename and custom test execution environment name as content
+    with open(f"{PID_FILES_DIRPATH}{environment}.execute", "w") as pid_file:
+        pid_file.write(exec_env)
+    logger.debug(f"Test execution PID File: {PID_FILES_DIRPATH}{exec_env}.execute")
+
+
+def getEnvironmentTestAvailability(logger: Logger, environment: str) -> bool:
+    """Check for the provided environment's availability for test execution, return correpsonding boolean value
+
+    Args:
+        logger (Logger): Sherpa Logger Instance
+        environment (str): Basic environment name to check for
+
+    Returns:
+        bool: True if environment is available, False otherwise
+    """
+    directory_path = "/app/testrunner/pidfiles/"
+    
+    # Check if directory exists
+    if not os.path.exists(directory_path):
+        logger.trace("Environment is available for text execution - PID files directory hasn't been created yet")
+        return True  # No files exist if directory doesn't exist
+    
+    # Get all files in the directory
+    files = os.listdir(directory_path)
+    
+    # Check if any file contains the environment name
+    for file in files:
+        if environment in file:
+            logger.trace("Found at least one PID file with environment name {}", environment)
+            return False  # 
+    
+
+    logger.trace("No files contain the environment name {}", environment)
+    return True
 
 # Create a single logger instance
 logger = Logger(

@@ -35,7 +35,13 @@
                         <tr class="expandable-summary-row" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
                             <td class="text-center"><span class="toggle-icon">&#9658;</span></td>
                             <td>{{ test_object.id }}</td>
-                            <td>{{ test_object.attributes.name }}</td>
+                            {% if test_object.attributes.call.metadata.test_display_name %}
+                                <!-- metadata.test_display_name -->
+                                <td>{{ test_object.attributes.call.metadata.test_display_name }}</td>
+                                {% else %}
+                                <!-- test_object.attributes.name -->
+                                <td>{{ test_object.attributes.name }}</td>
+                            {% endif %}
                             <td>
                                 {% if test_object.attributes.outcome == 'passed' %}
                                     <span class="badge bg-success">{{ test_object.attributes.outcome | upper }}</span>

@@ -58,10 +58,10 @@
                 </div>
             </li>
             <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.testreports'] }}</a>
+                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.tests'] }}</a>
                 <div class="dropdown-content">
                     {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
-                        <a href="/testreport/{{environment}}">{{environment}}</a>
+                        <a href="/testsuite/{{environment}}">{{environment}}</a>
                     {% endfor %}
                 </div>
             </li>
@@ -76,16 +76,6 @@
                                     <a href="/user-sessions-lookup/{{environment}}/{{realm}}">{{realm}}</a>
                                 {% endfor %}
                             </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.testrunner'] }}</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
-                        <div class="submenu-parent">
-                            <a href="/testrunner/{{environment}}">{{environment}} &raquo;</a>
                         </div>
                     {% endfor %}
                 </div>

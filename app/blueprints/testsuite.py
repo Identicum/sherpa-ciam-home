@@ -2,27 +2,30 @@ from flask import Blueprint, render_template
 import json
 import utils
 
-testsreport_bp = Blueprint('testsreport', __name__)
+testsuite_bp = Blueprint('testsuite', __name__)
 
 
-@testsreport_bp.route('/testreport/<environment>', methods=["GET"])
+@testsuite_bp.route('/testsuite/<environment>', methods=["GET"])
 @utils.require_oidc_login
-def testreport_list(environment: str):
-    """Renders Test Report List by Environment
+def testsuite(environment: str):
+    """Renders Test Suite for Environment
 
     Args:
         environment (str): Environment Name
 
     Returns:
-        Template: Test Report List
+        Template: Environment Test Suite HTML
     """
+    LOGGER = utils.logger
+    CUSTOM_EXEC_ENVS = utils.getCustomTestExecEnvNames(logger=LOGGER, environment=environment,config=utils.getConfig(LOGGER))
     return render_template(
-        f'testreport_list.html',
+        f'testsuite.html',
         utils=utils,
-        environment=environment
+        environment=environment,
+        exec_environments=CUSTOM_EXEC_ENVS
     )
 
-@testsreport_bp.route('/testreport/<environment>/<timestamp>', methods=["GET"])
+@testsuite_bp.route('/testsuite/<environment>/report/<timestamp>', methods=["GET"])
 @utils.require_oidc_login
 def testreport_detail(environment: str, timestamp: str):
     """Renders Tests Report Page

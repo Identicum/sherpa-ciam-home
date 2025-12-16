@@ -5,23 +5,6 @@
 {% block content %}
 <div class="container">
     <h1>{{ messages['testrunner.title'] }} {{environment}}</h1>
-    <form method="post">
-        <h3>{{ messages['testrunner.select_custom_env'] }}</h3>
-        <ul class="list-group">
-            {% for custom_env in custom_exec_envs %}
-                <li class="list-group-item">
-                    <button 
-                        type="submit" 
-                        name="{{ custom_env }}" 
-                        value="{{ custom_env }}" 
-                        formaction="/testrunner/{{ environment }}?custom-exec={{ custom_env }}"
-                        class="{% if env_available %}btn btn-success {%else%} btn btn-secondary {% endif %}"
-                        {% if not env_available %} disabled {% endif %}
-                    >{{ custom_env }}</button>
-                </li>
-            
-            {% endfor %}
-        </ul>
-    </form>
+    
 </div>
 {% endblock %}

@@ -43,4 +43,4 @@ def testrunner_request_test(environment: str):
     exec_env = request.args.get("custom-exec", None)
     utils.requestTestExecution(logger=LOGGER, exec_env=exec_env, environment=environment)
     
-    return redirect(url_for('testrunner.testrunner_interface', environment=environment))
+    return redirect(url_for('testsuite.testsuite', environment=environment))

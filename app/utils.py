@@ -647,13 +647,13 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
 
 
 def getTestReports(logger: Logger, environment: str):
-    REPORT_DIR = f"/data/idp_testing_reports/{environment}/"
-    if not os.path.exists(REPORT_DIR):
-        logger.error("Test reports path '{}' not found or not configured.", REPORT_DIR)
+    REPORT_ENV_DIR = f"/data/idp_testing_reports/{environment}/"
+    if not os.path.exists(REPORT_ENV_DIR):
+        logger.error("Test reports path '{}' not found or not configured.", REPORT_ENV_DIR)
         return []
     try:
-        logger.debug(f"Returning list of test report filenames in directory {REPORT_DIR}")
-        REPORTS_LIST = [report_name for report_name in os.listdir(REPORT_DIR) if os.path.isdir(os.path.join(REPORT_DIR, report_name))]
+        logger.debug(f"Returning list of test report filenames in directory {REPORT_ENV_DIR}")
+        REPORTS_LIST = [report_name for report_name in os.listdir(REPORT_ENV_DIR) if os.path.isdir(os.path.join(REPORT_ENV_DIR, report_name)) and os.path.isfile(os.path.join(REPORT_ENV_DIR, report_name, "report.json"))]
         logger.debug(f"Returning Reports: {REPORTS_LIST}")
         return REPORTS_LIST
     except Exception as e:

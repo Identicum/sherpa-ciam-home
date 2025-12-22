@@ -653,7 +653,31 @@ def getTestReports(logger: Logger, environment: str):
         return []
     try:
         logger.debug(f"Returning list of test report filenames in directory {REPORT_ENV_DIR}")
-        REPORTS_LIST = [report_name for report_name in os.listdir(REPORT_ENV_DIR) if os.path.isdir(os.path.join(REPORT_ENV_DIR, report_name)) and os.path.isfile(os.path.join(REPORT_ENV_DIR, report_name, "report.json"))]
+        REPORTS_LIST = []
+        
+        for directory_name in os.listdir(REPORT_ENV_DIR):
+            report_path = os.path.join(REPORT_ENV_DIR, directory_name)
+            report_json_path = os.path.join(report_path, "report.json")
+            
+            # Check if it's a directory and contains report.json
+            if os.path.isdir(report_path) and os.path.isfile(report_json_path):
+                try:
+                    # Read and parse the report.json file
+                    with open(report_json_path, 'r') as f:
+                        data = json.load(f)["data"]
+                    
+                    # Extract the test_env_name, provided that the version of the identicum playwright docker image used is the latest
+                    # https://github.com/Identicum/playwright/commit/6ee9563dbf192c3c0efc51e66969e6c413f42bc1
+                    test_env_name = data[0]["attributes"]["environment"]["test_env_name"]
+                    
+                    # Add tuple of (directory_name, test_env_name)
+                    REPORTS_LIST.append((directory_name, test_env_name))
+                    
+                except (KeyError) as e:
+                    logger.warn(f"Could not extract test_env_name from {report_json_path}: {e}")
+                    # Optionally, you could still add it with None: REPORTS_LIST.append((report_name, None))
+                    continue
+        
         logger.debug(f"Returning Reports: {REPORTS_LIST}")
         return REPORTS_LIST
     except Exception as e:

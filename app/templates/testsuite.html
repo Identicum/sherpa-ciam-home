@@ -40,12 +40,10 @@
                 </tr>
             </thead>
             <tbody>
-                {% for timestamp in reports %}
+                {% for timestamp, environment in reports %}
                 <tr>
                     <td>
-                        <a href="/testsuite/{{ environment }}/report/{{ timestamp }}" target=”_blank”>
-                            {{ timestamp }}
-                        </a>
+                        <a href="/testsuite/{{ environment }}/report/{{ timestamp }}" target=”_blank”>{{ timestamp }}</a> <span>{{environment}}</span>
                     </td>
                 </tr>
                 {% endfor %}

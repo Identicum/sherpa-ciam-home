@@ -136,7 +136,7 @@
                                     {# Screenshots carousel #}
                                     {% if test_object.attributes.call and test_object.attributes.call.metadata and test_object.attributes.call.metadata.failed_images and test_object.attributes.call.metadata.failed_images|length > 0 %}
                                     <h6>Screenshots ({{ test_object.attributes.call.metadata.failed_images|length }} imagen{{ 'es' if test_object.attributes.call.metadata.failed_images|length > 1 else '' }})</h6>
-                                    {% if test_object.attributes.call.metadata.test_media_dir_path %}
+                                    {% if test_object.attributes.call.metadata.test_media_dir %}
                                         {% if test_object.attributes.call.metadata.failed_images|length > 1 %}
                                             {# Carrusel solo si hay más de 1 imagen #}
                                             {% set carousel_id = "carousel-" ~ test_object.id | string | replace('.', '_') | replace('-', '_') %}
@@ -144,8 +144,7 @@
                                                 <div class="carousel-inner">
                                                     {% for image in test_object.attributes.call.metadata.failed_images %}
                                                     <div class="carousel-item {% if loop.first %}active{% endif %}">
-                                                        {% set image_url = url_for('testsuite.serve_test_image', environment=environment, timestamp=timestamp, test_media_dir=test_object.attributes.call.metadata.test_media_dir_path, filename=image) %}
-                                                        <img class="d-block w-100" src="{{ image_url }}" alt="Screenshot {{ loop.index }}">
+                                                        <img class="d-block w-100" src="{{ url_for('testsuite.serve_test_image', environment=environment, timestamp=timestamp, test_media_dir=test_object.attributes.call.metadata.test_media_dir, filename=image) }}" alt="Screenshot {{ loop.index }}">
                                                     </div>
                                                     {% endfor %}
                                                 </div>
@@ -158,12 +157,11 @@
                                             </div>
                                         {% else %}
                                             {# Solo una imagen, mostrar sin carrusel #}
-                                            {% set image_url = url_for('testsuite.serve_test_image', environment=environment, timestamp=timestamp, test_media_dir=test_object.attributes.call.metadata.test_media_dir_path, filename=test_object.attributes.call.metadata.failed_images[0]) %}
-                                            <img class="d-block w-100" src="{{ image_url }}" alt="Screenshot" style="max-width: 100%; height: auto;">
+                                            <img class="d-block w-100" src="{{ url_for('testsuite.serve_test_image', environment=environment, timestamp=timestamp, test_media_dir=test_object.attributes.call.metadata.test_media_dir, filename=test_object.attributes.call.metadata.failed_images[0]) }}" alt="Screenshot" style="max-width: 100%; height: auto;">
                                         {% endif %}
                                     {% else %}
                                     <div class="alert alert-warning">
-                                        <small>⚠ test_media_dir_path no está disponible en los metadatos</small>
+                                        <small>⚠ test_media_dir no está disponible en los metadatos</small>
                                     </div>
                                     {% endif %}
                                     {% endif %}

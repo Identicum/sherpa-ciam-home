@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, send_from_directory
 import json
-from pathlib import Path
 import utils
 
 testsuite_bp = Blueprint('testsuite', __name__)
@@ -59,11 +58,6 @@ def testreport_detail(environment: str, timestamp: str):
                     test_media_dir = test_metadata["test_media_dir"]
                     LOGGER.debug("Processing test with test_media_dir: '{}' (outcome: {})", test_media_dir, test_outcome)
                     
-                    if "metadata" not in test_object["attributes"]["call"]:
-                        test_object["attributes"]["call"]["metadata"] = {}
-                    test_object["attributes"]["call"]["metadata"]["test_media_dir_path"] = test_media_dir
-                    LOGGER.debug("Set test_media_dir_path to: '{}'", test_media_dir)
-                    
                     if test_outcome == "failed" or call_outcome == "failed":
                         failed_images = utils.getTestFailedImages(
                             logger=LOGGER,
@@ -74,6 +68,8 @@ def testreport_detail(environment: str, timestamp: str):
                         if failed_images:
                             LOGGER.info("Adding {} failed images to test object (test_media_dir: '{}', images: {})", 
                                        len(failed_images), test_media_dir, failed_images)
+                            if "metadata" not in test_object["attributes"]["call"]:
+                                test_object["attributes"]["call"]["metadata"] = {}
                             test_object["attributes"]["call"]["metadata"]["failed_images"] = failed_images
                         else:
                             LOGGER.warn("No failed images found for test_media_dir: '{}' (but test failed). Path checked: /data/idp_testing_reports/{}/{}/{}", 
@@ -110,27 +106,6 @@ def serve_test_image(environment: str, timestamp: str, test_media_dir: str, file
     Returns:
         File: Image file
     """
-    LOGGER = utils.logger
     image_dir = f"/data/idp_testing_reports/{environment}/{timestamp}/{test_media_dir}"
-    
-    LOGGER.debug("Serving image request - environment: {}, timestamp: {}, test_media_dir: {}, filename: {}", 
-                 environment, timestamp, test_media_dir, filename)
-    LOGGER.debug("Image directory path: '{}'", image_dir)
-    
-    if not filename.endswith('.png') or not filename.startswith('test-failed-'):
-        LOGGER.warn("Invalid file requested: '{}'", filename)
-        return "Invalid file", 403
-    
-    image_path = Path(image_dir)
-    if not image_path.exists():
-        LOGGER.error("Image directory does not exist: '{}'", image_dir)
-        return f"Directory not found: {image_dir}", 404
-    
-    file_path = image_path / filename
-    if not file_path.is_file():
-        LOGGER.error("Image file does not exist: '{}'", file_path)
-        return f"File not found: {file_path}", 404
-    
-    LOGGER.debug("Serving image file: '{}'", file_path)
-    return send_from_directory(str(image_path), filename, mimetype='image/png')
+    return send_from_directory(image_dir, filename, mimetype='image/png')
 

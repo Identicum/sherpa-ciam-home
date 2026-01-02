@@ -1,11 +1,11 @@
-import importlib
 from flask import Flask, Blueprint, redirect, render_template, session
 from flask_oidc import OpenIDConnect
 from functools import wraps
-from keycloak import KeycloakOpenID
+import importlib
 import os
-import utils
 import requests
+from sherpa.keycloak.keycloak_lib import SherpaKeycloakOpenID
+import utils
 
 app = Flask(__name__)
 
@@ -87,10 +87,12 @@ def homeLogout():
     oidc.logout()
     session.clear()
     utils.logger.debug("Local session logged out.")
-    keycloak_openid = KeycloakOpenID(server_url="http://idp:8080/",
-                                 client_id=os.environ.get('OIDC_CLIENT_ID'),
-                                 realm_name=os.environ.get('OIDC_REALM'),
-                                 client_secret_key=os.environ.get('OIDC_CLIENT_SECRET'))
+    keycloak_openid = SherpaKeycloakOpenID(logger=utils.logger,
+                                           properties=utils.properties,
+                                           server_url=os.environ.get('IDP_BASE_URL'),
+                                           realm_name=os.environ.get('OIDC_REALM'),
+                                           client_id=os.environ.get('OIDC_CLIENT_ID'),
+                                           client_secret_key=os.environ.get('OIDC_CLIENT_SECRET'))
     utils.logger.debug("Logging out IDP session.")
     keycloak_openid.logout(refresh_token=refresh_token)
     # post_logout_redirect_uri = os.environ.get('APP_BASE_URL') + url_for('logout_success')

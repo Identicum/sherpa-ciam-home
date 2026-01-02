@@ -36,6 +36,10 @@ usersesssions.kill_all_sessions_error=Error al eliminar sesiones
 usersesssions.no_sessions=No se encontraron sesiones.
 usersesssions.error=Hubo un error
 
+tests.runner.title=Run Tests in
+tests.runner.select_custom_env=Select Custom Test Execution Environment
+tests.reports.list.title=Test Reports for 
+
 back_home=Back home
 
 welcome_message=Welcome to Sherpa CIAM Home!

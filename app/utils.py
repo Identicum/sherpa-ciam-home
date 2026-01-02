@@ -264,7 +264,6 @@ def getKeycloakAdmin(logger, environment: str, realmName: str, config: dict) -> 
     Returns:
         SherpaKeycloakAdmin: SherpaKeycloakAdmin instance
     """
-    properties = Properties("/local.properties", "/local.properties")
     kcAdmin = SherpaKeycloakAdmin(
             logger=logger, 
             properties=properties, 
@@ -665,12 +664,128 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
         }
 
 
+def getTestReports(logger: Logger, environment: str):
+    REPORT_ENV_DIR = f"/data/idp_testing_reports/{environment}/"
+    if not os.path.exists(REPORT_ENV_DIR):
+        logger.error("Test reports path '{}' not found or not configured.", REPORT_ENV_DIR)
+        return []
+    try:
+        logger.debug(f"Returning list of test report filenames in directory {REPORT_ENV_DIR}")
+        REPORTS_LIST = []
+        
+        for directory_name in os.listdir(REPORT_ENV_DIR):
+            report_path = os.path.join(REPORT_ENV_DIR, directory_name)
+            report_json_path = os.path.join(report_path, "report.json")
+            
+            # Check if it's a directory and contains report.json
+            if os.path.isdir(report_path) and os.path.isfile(report_json_path):
+                try:
+                    # Read and parse the report.json file
+                    with open(report_json_path, 'r') as f:
+                        data = json.load(f)["data"]
+                    
+                    # Extract the test_env_name, provided that the version of the identicum playwright docker image used is the latest
+                    # https://github.com/Identicum/playwright/commit/6ee9563dbf192c3c0efc51e66969e6c413f42bc1
+                    test_env_name = data[0]["attributes"]["environment"]["test_env_name"]
+                    
+                    # Add tuple of (directory_name, test_env_name)
+                    REPORTS_LIST.append((directory_name, test_env_name))
+                    
+                except (KeyError) as e:
+                    logger.warn(f"Could not extract test_env_name from {report_json_path}: {e}")
+                    # Optionally, you could still add it with None: REPORTS_LIST.append((report_name, None))
+                    continue
+        
+        logger.debug(f"Returning Reports: {REPORTS_LIST}")
+        return REPORTS_LIST
+    except Exception as e:
+        logger.error("Error listing test reports: {}", e)
+        return []
+    
+
+def getCustomTestExecEnvNames(logger: Logger, environment: str, config: dict):
+    """Searches the config for the provided environment's list of custom test execution environments and returns it.
+
+    Args:
+        logger (Logger): sherpa-py-utils Logger instance
+        environment (str): Environment name
+        config (dict): Parsed contents of /conf/home.json
+    """
+
+    logger.info("Returning custom test execution environments for {}", environment)
+    ENVIRONMENTS = config.get("environments", {})
+    logger.trace("Environments: {}", ENVIRONMENTS)
+    ENVIRONMENT = ENVIRONMENTS.get(environment, {})
+    logger.trace("Environment: {}", ENVIRONMENT)
+    CUSTOM_ENVS = ENVIRONMENT.get("testing_custom_envs", [])
+    logger.trace("Custom Envs: {}", CUSTOM_ENVS)
+    
+    return CUSTOM_ENVS
+
+
+def requestTestExecution(logger: Logger, exec_env: str, environment: str):
+    """Requests test execution with the provided details, placing an <environment>.execute file in the pid files directory, containing the specific environment in which to run tests
+
+    Args:
+        logger (Logger): Sherpa Logger Instance
+        exec_env (str): 'Fine Grained' Test Execution Environment
+        environment (str): Basic environment name for test execution
+    """
+    # Set test .pid files directory
+    PID_FILES_DIRPATH = "/app/testrunner/pidfiles/"
+    logger.info("PID_FILES_DIRPATH: {}", PID_FILES_DIRPATH)
+
+    # Create the directory if missing
+    PID_FILES_DIRECTORY = os.path.dirname(PID_FILES_DIRPATH)
+    if not os.path.exists(PID_FILES_DIRECTORY):
+        logger.info("PID Files directory missing, creating it.")
+        os.makedirs(PID_FILES_DIRECTORY, exist_ok=True)
+    
+    # Placing .pid file with environment name as filename and custom test execution environment name as content
+    with open(f"{PID_FILES_DIRPATH}{environment}.execute", "w") as pid_file:
+        pid_file.write(exec_env)
+    logger.debug(f"Test execution PID File: {PID_FILES_DIRPATH}{exec_env}.execute")
+
+
+def getEnvironmentTestAvailability(logger: Logger, environment: str) -> bool:
+    """Check for the provided environment's availability for test execution, return correpsonding boolean value
+
+    Args:
+        logger (Logger): Sherpa Logger Instance
+        environment (str): Basic environment name to check for
+
+    Returns:
+        bool: True if environment is available, False otherwise
+    """
+    directory_path = "/app/testrunner/pidfiles/"
+    
+    # Check if directory exists
+    if not os.path.exists(directory_path):
+        logger.trace("Environment is available for text execution - PID files directory hasn't been created yet")
+        return True  # No files exist if directory doesn't exist
+    
+    # Get all files in the directory
+    files = os.listdir(directory_path)
+    
+    # Check if any file contains the environment name
+    for file in files:
+        if environment in file:
+            logger.trace("Found at least one PID file with environment name {}", environment)
+            return False  # 
+    
+
+    logger.trace("No files contain the environment name {}", environment)
+    return True
+
 # Create a single logger instance
 logger = Logger(
     "sherpa-ciam-home", 
     os.environ.get("LOG_LEVEL"), 
     "/tmp/python-flask.log"
 )
+
+# Create a single properties instance
+properties = Properties("/local.properties", "/local.properties")
 
 # Create a single config instance
 config = getConfig(logger=logger)

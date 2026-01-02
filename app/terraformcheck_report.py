@@ -136,7 +136,7 @@ def processWorkspace(logger: Logger, environment: str, realmType: str, realmFold
 	terraform.init(logger, realmFolder)
 	terraform.select_workspace(logger, realmFolder, workspace)
 	binary_plan = "{}/{}_tfplan.binary".format(realmFolder, workspace)
-	instance_var_files = utils.getConfig(logger=logger).get("realms").get(realmType).get(environment).get(workspace).get("var_files", [])
+	instance_var_files = utils.getConfig(logger=logger).get("realms").get(realmType).get("environments").get(environment).get(workspace).get("var_files", [])
 	var_files = environmentVarFiles + instance_var_files
 	terraform.plan2binary(logger, realmFolder, binary_plan, var_files)
 	jsonPlan = "{}/{}_tfplan.json".format(realmFolder, workspace)

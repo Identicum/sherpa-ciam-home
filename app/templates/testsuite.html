@@ -1,0 +1,56 @@
+{% extends "index.html" %}
+
+{% block title %} Test Execution Suite for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Test Execution Suite for {{ environment }}</h1>
+    {# List of available Test Reports #}
+    {% set reports = utils.getTestReports(logger=utils.logger, environment=environment) %}
+    {# Current environment's availability for tests. #}
+    {% set env_available = utils.getEnvironmentTestAvailability(utils.logger, environment=environment) %}
+
+    <h3>{{ messages['tests.runner.title'] }} {{ environment }}</h3>
+    <form method="post">
+        <h6>{{ messages['tests.runner.select_custom_env'] }}</h6>
+        <ul class="list-group">
+            {% for custom_env in exec_environments %}
+            <li class="list-group-item">
+                <button 
+                type="submit" 
+                name="{{ custom_env }}" 
+                value="{{ custom_env }}" 
+                formaction="/testrunner/{{ environment }}?custom-exec={{ custom_env }}"
+                class="{% if env_available %}btn btn-success {%else%} btn btn-secondary {% endif %}"
+                {% if not env_available %} disabled {% endif %}
+                >{{ custom_env }}</button>
+            </li>
+            {% endfor %}
+        </ul>
+    </form>
+    
+    <br>
+    
+    <h3>{{ messages['tests.reports.list.title'] }} {{ environment }}</h3>
+    {% if reports and reports|length > 0 %}
+        <table class="admin-links-table">
+            <thead>
+                <tr>
+                    <th>Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for timestamp, test_exec_environment in reports %}
+                <tr>
+                    <td>
+                        <a href="/testsuite/{{ environment }}/report/{{ timestamp }}" target=”_blank”>{{ timestamp }}</a> <span>{{test_exec_environment}}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No reports found for this environment.</p>
+    {% endif %}
+</div>
+{% endblock %}

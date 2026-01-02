@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 import json
 import mimetypes
 import os
+from pathlib import Path
 from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
@@ -682,6 +683,51 @@ def getTestReports(logger: Logger, environment: str):
         return REPORTS_LIST
     except Exception as e:
         logger.error("Error listing test reports: {}", e)
+        return []
+
+
+def getTestFailedImages(logger: Logger, environment: str, timestamp: str, test_media_dir: str) -> list:
+    """Obtiene la lista de imágenes test-failed-*.png de un directorio de prueba
+    
+    Args:
+        logger (Logger): Logger instance
+        environment (str): Environment name
+        timestamp (str): Test execution timestamp
+        test_media_dir (str): Test media directory name (nombre de la carpeta de la prueba)
+        
+    Returns:
+        list: Lista de nombres de archivos de imágenes ordenados
+    """
+    if not test_media_dir:
+        logger.debug("test_media_dir is empty, returning empty list")
+        return []
+    
+    test_media_path = Path(f"/data/idp_testing_reports/{environment}/{timestamp}/{test_media_dir}")
+    
+    logger.debug("Looking for images in: '{}'", test_media_path)
+    
+    if not test_media_path.exists():
+        logger.warn("Test media directory '{}' does not exist.", test_media_path)
+        return []
+    
+    try:
+        images = []
+        files_in_dir = test_media_path.iterdir()
+        file_list = list(files_in_dir)
+        logger.debug("Files in directory '{}': {}", test_media_path, [f.name for f in file_list])
+        
+        for file_path in file_list:
+            filename = file_path.name
+            if filename.startswith("test-failed-") and filename.endswith(".png"):
+                images.append(filename)
+                logger.debug("Found image: '{}'", filename)
+        
+        images.sort(key=lambda x: int(x.replace("test-failed-", "").replace(".png", "")) if x.replace("test-failed-", "").replace(".png", "").isdigit() else 0)
+        
+        logger.info("Found {} failed images in '{}': {}", len(images), test_media_path, images)
+        return images
+    except Exception as e:
+        logger.error("Error listing test failed images in '{}': {}", test_media_path, e)
         return []
     
 

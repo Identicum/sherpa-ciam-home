@@ -272,8 +272,7 @@ def getKeycloakAdmin(logger, environment: str, realmName: str, config: dict) -> 
             username=config.get("environments", {}).get(environment, {}).get("keycloak_username", ""), 
             password=config.get("environments", {}).get(environment, {}).get("keycloak_password", ""), 
             user_realm_name="master",
-            realm_name=realmName, 
-            verify=False
+            realm_name=realmName
         )
     return kcAdmin
 

@@ -617,21 +617,39 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
     )
     
     if id_type == "username":
+        username = identifier
         identifier = kc_admin.get_user_id(identifier)
-    logger.debug("ID is {}", identifier)
+    else:
+        try:
+            user = kc_admin.get_user(identifier)
+            username = user.get("username")
+        except Exception as e:
+            logger.debug("Could not get username for user_id {}: {}", identifier, e)
+            username = None
+    
+    logger.debug("ID is {}, username is {}", identifier, username)
     
     try:
         sessions = kc_admin.get_sessions(identifier)
         for session in sessions:
             session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
             session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
+            session["username"] = username
+            session["userId"] = identifier
         logger.trace("Online Sessions: {}", sessions)
 
         for client in kc_admin.get_clients():
             for session in kc_admin.sherpa_get_user_client_offlinesessions(user_id=identifier, client_id=client["clientId"]):
+                if "start" in session:
+                    session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
+                if "lastAccess" in session:
+                    session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
                 sessions.append({
                     **session,
-                    "is_offline_session": True
+                    "is_offline_session": True,
+                    "clientId": client["clientId"],
+                    "username": username,
+                    "userId": identifier
                 })
         return {
             "sessions": sessions,

@@ -792,13 +792,14 @@ def getEnvironmentTestAvailability(logger: Logger, environment: str) -> bool:
     Returns:
         bool: True if environment is available, False otherwise
     """
-    pid_file_path = f"/data/idp_testing_reports/{environment}.execute"
-    if os.path.exists(pid_file_path):
-        logger.trace("Environment is not available for test execution - PID file exists.")
+    if os.path.exists(f"/data/idp_testing_reports/{environment}.execute"):
+        logger.trace("Environment is scheduled for execution.")
         return False
-    else:
-        logger.trace("Environment is available for test execution - No PID file found.")
-        return True
+    if os.path.exists(f"/data/idp_testing_reports/{environment}.running"):
+        logger.trace("Environment is executing.")
+        return False
+    logger.trace("Environment is available for test execution - No PID file found.")
+    return True
 
 
 # Create a single logger instance

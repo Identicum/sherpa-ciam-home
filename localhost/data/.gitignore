@@ -1,3 +1,5 @@
 /terraformcheck_*.json
 /checkclients_*.json
 /clientsactivity_*.json
+
+*.execute

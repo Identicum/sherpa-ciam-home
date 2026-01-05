@@ -773,27 +773,17 @@ def requestTestExecution(logger: Logger, exec_env: str, environment: str):
 
     Args:
         logger (Logger): Sherpa Logger Instance
-        exec_env (str): 'Fine Grained' Test Execution Environment
-        environment (str): Basic environment name for test execution
+        exec_env (str): 'Fine Grained' Test Execution Environment (file content)
+        environment (str): Basic environment name for test execution (file name)
     """
-    # Set test .pid files directory
-    PID_FILES_DIRPATH = "/app/testrunner/pidfiles/"
-    logger.info("PID_FILES_DIRPATH: {}", PID_FILES_DIRPATH)
-
-    # Create the directory if missing
-    PID_FILES_DIRECTORY = os.path.dirname(PID_FILES_DIRPATH)
-    if not os.path.exists(PID_FILES_DIRECTORY):
-        logger.info("PID Files directory missing, creating it.")
-        os.makedirs(PID_FILES_DIRECTORY, exist_ok=True)
-    
-    # Placing .pid file with environment name as filename and custom test execution environment name as content
-    with open(f"{PID_FILES_DIRPATH}{environment}.execute", "w") as pid_file:
+    pid_file_path = f"/data/idp_testing_reports/{environment}.execute"
+    with open(pid_file_path, "w") as pid_file:
         pid_file.write(exec_env)
-    logger.debug(f"Test execution PID File: {PID_FILES_DIRPATH}{exec_env}.execute")
+    logger.debug(f"Test execution PID File created at: {pid_file_path} with content: {exec_env}")
 
 
 def getEnvironmentTestAvailability(logger: Logger, environment: str) -> bool:
-    """Check for the provided environment's availability for test execution, return correpsonding boolean value
+    """Check for the provided environment's availability for test execution, return corresponding boolean value
 
     Args:
         logger (Logger): Sherpa Logger Instance
@@ -802,25 +792,14 @@ def getEnvironmentTestAvailability(logger: Logger, environment: str) -> bool:
     Returns:
         bool: True if environment is available, False otherwise
     """
-    directory_path = "/app/testrunner/pidfiles/"
-    
-    # Check if directory exists
-    if not os.path.exists(directory_path):
-        logger.trace("Environment is available for text execution - PID files directory hasn't been created yet")
-        return True  # No files exist if directory doesn't exist
-    
-    # Get all files in the directory
-    files = os.listdir(directory_path)
-    
-    # Check if any file contains the environment name
-    for file in files:
-        if environment in file:
-            logger.trace("Found at least one PID file with environment name {}", environment)
-            return False  # 
-    
+    pid_file_path = f"/data/idp_testing_reports/{environment}.execute"
+    if os.path.exists(pid_file_path):
+        logger.trace("Environment is not available for test execution - PID file exists.")
+        return False
+    else:
+        logger.trace("Environment is available for test execution - No PID file found.")
+        return True
 
-    logger.trace("No files contain the environment name {}", environment)
-    return True
 
 # Create a single logger instance
 logger = Logger(

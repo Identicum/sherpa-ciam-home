@@ -6,7 +6,8 @@
             "attributes": {
                 "environment": {
                     "Python": "3.12.3",
-                    "Platform": "Linux-6.12.54-linuxkit-aarch64-with-glibc2.39"
+                    "Platform": "Linux-6.12.54-linuxkit-aarch64-with-glibc2.39",
+                    "test_env_name": "dev_sandbox"
                 },
                 "summary": {
                     "passed": 1,

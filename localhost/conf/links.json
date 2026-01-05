@@ -2,34 +2,25 @@
     "local": {
         "admin": [
             {
-                "url": "http://idp:8080/admin/",
+                "url": "https://localhost.idsherpa.com/admin/",
                 "displayText": "Admin console",
                 "comment": "(admin/admin)"
             },
             {
-                "url": "http://iamcrud/",
-                "displayText": "IAM CRUD",
-                "comment": "(iamcrud_usr1 / iamcrud_pwd1)"
-            },
-            {
                 "url":"http://localhost:1080/",
                 "displayText": "Mailcatcher"
-            },
-            {
-                "url": "http://localhost:8082/",
-                "displayText": "Mmock"
             }
         ],
         "useCases": [
             {
-                "url": "http://idp:8080/realms/customers-ar/account/",
+                "url": "https://localhost.idsherpa.com/realms/customers-ar/account/",
                 "displayText": "demoapp1",
                 "realm": "customers-ar",
                 "comments": "Demo app 1",
                 "credentials": "jdoe / Sherpa.2025"
             },
             {
-                "url": "http://idp:8080/realms/employees/account/",
+                "url": "https://localhost.idsherpa.com/realms/employees/account/",
                 "displayText": "demoapp2",
                 "realm": "employees",
                 "comments": "Demo app 2",

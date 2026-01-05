@@ -40,7 +40,7 @@
     },
     "environments": {
         "local": {
-            "keycloak_url": "http://idp:8080",
+            "keycloak_url": "https://localhost.idsherpa.com",
             "keycloak_username": "sherpaciamhome",
             "keycloak_password": "$env:LOCAL_KEYCLOAK_PASSWORD",
             "elastic_urls": [],

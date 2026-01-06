@@ -697,7 +697,7 @@ def getTestReports(logger: Logger, environment: str):
                     continue
         
         logger.debug(f"Returning Reports: {REPORTS_LIST}")
-        return sorted(REPORTS_LIST)
+        return sorted(REPORTS_LIST, reverse=True)
     except Exception as e:
         logger.error("Error listing test reports: {}", e)
         return []

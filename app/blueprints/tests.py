@@ -152,13 +152,13 @@ def metrics(environment: str):
     output.append('')
 
     test_reports = utils.getTestReports(utils.logger, environment)
-    for timestamp, exec_option, passed, failed, num_tests, duration in test_reports:
-        run_id = timestamp
-        output.append(f'playwright_tests_info{{run_id="{run_id}",exec_option="{exec_option}"}} 1')
-        output.append(f'playwright_tests_passed{{run_id="{run_id}"}} {passed}')
-        output.append(f'playwright_tests_failed{{run_id="{run_id}"}} {failed}')
-        output.append(f'playwright_tests_total{{run_id="{run_id}"}} {num_tests}')
-        output.append(f'playwright_tests_duration{{run_id="{run_id}"}} {duration}')
+    for run_id, exec_option, passed, failed, num_tests, duration in test_reports:
+        unix_timestamp = utils.getReportTimestamp(run_id)
+        output.append(f'playwright_tests_info{{run_id="{run_id}",exec_option="{exec_option}"}} 1  {unix_timestamp}')
+        output.append(f'playwright_tests_passed{{run_id="{run_id}"}} {passed} {unix_timestamp}')
+        output.append(f'playwright_tests_failed{{run_id="{run_id}"}} {failed} {unix_timestamp}')
+        output.append(f'playwright_tests_total{{run_id="{run_id}"}} {num_tests} {unix_timestamp}')
+        output.append(f'playwright_tests_duration{{run_id="{run_id}"}} {duration} {unix_timestamp}')
         output.append('')
     return Response("\n".join(output), mimetype='text/plain')
 

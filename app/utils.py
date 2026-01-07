@@ -760,6 +760,18 @@ def checkTestsScheduled(logger: Logger, environment: str) -> str:
     return "available"
 
 
+def getReportTimestamp(ts_str):
+    """Convert a timestamp string to Unix milliseconds
+
+    Args:
+        ts_str (str): Timestamp string in format YYYYMMDD_HHMMSS
+    Returns:
+        int: Unix timestamp in milliseconds
+    """
+    dt = datetime.strptime(ts_str, "%Y%m%d_%H%M%S")
+    return int(dt.timestamp() * 1000)
+
+
 # Create a single logger instance
 logger = Logger(
     "sherpa-ciam-home", 

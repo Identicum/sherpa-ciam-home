@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request, send_from_directory, url_for
+from flask import Blueprint, redirect, render_template, request, Response, send_from_directory, url_for
 import json
 import utils
 
@@ -127,4 +127,21 @@ def tests_report_image(environment: str, timestamp: str, test_media_dir: str, fi
     """
     image_dir = f"/data/idp_testing_reports/{environment}/{timestamp}/{test_media_dir}"
     return send_from_directory(image_dir, filename, mimetype='image/png')
+
+
+@tests_bp.route('/tests/<environment>/metrics', methods=["GET"])
+def metrics(environment: str):
+    """
+    Expose metrics for Prometheus scraping
+    """
+    output = []
+    test_reports = utils.getTestReports(utils.logger, environment)
+    for timestamp, exec_option, passed, failed, num_tests, duration in test_reports:
+        run_id = timestamp
+        output.append(f'exec_option{{run_id="{run_id}"}} {exec_option}')
+        output.append(f'passed_tests{{run_id="{run_id}"}} {passed}')
+        output.append(f'failed_tests{{run_id="{run_id}"}} {failed}')
+        output.append(f'total_tests{{run_id="{run_id}"}} {num_tests}')
+        output.append(f'tests_duration{{run_id="{run_id}"}} {duration}')
+    return Response("\n".join(output), mimetype='text/plain')
 

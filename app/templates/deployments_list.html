@@ -7,7 +7,7 @@
     <h1>Deployments - {{ environment }}</h1>
     {% set deployment_status = utils.getDeploymentStatus(utils.logger, environment=environment) %}
 
-    <h3>{{ messages['deployments.schedule.title'] }}</h3>
+    <h3>{{ messages['deployments.deploy.title'] }}</h3>
     {% if deployment_status == 'available' %}
         <form action="/deployments/{{ environment }}/execute" method="post">
             <select name="artifact" id="artifact" style="margin-right: 10px;">

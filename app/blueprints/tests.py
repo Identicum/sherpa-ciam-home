@@ -135,8 +135,22 @@ def metrics(environment: str):
     Expose metrics for Prometheus scraping
     """
     output = []
-    output.append('# HELP playwright_test_results Results of the automated test runs')
-    output.append('# TYPE playwright_test_results gauge')
+    output.append('# HELP exec_option The execution type/option used for this specific run.')
+    output.append('# TYPE exec_option gauge')
+    output.append('')
+    output.append('# HELP passed_tests Number of tests that passed in this run.')
+    output.append('# TYPE passed_tests gauge')
+    output.append('')
+    output.append('# HELP failed_tests Number of tests that failed in this run.')
+    output.append('# TYPE failed_tests gauge')
+    output.append('')
+    output.append('# HELP total_tests Total number of tests executed in this run.')
+    output.append('# TYPE total_tests gauge')
+    output.append('')
+    output.append('# HELP tests_duration Total time elapsed for the test execution in seconds.')
+    output.append('# TYPE tests_duration gauge')
+    output.append('')
+
     test_reports = utils.getTestReports(utils.logger, environment)
     for timestamp, exec_option, passed, failed, num_tests, duration in test_reports:
         run_id = timestamp
@@ -145,6 +159,6 @@ def metrics(environment: str):
         output.append(f'failed_tests{{run_id="{run_id}"}} {failed}')
         output.append(f'total_tests{{run_id="{run_id}"}} {num_tests}')
         output.append(f'tests_duration{{run_id="{run_id}"}} {duration}')
-        output.append(' ')
+        output.append('')
     return Response("\n".join(output), mimetype='text/plain')
 

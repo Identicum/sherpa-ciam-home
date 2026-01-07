@@ -36,9 +36,12 @@ app.config.update({
 })
 oidc = OpenIDConnect(app)
 
-def store_username_in_session(oidc):
-    if oidc.user_loggedin and 'username' not in session:
-        session['username'] = oidc.user_getfield('preferred_username')
+def store_information_in_session(oidc):
+    if oidc.user_loggedin:
+        if 'username' not in session:
+            session['username'] = oidc.user_getfield('preferred_username')
+        if 'access_token' not in session:
+            session['access_token'] = oidc.get_access_token()
 
 def make_require_oidc_login(oidc):
     def require_oidc_login(f):
@@ -46,7 +49,7 @@ def make_require_oidc_login(oidc):
         def decorated_function(*args, **kwargs):
             if not oidc.user_loggedin:
                 return oidc.redirect_to_auth_server()
-            store_username_in_session(oidc)
+            store_information_in_session(oidc)
             return f(*args, **kwargs)
         return decorated_function
     return require_oidc_login
@@ -62,7 +65,7 @@ def inject_messages():
 
 @app.route('/', methods=["GET"])
 def index():
-    store_username_in_session(oidc)
+    store_information_in_session(oidc)
     return render_template(
         "index.html",
         utils=utils

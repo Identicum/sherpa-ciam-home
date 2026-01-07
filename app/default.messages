@@ -1,6 +1,7 @@
 menu.clientcreation=Client creation
 menu.usersessions=User sessions
 menu.tests=Tests
+menu.deployments=Deployments
 
 clientcreation.title=Request Client
 clientcreation.integration_type=Integration type
@@ -39,6 +40,9 @@ usersesssions.error=Hubo un error
 
 tests.runner.title=Schedule tests execution
 tests.reports.list.title=Test reports
+
+deployments.schedule.title=Deploy artifact
+deployments.status.title=Deployment status
 
 back_home=Back home
 

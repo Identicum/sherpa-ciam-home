@@ -760,6 +760,41 @@ def checkTestsScheduled(logger: Logger, environment: str) -> str:
     return "available"
 
 
+def getDeploymentArtifacts(logger: Logger, config: dict) -> list:
+    """Returns the list of deployment artifacts available from the configuration
+
+    Args:
+        logger (Logger): Sherpa Logger Instance
+        config (dict): JSON configuration
+
+    Returns:
+        list: List of deployment artifacts
+    """
+    artifacts = config.get("deployment_artifacts", [])
+    logger.trace("Deployment artifacts: {}", artifacts)
+    return artifacts
+
+
+def getDeploymentStatus(logger: Logger, environment: str) -> str:
+    """Get the deployment status for the provided environment
+
+    Args:
+        logger (Logger): Sherpa Logger Instance
+        environment (str): Basic environment name to check for
+
+    Returns:
+        str: pending / running / available
+    """
+    if os.path.exists(f"/data/deployments/{environment}.execute"):
+        logger.trace("Environment has a pending deployment.")
+        return "pending"
+    if os.path.exists(f"/data/deployments/{environment}.running"):
+        logger.trace("Environment is running deployment.")
+        return "running"
+    logger.trace("Environment is available for deployment - No PID file found.")
+    return "available"
+
+
 # Create a single logger instance
 logger = Logger(
     "sherpa-ciam-home", 

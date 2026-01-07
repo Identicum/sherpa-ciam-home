@@ -1,0 +1,37 @@
+{% extends "index.html" %}
+
+{% block title %} Deployments for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Deployments - {{ environment }}</h1>
+    {% set deployment_status = utils.getDeploymentStatus(utils.logger, environment=environment) %}
+
+    <h3>{{ messages['deployments.schedule.title'] }}</h3>
+    {% if deployment_status == 'available' %}
+        <form action="/deployments/{{ environment }}/execute" method="post">
+            <select name="artifact" id="artifact" style="margin-right: 10px;">
+                {% for artifact in artifacts %}
+                <option value="{{ artifact }}">{{ artifact }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" name="submit" class="btn btn-primary">Deploy</button>
+        </form>
+    {% elif deployment_status == 'pending' %}
+        <p>A deployment is pending for this environment.</p>
+    {% elif deployment_status == 'running' %}
+        <p>The environment is currently running deployment.</p>
+    {% endif %}
+    <br>
+
+    <h3>{{ messages['deployments.status.title'] }}</h3>
+    {% if deployment_status == 'available' %}
+        <p>No deployment in progress for this environment.</p>
+    {% elif deployment_status == 'pending' %}
+        <p>Deployment status: <strong>pending</strong></p>
+    {% elif deployment_status == 'running' %}
+        <p>Deployment status: <strong>running</strong></p>
+    {% endif %}
+</div>
+{% endblock %}
+

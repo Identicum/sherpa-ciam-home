@@ -144,7 +144,7 @@
                                                 <div class="carousel-inner">
                                                     {% for image in test_object.attributes.call.metadata.failed_images %}
                                                     <div class="carousel-item {% if loop.first %}active{% endif %}">
-                                                        <img class="d-block w-100" src="{{ url_for('testsuite.serve_test_image', environment=environment, timestamp=timestamp, test_media_dir=test_object.attributes.call.metadata.test_media_dir, filename=image) }}" alt="Screenshot {{ loop.index }}">
+                                                        <img class="d-block w-100" src="{{ url_for('tests.tests_report_image', environment=environment, timestamp=timestamp, test_media_dir=test_object.attributes.call.metadata.test_media_dir, filename=image) }}" alt="Screenshot {{ loop.index }}">
                                                     </div>
                                                     {% endfor %}
                                                 </div>
@@ -157,7 +157,7 @@
                                             </div>
                                         {% else %}
                                             {# Solo una imagen, mostrar sin carrusel #}
-                                            <img class="d-block w-100" src="{{ url_for('testsuite.serve_test_image', environment=environment, timestamp=timestamp, test_media_dir=test_object.attributes.call.metadata.test_media_dir, filename=test_object.attributes.call.metadata.failed_images[0]) }}" alt="Screenshot" style="max-width: 100%; height: auto;">
+                                            <img class="d-block w-100" src="{{ url_for('tests.tests_report_image', environment=environment, timestamp=timestamp, test_media_dir=test_object.attributes.call.metadata.test_media_dir, filename=test_object.attributes.call.metadata.failed_images[0]) }}" alt="Screenshot" style="max-width: 100%; height: auto;">
                                         {% endif %}
                                     {% else %}
                                     <div class="alert alert-warning">

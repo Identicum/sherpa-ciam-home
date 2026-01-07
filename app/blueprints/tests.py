@@ -1,34 +1,53 @@
-from flask import Blueprint, render_template, send_from_directory
+from flask import Blueprint, redirect, render_template, request, send_from_directory, url_for
 import json
 import utils
 
-testsuite_bp = Blueprint('testsuite', __name__)
+tests_bp = Blueprint('tests', __name__)
 
 
-@testsuite_bp.route('/testsuite/<environment>', methods=["GET"])
+@tests_bp.route('/tests/<environment>', methods=["GET"])
 @utils.require_oidc_login
-def testsuite(environment: str):
-    """Renders Test Suite for Environment
+def tests_list(environment: str):
+    """
+    List tests results, trigger new executions
 
     Args:
         environment (str): Environment Name
 
     Returns:
-        Template: Environment Test Suite HTML
+        Template: Test list Rendered HTML Page
     """
-    LOGGER = utils.logger
-    CUSTOM_EXEC_ENVS = utils.getCustomTestExecEnvNames(logger=LOGGER, environment=environment,config=utils.getConfig(LOGGER))
+    execution_options = utils.config.get("environments", {}).get(environment, {}).get("testing_custom_envs", [])
     return render_template(
-        f'testsuite.html',
+        'tests_list.html',
         utils=utils,
         environment=environment,
-        exec_environments=CUSTOM_EXEC_ENVS
+        execution_options=execution_options
     )
 
-@testsuite_bp.route('/testsuite/<environment>/report/<timestamp>', methods=["GET"])
+
+@tests_bp.route('/tests/<environment>/execute', methods=["POST"])
 @utils.require_oidc_login
-def testreport_detail(environment: str, timestamp: str):
-    """Renders Tests Report Page
+def tests_execute(environment: str):
+    """
+    Requests test execution for the provided environment, writing a file to trigger the process.
+
+    Args:
+        environment (str): Environment name
+    """
+    execution_option = request.form.get("execution_option", None)
+    pid_file_path = f"/data/idp_testing_reports/{environment}.execute"
+    with open(pid_file_path, "w") as pid_file:
+        pid_file.write(execution_option)
+    utils.logger.debug(f"Test execution PID File created at: {pid_file_path} with content: {execution_option}")
+    return redirect(url_for('tests.tests_list', environment=environment))
+
+
+@tests_bp.route('/tests/<environment>/report/<timestamp>', methods=["GET"])
+@utils.require_oidc_login
+def tests_report(environment: str, timestamp: str):
+    """
+    Renders Tests Report Page
 
     Args:
         environment (str): Environment Name
@@ -45,7 +64,6 @@ def testreport_detail(environment: str, timestamp: str):
             json_report = json.load(json_report_file)
         
         if json_report.get("included"):
-            LOGGER = utils.logger
             for test_object in json_report["included"]:
                 test_attributes = test_object.get("attributes", {})
                 test_call = test_attributes.get("call", {})
@@ -56,34 +74,34 @@ def testreport_detail(environment: str, timestamp: str):
                 
                 if test_metadata.get("test_media_dir"):
                     test_media_dir = test_metadata["test_media_dir"]
-                    LOGGER.debug("Processing test with test_media_dir: '{}' (outcome: {})", test_media_dir, test_outcome)
+                    utils.logger.debug("Processing test with test_media_dir: '{}' (outcome: {})", test_media_dir, test_outcome)
                     
                     if test_outcome == "failed" or call_outcome == "failed":
                         failed_images = utils.getTestFailedImages(
-                            logger=LOGGER,
+                            logger=utils.logger,
                             environment=environment,
                             timestamp=timestamp,
                             test_media_dir=test_media_dir
                         )
                         if failed_images:
-                            LOGGER.info("Adding {} failed images to test object (test_media_dir: '{}', images: {})", 
+                            utils.logger.info("Adding {} failed images to test object (test_media_dir: '{}', images: {})", 
                                        len(failed_images), test_media_dir, failed_images)
                             if "metadata" not in test_object["attributes"]["call"]:
                                 test_object["attributes"]["call"]["metadata"] = {}
                             test_object["attributes"]["call"]["metadata"]["failed_images"] = failed_images
                         else:
-                            LOGGER.warn("No failed images found for test_media_dir: '{}' (but test failed). Path checked: /data/idp_testing_reports/{}/{}/{}", 
+                            utils.logger.warn("No failed images found for test_media_dir: '{}' (but test failed). Path checked: /data/idp_testing_reports/{}/{}/{}", 
                                        test_media_dir, environment, timestamp, test_media_dir)
                     else:
-                        LOGGER.debug("Test passed, skipping image search for test_media_dir: '{}'", test_media_dir)
+                        utils.logger.debug("Test passed, skipping image search for test_media_dir: '{}'", test_media_dir)
                 else:
-                    LOGGER.debug("Test object does not have test_media_dir in metadata (test: {}, outcome: {})", 
+                    utils.logger.debug("Test object does not have test_media_dir in metadata (test: {}, outcome: {})", 
                                test_attributes.get("name", "unknown"), test_outcome)
     except Exception as e:
         error_message = e
 
     return render_template(
-        'testreport.html',
+        'tests_detail.html',
         utils=utils,
         json_report=json_report,
         error_message=error_message,
@@ -92,10 +110,11 @@ def testreport_detail(environment: str, timestamp: str):
     )
 
 
-@testsuite_bp.route('/testsuite/<environment>/report/<timestamp>/images/<test_media_dir>/<filename>', methods=["GET"])
+@tests_bp.route('/tests/<environment>/report/<timestamp>/images/<test_media_dir>/<filename>', methods=["GET"])
 @utils.require_oidc_login
-def serve_test_image(environment: str, timestamp: str, test_media_dir: str, filename: str):
-    """Sirve las imágenes de los reportes de pruebas
+def tests_report_image(environment: str, timestamp: str, test_media_dir: str, filename: str):
+    """
+    Serves test report image files
     
     Args:
         environment (str): Environment Name

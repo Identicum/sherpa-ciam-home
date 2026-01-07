@@ -1,0 +1,56 @@
+{% extends "index.html" %}
+
+{% block title %} Test Execution Suite for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Testing - {{ environment }}</h1>
+    {% set reports = utils.getTestReports(logger=utils.logger, environment=environment) %}
+    {% set tests_scheduled = utils.checkTestsScheduled(utils.logger, environment=environment) %}
+
+    <h3>{{ messages['tests.runner.title'] }}</h3>
+    {% if tests_scheduled == 'available' %}
+        <form action="/tests/{{ environment }}/execute" method="post">
+            <select name="execution_option" id="execution_option">
+                {% for execution_option in execution_options %}
+                <option value="{{ execution_option }}">{{ execution_option }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" name="submit" class="btn btn-primary">Schedule execution</button>
+        </form>
+    {% elif tests_scheduled == 'scheduled' %}
+        <p>The environment is currently scheduled for test execution.</p>
+    {% elif tests_scheduled == 'running' %}
+        <p>The environment is currently running tests.</p>
+    {% endif %}
+    <br>
+
+    <h3>{{ messages['tests.reports.list.title'] }}</h3>
+    {% if reports and reports|length > 0 %}
+        <table class="admin-links-table">
+            <thead>
+                <tr>
+                    <th>Execution</th>
+                    <th>Exec option</th>
+                    <th>Passed</th>
+                    <th>Failed</th>
+                    <th>Duration [secs]</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for timestamp, exec_option, passed, failed, num_tests, duration in reports %}
+                <tr>
+                    <td><a href="/tests/{{ environment }}/report/{{ timestamp }}" target=”_blank”>{{ timestamp }}</a></td>
+                    <td>{{exec_option}}</span></td>
+                    <td>{{passed}}</td>
+                    <td>{{failed}}</td>
+                    <td>{{duration}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No reports found for this environment.</p>
+    {% endif %}
+</div>
+{% endblock %}

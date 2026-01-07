@@ -672,30 +672,22 @@ def getTestReports(logger: Logger, environment: str):
     try:
         logger.debug(f"Returning list of test report filenames in directory {REPORT_ENV_DIR}")
         REPORTS_LIST = []
-        
         for directory_name in os.listdir(REPORT_ENV_DIR):
             report_path = os.path.join(REPORT_ENV_DIR, directory_name)
             report_json_path = os.path.join(report_path, "report.json")
-            
-            # Check if it's a directory and contains report.json
             if os.path.isdir(report_path) and os.path.isfile(report_json_path):
                 try:
-                    # Read and parse the report.json file
                     with open(report_json_path, 'r') as f:
                         data = json.load(f)["data"]
-                    
-                    # Extract the test_env_name, provided that the version of the identicum playwright docker image used is the latest
-                    # https://github.com/Identicum/playwright/commit/6ee9563dbf192c3c0efc51e66969e6c413f42bc1
-                    test_env_name = data[0]["attributes"]["environment"]["test_env_name"]
-                    
-                    # Add tuple of (directory_name, test_env_name)
-                    REPORTS_LIST.append((directory_name, test_env_name))
-                    
+                    test_env_name = data[0].get("attributes", {}).get("environment", {}).get("test_env_name", "N/A")
+                    passed = int(data[0].get("attributes", {}).get("summary", {}).get("passed", 0))
+                    failed = int(data[0].get("attributes", {}).get("summary", {}).get("failed", 0))
+                    num_tests = int(data[0].get("attributes", {}).get("summary", {}).get("num_tests", 0))
+                    duration = round(float(data[0].get("attributes", {}).get("summary", {}).get("duration", 0)))
+                    REPORTS_LIST.append((directory_name, test_env_name, passed, failed, num_tests, duration))
                 except (KeyError) as e:
-                    logger.warn(f"Could not extract test_env_name from {report_json_path}: {e}")
-                    # Optionally, you could still add it with None: REPORTS_LIST.append((report_name, None))
+                    logger.warn(f"Could extracting data from {report_json_path}: {e}")
                     continue
-        
         logger.debug(f"Returning Reports: {REPORTS_LIST}")
         return sorted(REPORTS_LIST, reverse=True)
     except Exception as e:
@@ -746,43 +738,9 @@ def getTestFailedImages(logger: Logger, environment: str, timestamp: str, test_m
     except Exception as e:
         logger.error("Error listing test failed images in '{}': {}", test_media_path, e)
         return []
-    
-
-def getCustomTestExecEnvNames(logger: Logger, environment: str, config: dict):
-    """Searches the config for the provided environment's list of custom test execution environments and returns it.
-
-    Args:
-        logger (Logger): sherpa-py-utils Logger instance
-        environment (str): Environment name
-        config (dict): Parsed contents of /conf/home.json
-    """
-
-    logger.info("Returning custom test execution environments for {}", environment)
-    ENVIRONMENTS = config.get("environments", {})
-    logger.trace("Environments: {}", ENVIRONMENTS)
-    ENVIRONMENT = ENVIRONMENTS.get(environment, {})
-    logger.trace("Environment: {}", ENVIRONMENT)
-    CUSTOM_ENVS = ENVIRONMENT.get("testing_custom_envs", [])
-    logger.trace("Custom Envs: {}", CUSTOM_ENVS)
-    
-    return CUSTOM_ENVS
 
 
-def requestTestExecution(logger: Logger, exec_env: str, environment: str):
-    """Requests test execution with the provided details, placing an <environment>.execute file in the pid files directory, containing the specific environment in which to run tests
-
-    Args:
-        logger (Logger): Sherpa Logger Instance
-        exec_env (str): 'Fine Grained' Test Execution Environment (file content)
-        environment (str): Basic environment name for test execution (file name)
-    """
-    pid_file_path = f"/data/idp_testing_reports/{environment}.execute"
-    with open(pid_file_path, "w") as pid_file:
-        pid_file.write(exec_env)
-    logger.debug(f"Test execution PID File created at: {pid_file_path} with content: {exec_env}")
-
-
-def getEnvironmentTestAvailability(logger: Logger, environment: str) -> bool:
+def checkTestsScheduled(logger: Logger, environment: str) -> str:
     """Check for the provided environment's availability for test execution, return corresponding boolean value
 
     Args:
@@ -790,16 +748,16 @@ def getEnvironmentTestAvailability(logger: Logger, environment: str) -> bool:
         environment (str): Basic environment name to check for
 
     Returns:
-        bool: True if environment is available, False otherwise
+        str: sheduled / running / available
     """
     if os.path.exists(f"/data/idp_testing_reports/{environment}.execute"):
         logger.trace("Environment is scheduled for execution.")
-        return False
+        return "scheduled"
     if os.path.exists(f"/data/idp_testing_reports/{environment}.running"):
-        logger.trace("Environment is executing.")
-        return False
+        logger.trace("Environment is running.")
+        return "running"
     logger.trace("Environment is available for test execution - No PID file found.")
-    return True
+    return "available"
 
 
 # Create a single logger instance

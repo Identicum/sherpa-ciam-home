@@ -80,13 +80,13 @@
         }
     },
     "deployment_artifacts": [
-        "claro-themes",
-        "claro-authentication",
-        "claro-repoprovider",
-        "claro-events",
-        "claro-registration",
-        "claro-password",
-        "claro-resetcreds",
-        "claro-utils"
+        "sherpa-themes",
+        "sherpa-authentication",
+        "sherpa-repoprovider",
+        "sherpa-events",
+        "sherpa-registration",
+        "sherpa-password",
+        "sherpa-resetcreds",
+        "sherpa-utils"
     ]
 }

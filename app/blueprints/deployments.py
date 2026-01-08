@@ -1,6 +1,7 @@
 from flask import Blueprint, redirect, render_template, url_for
 import os
 import utils
+import deployment_reports
 
 deployments_bp = Blueprint('deployments', __name__)
 
@@ -21,8 +22,8 @@ def deployments_list(environment: str):
         utils.logger.warn("Attempted access to local environment, redirecting to dev")
         return redirect(url_for('deployments.deployments_list', environment='dev'))
     
-    artifacts = utils.getDeploymentArtifacts(logger=utils.logger, config=utils.config)
-    artifacts_status = utils.getArtifactsLastStatus(logger=utils.logger, environment=environment, artifacts=artifacts)
+    artifacts = deployment_reports.getDeploymentArtifacts(logger=utils.logger, config=utils.config)
+    artifacts_status = deployment_reports.getArtifactsLastStatus(logger=utils.logger, environment=environment, artifacts=artifacts)
     
     return render_template(
         'deployments_list.html',
@@ -50,8 +51,8 @@ def deployments_detail(environment: str, artifact: str):
         utils.logger.warn("Attempted access to local environment, redirecting to dev")
         return redirect(url_for('deployments.deployments_detail', environment='dev', artifact=artifact))
     
-    deployment_status = utils.getDeploymentStatus(logger=utils.logger, environment=environment)
-    reports = utils.getDeploymentReports(logger=utils.logger, environment=environment, artifact=artifact, include_logs=True)
+    deployment_status = deployment_reports.getDeploymentStatus(logger=utils.logger, environment=environment)
+    reports = deployment_reports.getDeploymentReports(logger=utils.logger, environment=environment, artifact=artifact, include_logs=True)
     
     return render_template(
         'deployments_detail.html',

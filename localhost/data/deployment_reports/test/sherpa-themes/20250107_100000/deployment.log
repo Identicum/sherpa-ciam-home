@@ -1,0 +1,5 @@
+2025-01-07 10:00:00 - INFO - Starting deployment of sherpa-themes
+2025-01-07 10:00:00 - INFO - Connecting to environment test
+2025-01-07 10:00:00 - INFO - Artifact found: sherpa-themes
+2025-01-07 10:00:00 - INFO - Deployment completed successfully
+2025-01-07 10:00:00 - INFO - deploy_artifact.py finished.

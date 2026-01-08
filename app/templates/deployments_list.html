@@ -5,33 +5,40 @@
 {% block content %}
 <div class="container">
     <h1>Deployments - {{ environment }}</h1>
-    {% set deployment_status = utils.getDeploymentStatus(utils.logger, environment=environment) %}
 
-    <h3>{{ messages['deployments.deploy.title'] }}</h3>
-    {% if deployment_status == 'available' %}
-        <form action="/deployments/{{ environment }}/execute" method="post">
-            <select name="artifact" id="artifact" style="margin-right: 10px;">
+    <h3>Artifacts</h3>
+    {% if artifacts and artifacts|length > 0 %}
+        <table class="admin-links-table">
+            <thead>
+                <tr>
+                    <th>Artifact</th>
+                    <th>Last Deployment Status</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% for artifact in artifacts %}
-                <option value="{{ artifact }}">{{ artifact }}</option>
+                <tr>
+                    <td><a href="/deployments/{{ environment }}/{{ artifact }}">{{ artifact }}</a></td>
+                    <td>
+                        {% if artifacts_status[artifact] %}
+                            {% set last_timestamp, last_status = artifacts_status[artifact] %}
+                            {% if last_status == 'success' %}
+                                <span class="badge bg-success">Success</span>
+                            {% elif last_status == 'failed' %}
+                                <span class="badge bg-danger">Failed</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ last_status|upper }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">No deployments yet</span>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
-            </select>
-            <button type="submit" name="submit" class="btn btn-primary">Deploy</button>
-        </form>
-    {% elif deployment_status == 'pending' %}
-        <p>A deployment is pending for this environment.</p>
-    {% elif deployment_status == 'running' %}
-        <p>The environment is currently running deployment.</p>
-    {% endif %}
-    <br>
-
-    <h3>{{ messages['deployments.status.title'] }}</h3>
-    {% if deployment_status == 'available' %}
-        <p>No deployment in progress for this environment.</p>
-    {% elif deployment_status == 'pending' %}
-        <p>Deployment status: <strong>pending</strong></p>
-    {% elif deployment_status == 'running' %}
-        <p>Deployment status: <strong>running</strong></p>
+            </tbody>
+        </table>
+    {% else %}
+        <p>No artifacts configured.</p>
     {% endif %}
 </div>
 {% endblock %}
-

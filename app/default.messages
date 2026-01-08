@@ -41,8 +41,6 @@ usersesssions.error=Hubo un error
 tests.runner.title=Schedule tests execution
 tests.reports.list.title=Test reports
 
-deployments.deploy.title=Deploy artifact
-deployments.status.title=Deployment status
 back_home=Back home
 
 welcome_message=Welcome to Sherpa CIAM Home!

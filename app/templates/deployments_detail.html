@@ -1,0 +1,65 @@
+{% extends "index.html" %}
+
+{% block title %}Deployment Reports for {{ artifact }} - {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Deployments - {{ artifact }} ({{ environment }})</h1>
+
+    {% if deployment_status == 'available' %}
+        <form action="/deployments/{{ environment }}/{{ artifact }}/execute" method="post">
+            <button type="submit" name="submit" class="btn btn-primary">Deploy Artifact</button>
+        </form>
+    {% else %}
+        <p>The environment is currently running deployment.</p>
+    {% endif %}
+    <br>
+
+    <h3>Deployment Reports</h3>
+    {% if reports and reports|length > 0 %}
+        <table class="table table-bordered table-hover" style="margin-top: 10px; width: 100%;">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 5%;"></th>
+                    <th style="width: 45%;">Timestamp</th>
+                    <th style="width: 50%;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for timestamp, artifact_name, status, logs in reports %}
+                    {% set detail_id = "deployment-details-" ~ timestamp | replace('.', '_') | replace('-', '_') %}
+
+                    <tr class="expandable-summary-row" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
+                        <td class="text-center"><span class="toggle-icon">&#9658;</span></td>
+                        <td>{{ timestamp }}</td>
+                        <td>
+                            {% if status == 'success' %}
+                                <span class="badge bg-success">Success</span>
+                            {% elif status == 'failed' %}
+                                <span class="badge bg-danger">Failed</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ status|upper }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <tr class="collapse" id="{{ detail_id }}">
+                        <td colspan="3" class="p-0">
+                            <div class="p-3">
+                                <h6>Deployment Logs</h6>
+                                <div class="card mb-3">
+                                    <div class="card-body {% if status == 'failed' %}bg-danger bg-opacity-10{% else %}bg-light{% endif %}">
+                                        <pre class="mb-0 {% if status == 'failed' %}text-danger{% endif %}" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.875rem; max-height: 500px; overflow-y: auto;">{{ logs }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No deployment reports found for this artifact.</p>
+    {% endif %}
+</div>
+{% endblock %}

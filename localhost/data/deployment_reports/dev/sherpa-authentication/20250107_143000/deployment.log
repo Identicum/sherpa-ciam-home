@@ -1,0 +1,5 @@
+2025-01-07 14:30:00 - INFO - Starting deployment of sherpa-authentication
+2025-01-07 14:30:00 - INFO - Connecting to environment dev
+2025-01-07 14:30:00 - INFO - Artifact found: sherpa-authentication
+2025-01-07 14:30:00 - INFO - Deployment completed successfully
+2025-01-07 14:30:00 - INFO - deploy_artifact.py finished.

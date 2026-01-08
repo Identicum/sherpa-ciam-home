@@ -78,5 +78,15 @@
                 "prod_private_balancer"
             ]
         }
-    }
+    },
+    "deployment_artifacts": [
+        "sherpa-themes",
+        "sherpa-authentication",
+        "sherpa-repoprovider",
+        "sherpa-events",
+        "sherpa-registration",
+        "sherpa-password",
+        "sherpa-resetcreds",
+        "sherpa-utils"
+    ]
 }

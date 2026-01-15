@@ -38,23 +38,6 @@ def getDeploymentNodes(logger: Logger, environment: str, config: dict) -> list:
     return nodes
 
 
-def getDeploymentNodesCount(logger: Logger, environment: str, config: dict) -> int:
-    """Returns the number of deployment nodes for the provided environment
-
-    Args:
-        logger (Logger): Sherpa Logger Instance
-        environment (str): Environment name
-        config (dict): JSON configuration
-
-    Returns:
-        int: Number of deployment nodes (1-indexed count)
-    """
-    nodes = getDeploymentNodes(logger, environment, config)
-    count = len(nodes)
-    logger.trace("Deployment nodes count for {}: {}", environment, count)
-    return count
-
-
 def getDeploymentStatus(logger: Logger, environment: str, artifact: str = None) -> str:
     """Get the deployment status for the provided environment and artifact
 
@@ -144,63 +127,6 @@ def getDeploymentReports(logger: Logger, environment: str, artifact: str = None,
         return []
 
 
-def getArtifactsLastStatus(logger: Logger, environment: str, artifacts: list) -> dict:
-    """Get the last deployment status for each artifact in the provided list
-
-    Args:
-        logger (Logger): Sherpa Logger Instance
-        environment (str): Environment name
-        artifacts (list): List of artifact names
-
-    Returns:
-        dict: Dictionary mapping artifact name to its last status (timestamp, status) or None if no reports
-    """
-    REPORT_ENV_DIR = f"/data/deployment_reports/{environment}/"
-    artifacts_status = {}
-    
-    if not os.path.exists(REPORT_ENV_DIR):
-        logger.debug("Deployment reports path '{}' not found or not configured.", REPORT_ENV_DIR)
-        for artifact in artifacts:
-            artifacts_status[artifact] = None
-        return artifacts_status
-    
-    try:
-        for artifact_name in artifacts:
-            artifact_dir = os.path.join(REPORT_ENV_DIR, artifact_name)
-            if not os.path.isdir(artifact_dir):
-                artifacts_status[artifact_name] = None
-                continue
-            
-            timestamps = []
-            for timestamp_dir in os.listdir(artifact_dir):
-                timestamp_path = os.path.join(artifact_dir, timestamp_dir)
-                log_file_path = os.path.join(timestamp_path, "deployment.log")
-                if os.path.isdir(timestamp_path) and os.path.isfile(log_file_path):
-                    timestamps.append(timestamp_dir)
-            
-            if not timestamps:
-                artifacts_status[artifact_name] = None
-                continue
-            
-            most_recent_timestamp = sorted(timestamps, reverse=True)[0]
-            log_file_path = os.path.join(REPORT_ENV_DIR, artifact_name, most_recent_timestamp, "deployment.log")
-            
-            try:
-                status = extractDeploymentStatusFromLog(logger, log_file_path)
-                artifacts_status[artifact_name] = (most_recent_timestamp, status)
-            except Exception as e:
-                logger.warn(f"Could not extract status from {log_file_path}: {e}")
-                artifacts_status[artifact_name] = None
-        
-        return artifacts_status
-    except Exception as e:
-        logger.error("Error getting artifacts last status: {}", e)
-        for artifact in artifacts:
-            if artifact not in artifacts_status:
-                artifacts_status[artifact] = None
-        return artifacts_status
-
-
 def extractDeploymentStatusFromLog(logger: Logger, log_file_path: str) -> str:
     """Extract deployment status from log file
 
@@ -259,10 +185,8 @@ def cleanupOldDeploymentReports(logger: Logger, environment: str, old_reports: l
 class DeploymentReports:
     getDeploymentArtifacts = staticmethod(getDeploymentArtifacts)
     getDeploymentNodes = staticmethod(getDeploymentNodes)
-    getDeploymentNodesCount = staticmethod(getDeploymentNodesCount)
     getDeploymentStatus = staticmethod(getDeploymentStatus)
     getDeploymentReports = staticmethod(getDeploymentReports)
-    getArtifactsLastStatus = staticmethod(getArtifactsLastStatus)
 
 deployment_reports = DeploymentReports()
 

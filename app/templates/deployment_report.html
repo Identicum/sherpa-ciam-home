@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+
+{% block title %} Deployment Report - {{ artifact }} - {{ timestamp }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Deployment Report - {{ artifact }} ({{ environment }})</h1>
+    <p><strong>Timestamp:</strong> {{ timestamp }}</p>
+    
+    <h3>Deployment Logs</h3>
+    <div class="card mb-3">
+        <div class="card-body {% if status == 'failed' %}bg-danger bg-opacity-10{% else %}bg-light{% endif %}">
+            <pre class="mb-0 {% if status == 'failed' %}text-danger{% endif %}" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.875rem; max-height: 500px; overflow-y: auto;">{{ logs }}</pre>
+        </div>
+    </div>
+    
+    {% if from_artifact == 'all' %}
+        <a href="{{ url_for('deployments.deployments', environment=environment) }}?artifact=all" class="btn btn-secondary">Back to Reports</a>
+    {% else %}
+        <a href="{{ url_for('deployments.deployments', environment=environment, artifact=from_artifact) }}" class="btn btn-secondary">Back to Reports</a>
+    {% endif %}
+</div>
+{% endblock %}

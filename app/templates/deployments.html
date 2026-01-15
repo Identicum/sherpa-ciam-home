@@ -1,0 +1,96 @@
+{% extends "index.html" %}
+
+{% block title %} Deployments for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Deployments - {{ environment }}</h1>
+    {% set artifacts = deployment_reports.getDeploymentArtifacts(logger=utils.logger, config=utils.config) %}
+    {% set selected_artifact = request.args.get('artifact', 'all') %}
+    {% set is_all = (selected_artifact == 'all' or not selected_artifact) %}
+    {% set deployment_nodes = deployment_reports.getDeploymentNodes(logger=utils.logger, environment=environment, config=utils.config) %}
+    {% set deployment_status = deployment_reports.getDeploymentStatus(logger=utils.logger, environment=environment, artifact=selected_artifact if not is_all else None) %}
+    {% set reports = [] %}
+    {% if is_all %}
+        {% set reports = deployment_reports.getDeploymentReports(logger=utils.logger, environment=environment, artifact=None, include_logs=False) %}
+    {% elif selected_artifact %}
+        {% set reports = deployment_reports.getDeploymentReports(logger=utils.logger, environment=environment, artifact=selected_artifact, include_logs=False) %}
+    {% endif %}
+
+    <div style="margin-bottom: 20px;">
+        <form action="/deployments/{{ environment }}/execute" method="post" style="display: inline-flex; align-items: center; gap: 10px;">
+            <label style="margin-right: 5px;">Artifacts:</label>
+            <select name="artifact" id="artifact-select" class="form-select" style="width: auto; display: inline-block;" onchange="if(this.value === 'all' || !this.value) { window.location.href='/deployments/{{ environment }}?artifact=all'; } else { window.location.href='/deployments/{{ environment }}?artifact=' + this.value; }">
+                <option value="all" {% if is_all %}selected{% endif %}>all</option>
+                {% for artifact in artifacts %}
+                    <option value="{{ artifact }}" {% if artifact == selected_artifact %}selected{% endif %}>{{ artifact }}</option>
+                {% endfor %}
+            </select>
+            <label style="margin-right: 5px; margin-left: 10px;">Coordinator:</label>
+            <select name="node" id="node-select" class="form-select" style="width: auto; display: inline-block;" required {% if is_all %}disabled{% endif %}>
+                <option value="">Select a node</option>
+                {% for node_index in range(1, deployment_nodes|length + 1) %}
+                    <option value="{{ node_index }}">Node {{ node_index }}</option>
+                {% endfor %}
+            </select>
+            {% if not is_all and deployment_status == 'available' %}
+                <button type="submit" name="submit" class="btn btn-primary">Deploy Artifact</button>
+            {% elif is_all %}
+                <button type="submit" name="submit" class="btn btn-primary" disabled>Select an artifact to deploy</button>
+            {% else %}
+                <button type="submit" name="submit" class="btn btn-primary" disabled>The environment is currently running deployment.</button>
+            {% endif %}
+        </form>
+    </div>
+
+    <h3>Deployment Reports</h3>
+    {% if reports and reports|length > 0 %}
+        <table class="admin-links-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    {% if is_all %}
+                        <th>Artifact</th>
+                    {% endif %}
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for timestamp, artifact_name, status in reports %}
+                <tr>
+                    {% set day = timestamp[6:8] %}
+                    {% set month = timestamp[4:6] %}
+                    {% set year = timestamp[2:4] %}
+                    {% set hour = timestamp[9:11]|int %}
+                    {% set minute = timestamp[11:13]|int %}
+                    {% if minute >= 60 %}
+                        {% set hour = hour + ((minute / 60)|int) %}
+                        {% set minute = minute % 60 %}
+                    {% endif %}
+                    {% if hour >= 24 %}
+                        {% set hour = hour % 24 %}
+                    {% endif %}
+                    {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
+                    {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
+                    <td><a href="/deployments/{{ environment }}/{{ artifact_name }}/{{ timestamp }}?from={{ selected_artifact }}">{{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}</a></td>
+                    {% if is_all %}
+                        <td>{{ artifact_name }}</td>
+                    {% endif %}
+                    <td>
+                        {% if status == 'success' %}
+                            <span class="badge bg-success">Success</span>
+                        {% elif status == 'failed' %}
+                            <span class="badge bg-danger">Failed</span>
+                        {% else %}
+                            <span class="badge bg-warning">{{ status|upper }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No deployment reports found{% if not is_all %} for this artifact{% endif %}.</p>
+    {% endif %}
+</div>
+{% endblock %}

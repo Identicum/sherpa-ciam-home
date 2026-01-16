@@ -3,9 +3,26 @@
 {% block title %} Deployment Report - {{ artifact }} - {{ timestamp }}{% endblock %}
 
 {% block content %}
+{% if deployment_status == 'running' or deployment_status == 'execute' %}
+<meta http-equiv="refresh" content="3">
+{% endif %}
 <div class="container">
     <h1>Deployment Report - {{ artifact }} ({{ environment }})</h1>
-    <p><strong>Timestamp:</strong> {{ timestamp }}</p>
+    {% set day = timestamp[6:8] %}
+    {% set month = timestamp[4:6] %}
+    {% set year = timestamp[2:4] %}
+    {% set hour = timestamp[9:11]|int %}
+    {% set minute = timestamp[11:13]|int %}
+    {% if minute >= 60 %}
+        {% set hour = hour + ((minute / 60)|int) %}
+        {% set minute = minute % 60 %}
+    {% endif %}
+    {% if hour >= 24 %}
+        {% set hour = hour % 24 %}
+    {% endif %}
+    {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
+    {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
+    <p><strong>Timestamp:</strong> {{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}</p>
     
     <h3>Deployment Logs</h3>
     <div class="card mb-3">
@@ -14,8 +31,8 @@
         </div>
     </div>
     
-    {% if from_artifact == 'all' %}
-        <a href="{{ url_for('deployments.deployments', environment=environment) }}?artifact=all" class="btn btn-secondary">Back to Reports</a>
+    {% if from_artifact == 'all' or not from_artifact %}
+        <a href="{{ url_for('deployments.deployments', environment=environment) }}" class="btn btn-secondary">Back to Reports</a>
     {% else %}
         <a href="{{ url_for('deployments.deployments', environment=environment, artifact=from_artifact) }}" class="btn btn-secondary">Back to Reports</a>
     {% endif %}

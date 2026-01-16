@@ -301,15 +301,6 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
         
         status = extractDeploymentStatusFromLog(utils.logger, log_file_path)
         
-        deploy_execute_path = f"/data/deployment_reports/{environment}/{artifact}/deploy.execute"
-        deploy_running_path = f"/data/deployment_reports/{environment}/{artifact}/deploy.running"
-        
-        deployment_status = 'available'
-        if os.path.exists(deploy_running_path):
-            deployment_status = 'running'
-        elif os.path.exists(deploy_execute_path):
-            deployment_status = 'execute'
-        
         return render_template(
             'deployment_report.html',
             utils=utils,
@@ -318,7 +309,6 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
             timestamp=timestamp,
             logs=logs,
             status=status,
-            deployment_status=deployment_status,
             from_artifact=from_artifact
         )
     except Exception as e:

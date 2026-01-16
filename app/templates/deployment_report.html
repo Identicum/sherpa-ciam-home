@@ -3,9 +3,6 @@
 {% block title %} Deployment Report - {{ artifact }} - {{ timestamp }}{% endblock %}
 
 {% block content %}
-{% if deployment_status == 'running' or deployment_status == 'execute' %}
-<meta http-equiv="refresh" content="3">
-{% endif %}
 <div class="container">
     <h1>Deployment Report - {{ artifact }} ({{ environment }})</h1>
     {% set day = timestamp[6:8] %}

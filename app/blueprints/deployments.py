@@ -147,15 +147,11 @@ def extractDeploymentStatusFromLog(logger: Logger, log_file_path: str) -> str:
     try:
         with open(log_file_path, 'r', encoding='utf-8') as f:
             log_content = f.read()
-        if 'logger.error' in log_content or ' - ERROR -' in log_content or ' ERROR ' in log_content:
-            return "failed"
-        elif 'logger.info' in log_content or ' - INFO -' in log_content or ' INFO ' in log_content:
-            return "success"
         log_lower = log_content.lower()
-        if any(keyword in log_lower for keyword in ['deployment completed successfully', 'finished', 'success']):
-            return "success"
-        elif any(keyword in log_lower for keyword in ['failed', 'error', 'exception', 'deployment failed']):
+        if 'logger.error' in log_content or ' - ERROR -' in log_content or ' ERROR ' in log_content or any(keyword in log_lower for keyword in ['failed', 'error', 'exception', 'deployment failed']):
             return "failed"
+        elif any(keyword in log_lower for keyword in ['deployment completed successfully', 'finished', 'success']):
+            return "success"
         else:
             return "unknown"
     except Exception as e:
@@ -291,9 +287,10 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
     
     log_file_path = f"/data/deployment_reports/{environment}/{artifact}/{timestamp}.log"
     
+    from_artifact = request.args.get('from', 'all')
+    
     if not os.path.exists(log_file_path):
         utils.logger.error("Deployment log not found: {}", log_file_path)
-        from_artifact = request.args.get('from', 'all')
         if from_artifact == 'all':
             return redirect(url_for('deployments.deployments', environment=environment))
         return redirect(url_for('deployments.deployments', environment=environment, artifact=from_artifact))
@@ -312,8 +309,6 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
             deployment_status = 'running'
         elif os.path.exists(deploy_execute_path):
             deployment_status = 'execute'
-        
-        from_artifact = request.args.get('from', 'all')
         
         return render_template(
             'deployment_report.html',

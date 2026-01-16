@@ -31,7 +31,7 @@
         </div>
     </div>
     
-    {% if from_artifact == 'all' or not from_artifact %}
+    {% if from_artifact == 'all' %}
         <a href="{{ url_for('deployments.deployments', environment=environment) }}" class="btn btn-secondary">Back to Reports</a>
     {% else %}
         <a href="{{ url_for('deployments.deployments', environment=environment, artifact=from_artifact) }}" class="btn btn-secondary">Back to Reports</a>

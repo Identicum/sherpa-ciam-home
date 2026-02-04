@@ -1,0 +1,146 @@
+{% extends "index.html" %}
+
+{% block title %} Deployments for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 30px;">Deployments - {{ environment }}{% if artifact %} - {{ artifact }}{% endif %}</h1>
+    {% set deployment_nodes = deployment_reports.getDeploymentNodes(logger=utils.logger, environment=environment, config=utils.config) %}
+    {% set deployment_status = deployment_reports.getDeploymentStatus(logger=utils.logger, environment=environment, artifact=artifact) %}
+    {% set is_all = (not artifact) %}
+    {% if is_all %}
+        {% set reports = deployment_reports.getDeploymentReports(logger=utils.logger, environment=environment, artifact=None, include_logs=False) %}
+    {% else %}
+        {% set reports = deployment_reports.getDeploymentReports(logger=utils.logger, environment=environment, artifact=artifact, include_logs=False) %}
+    {% endif %}
+
+    {% if artifact %}
+    <div style="margin-bottom: 30px;">
+        {% if deployment_status == 'available' %}
+            <form action="/deployments/{{ environment }}/execute" method="post" style="display: inline-flex; align-items: center; gap: 10px;">
+                <input type="hidden" name="artifact" value="{{ artifact }}">
+                <label style="margin-right: 5px;">Coordinator:</label>
+                <select name="node" id="node-select" class="form-select" style="width: auto; display: inline-block;" required>
+                    <option value="">Select a node</option>
+                    {% for node_index in range(1, deployment_nodes|length + 1) %}
+                        <option value="{{ node_index }}">Node {{ node_index }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" name="submit" class="btn btn-primary">Deploy Artifact</button>
+            </form>
+        {% elif deployment_status == 'execute' %}
+            <p>The deployment is currently scheduled for execution.</p>
+        {% elif deployment_status == 'running' %}
+            <p>The deployment is currently running.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <h3 style="margin-top: 20px;">Last Deployment Reports</h3>
+    {% if reports and reports|length > 0 %}
+        <table class="admin-links-table" style="table-layout: fixed; width: 100%;">
+            <thead>
+                <tr>
+                    {% if is_all %}
+                        <th style="width: 42%;">Timestamp</th>
+                        <th style="width: 42%;">Artifact</th>
+                        <th style="width: 16%;">Status</th>
+                    {% else %}
+                        <th style="width: 50%;">Timestamp</th>
+                        <th style="width: 50%;">Status</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for timestamp, artifact_name, status in reports %}
+                <tr>
+                    {% set day = timestamp[6:8] %}
+                    {% set month = timestamp[4:6] %}
+                    {% set year = timestamp[2:4] %}
+                    {% set hour = timestamp[9:11]|int %}
+                    {% set minute = timestamp[11:13]|int %}
+                    {% if minute >= 60 %}
+                        {% set hour = hour + ((minute / 60)|int) %}
+                        {% set minute = minute % 60 %}
+                    {% endif %}
+                    {% if hour >= 24 %}
+                        {% set hour = hour % 24 %}
+                    {% endif %}
+                    {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
+                    {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
+                    {% if is_all %}
+                        <td style="width: 42%;"><a href="/deployments/{{ environment }}/{{ artifact_name }}/{{ timestamp }}?from={% if is_all %}all{% else %}{{ artifact }}{% endif %}">{{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}</a></td>
+                        <td style="width: 42%;">{{ artifact_name }}</td>
+                        <td style="width: 16%;">
+                    {% else %}
+                        <td style="width: 50%;"><a href="/deployments/{{ environment }}/{{ artifact_name }}/{{ timestamp }}?from={% if is_all %}all{% else %}{{ artifact }}{% endif %}">{{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}</a></td>
+                        <td style="width: 50%;">
+                    {% endif %}
+                        {% if status == 'success' %}
+                            <span class="badge bg-success">Success</span>
+                        {% elif status == 'failed' %}
+                            <span class="badge bg-danger">Failed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No deployment reports found{% if not is_all %} for this artifact{% endif %}.</p>
+    {% endif %}
+
+    {% if is_all %}
+    <h3>Artifacts Status</h3>
+    {% set artifacts_status = deployment_reports.getArtifactsLastStatus(logger=utils.logger, environment=environment, config=utils.config) %}
+    {% if artifacts_status and artifacts_status|length > 0 %}
+        <table class="admin-links-table" style="table-layout: fixed; width: 100%;">
+            <thead>
+                <tr>
+                    <th style="width: 42%;">Artifact</th>
+                    <th style="width: 42%;">Last Deployment</th>
+                    <th style="width: 16%;">Last Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for artifact_name, timestamp, status in artifacts_status %}
+                <tr>
+                    <td style="width: 42%;"><a href="/deployments/{{ environment }}/{{ artifact_name }}">{{ artifact_name }}</a></td>
+                    <td style="width: 42%;">
+                        {% if timestamp %}
+                            {% set day = timestamp[6:8] %}
+                            {% set month = timestamp[4:6] %}
+                            {% set year = timestamp[2:4] %}
+                            {% set hour = timestamp[9:11]|int %}
+                            {% set minute = timestamp[11:13]|int %}
+                            {% if minute >= 60 %}
+                                {% set hour = hour + ((minute / 60)|int) %}
+                                {% set minute = minute % 60 %}
+                            {% endif %}
+                            {% if hour >= 24 %}
+                                {% set hour = hour % 24 %}
+                            {% endif %}
+                            {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
+                            {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
+                            {{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}
+                        {% else %}
+                            No deployments
+                        {% endif %}
+                    </td>
+                    <td style="width: 16%;">
+                        {% if status == 'success' %}
+                            <span class="badge bg-success">Success</span>
+                        {% elif status == 'failed' %}
+                            <span class="badge bg-danger">Failed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No artifacts found.</p>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

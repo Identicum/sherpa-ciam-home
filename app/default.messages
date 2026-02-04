@@ -1,6 +1,7 @@
 menu.clientcreation=Client creation
 menu.usersessions=User sessions
 menu.tests=Tests
+menu.deployments=Deployments
 
 clientcreation.title=Request Client
 clientcreation.integration_type=Integration type

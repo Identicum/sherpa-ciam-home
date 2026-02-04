@@ -57,9 +57,7 @@
                 "dev_sandbox",
                 "dev_staging"
             ],
-            "deployment_nodes": [
-                "10.202.50.112"
-            ]
+            "deployment_nodes": 1
         },
         "test": {
             "keycloak_url": "https://test-idp.identicum.com",
@@ -70,12 +68,7 @@
                 "test_sandbox",
                 "test_private_balancer"
             ],
-            "deployment_nodes": [
-                "10.202.48.128",
-                "10.202.48.129",
-                "10.202.48.203",
-                "10.202.48.204"
-            ]
+            "deployment_nodes": 4
         },
         "prod": {
             "keycloak_url": "https://idp.identicum.com",
@@ -86,18 +79,7 @@
                 "prod_sandbox",
                 "prod_private_balancer"
             ],
-            "deployment_nodes": [
-                "10.202.47.81",
-                "10.202.47.82",
-                "10.202.47.83",
-                "10.202.47.84",
-                "10.202.47.85",
-                "10.202.47.86",
-                "10.202.47.87",
-                "10.202.47.88",
-                "10.202.47.89",
-                "10.202.47.90"
-            ]
+            "deployment_nodes": 10
         }
     },
     "deployment_artifacts": [

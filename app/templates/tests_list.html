@@ -35,6 +35,7 @@
                     <th>Passed</th>
                     <th>Failed</th>
                     <th>Duration [secs]</th>
+                    <th>Download</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,6 +60,11 @@
                     <td>{{passed}}</td>
                     <td>{{failed}}</td>
                     <td>{{duration}}</td>
+                    <td class="text-center">
+                        <a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary text-white" style="text-decoration: none;">
+                            Download JSON Report
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -9,11 +9,16 @@
     {% if error_message %}
         <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
     {% elif json_report %}
-        {% if json_report.data and json_report.data[0].attributes.created_at %}
-            <p><strong>Report generated on:</strong> {{ json_report.data[0].attributes.created_at }}</p>
-        {% else %}
-            <p><em>Report data missing.</em></p>
-        {% endif %}
+        <div class="mb-3">
+            {% if json_report.data and json_report.data[0].attributes.created_at %}
+                <p><strong>Report generated on:</strong> {{ json_report.data[0].attributes.created_at }}</p>
+            {% else %}
+                <p><em>Report data missing.</em></p>
+            {% endif %}
+            <a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary">
+                Download JSON Report
+            </a>
+        </div>
         <hr>
         
         {% if json_report.included %}
@@ -21,8 +26,8 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width: 5%;"></th> {# For expand/collapse icon #}
-                        <th style="width: 15%;">ID</th>
-                        <th style="width: 30%;">Name</th>
+                        <th style="width: 3%;">ID</th>
+                        <th style="width: 47%;">Name</th>
                         <th style="width: 15%;">Outcome</th>
                         <th style="width: 15%;">Duration</th>
                     </tr>

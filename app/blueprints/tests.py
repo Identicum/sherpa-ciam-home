@@ -129,6 +129,35 @@ def tests_report_image(environment: str, timestamp: str, test_media_dir: str, fi
     return send_from_directory(image_dir, filename, mimetype='image/png')
 
 
+@tests_bp.route('/tests/<environment>/report/<timestamp>/download', methods=["GET"])
+@utils.require_oidc_login
+def tests_report_download(environment: str, timestamp: str):
+    """
+    Downloads test report JSON file with relationships removed.
+
+    Args:
+        environment (str): Environment Name
+        timestamp (str): Test Execution Timestamp / Report File's Name
+
+    Returns:
+        Response: JSON report file as download
+    """
+    report_path = f"/data/idp_testing_reports/{environment}/{timestamp}/report.json"
+    with open(report_path, 'r', encoding='utf-8') as f:
+        json_report = json.load(f)
+
+    if "data" in json_report:
+        for item in json_report["data"]:
+            item.pop("relationships", None)
+
+    json_string = json.dumps(json_report, indent=2, ensure_ascii=False)
+    return Response(
+        json_string,
+        mimetype='application/json',
+        headers={'Content-Disposition': f'attachment; filename=report_{timestamp}.json'}
+    )
+
+
 @tests_bp.route('/tests/<environment>/metrics', methods=["GET"])
 def metrics(environment: str):
     """

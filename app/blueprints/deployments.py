@@ -142,21 +142,16 @@ def extractDeploymentStatusFromLog(logger: Logger, log_file_path: str) -> str:
         log_file_path (str): Path to log file (e.g., /data/deployment_reports/{environment}/{artifact}/{timestamp}.log)
 
     Returns:
-        str: success / failed / unknown
+        str: success / failed
     """
-    try:
-        with open(log_file_path, 'r', encoding='utf-8') as f:
-            log_content = f.read()
-        log_lower = log_content.lower()
-        if 'logger.error' in log_content or ' - ERROR -' in log_content or ' ERROR ' in log_content or any(keyword in log_lower for keyword in ['failed', 'error', 'exception', 'deployment failed']):
-            return "failed"
-        elif any(keyword in log_lower for keyword in ['deployment completed successfully', 'finished', 'success']):
-            return "success"
-        else:
-            return "unknown"
-    except Exception as e:
-        logger.error("Error reading deployment log {}: {}", log_file_path, e)
-        return "unknown"
+    with open(log_file_path, 'r', encoding='utf-8') as f:
+        log_content = f.read()
+    if '|| ERROR ||' in log_content:
+        logger.error("Deployment failed: {}", log_file_path)
+        return "failed"
+    else:
+        logger.info("Deployment completed successfully: {}", log_file_path)
+        return "success"
 
 
 def cleanupOldDeploymentReports(logger: Logger, environment: str, old_reports: list):

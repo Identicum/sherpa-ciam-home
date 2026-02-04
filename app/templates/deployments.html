@@ -22,8 +22,8 @@
                 <label style="margin-right: 5px;">Coordinator:</label>
                 <select name="node" id="node-select" class="form-select" style="width: auto; display: inline-block;" required>
                     <option value="">Select a node</option>
-                    {% for node_index in range(1, deployment_nodes|length + 1) %}
-                        <option value="{{ node_index }}">Node {{ node_index }}</option>
+                    {% for node in deployment_nodes %}
+                        <option value="{{ node }}">Node {{ node }}</option>
                     {% endfor %}
                 </select>
                 <button type="submit" name="submit" class="btn btn-primary">Deploy Artifact</button>

@@ -22,7 +22,7 @@ def getDeploymentArtifacts(logger: Logger, config: dict) -> list:
 
 
 def getDeploymentNodes(logger: Logger, environment: str, config: dict) -> list:
-    """Returns the list of deployment nodes for the provided environment
+    """Returns the list of deployment node numbers (1, 2, ..., n) for the given environment
 
     Args:
         logger (Logger): Sherpa Logger Instance
@@ -30,10 +30,11 @@ def getDeploymentNodes(logger: Logger, environment: str, config: dict) -> list:
         config (dict): JSON configuration
 
     Returns:
-        list: List of deployment node IPs
+        list: List of deployment node numbers (1, 2, ..., n)
     """
     env_config = config.get("environments", {}).get(environment, {})
-    nodes = env_config.get("deployment_nodes", [])
+    count = env_config.get("deployment_nodes", 1)
+    nodes = list(range(1, count + 1))
     logger.trace("Deployment nodes for {}: {}", environment, nodes)
     return nodes
 

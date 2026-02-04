@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, url_for, request
+from flask import Blueprint, redirect, render_template, url_for, request, Response
 import os
 from sherpa.utils.basics import Logger
 import utils
@@ -314,6 +314,31 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
     except Exception as e:
         utils.logger.error("Error reading deployment log {}: {}", log_file_path, e)
         return redirect(url_for('deployments.deployments', environment=environment, artifact=artifact))
+
+
+@deployments_bp.route('/deployments/<environment>/<artifact>/<timestamp>/download', methods=["GET"])
+@utils.require_oidc_login
+def deployment_log_download(environment: str, artifact: str, timestamp: str):
+    """
+    Download deployment log file (.log).
+
+    Args:
+        environment (str): Environment name
+        artifact (str): Artifact name
+        timestamp (str): Deployment timestamp
+
+    Returns:
+        Response: Log file as attachment
+    """
+    log_file_path = f"/data/deployment_reports/{environment}/{artifact}/{timestamp}.log"
+    with open(log_file_path, 'r', encoding='utf-8') as f:
+        log_content = f.read()
+    filename = f"deployment_{artifact}_{timestamp}.log"
+    return Response(
+        log_content,
+        mimetype='text/plain',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
 
 
 @deployments_bp.route('/deployments/<environment>/execute', methods=["POST"])

@@ -35,16 +35,36 @@
                     <th>Passed</th>
                     <th>Failed</th>
                     <th>Duration [secs]</th>
+                    <th>Download</th>
                 </tr>
             </thead>
             <tbody>
                 {% for timestamp, exec_option, passed, failed, num_tests, duration in reports %}
                 <tr>
-                    <td><a href="/tests/{{ environment }}/report/{{ timestamp }}" target=”_blank”>{{ timestamp }}</a></td>
+                    {% set day = timestamp[6:8] %}
+                    {% set month = timestamp[4:6] %}
+                    {% set year = timestamp[2:4] %}
+                    {% set hour = timestamp[9:11]|int %}
+                    {% set minute = timestamp[11:13]|int %}
+                    {% if minute >= 60 %}
+                        {% set hour = hour + ((minute / 60)|int) %}
+                        {% set minute = minute % 60 %}
+                    {% endif %}
+                    {% if hour >= 24 %}
+                        {% set hour = hour % 24 %}
+                    {% endif %}
+                    {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
+                    {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
+                    <td><a href="/tests/{{ environment }}/report/{{ timestamp }}" target="_blank">{{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}</a></td>
                     <td>{{exec_option}}</span></td>
                     <td>{{passed}}</td>
                     <td>{{failed}}</td>
                     <td>{{duration}}</td>
+                    <td class="text-center">
+                        <a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary text-white" style="text-decoration: none;">
+                            Download JSON Report
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

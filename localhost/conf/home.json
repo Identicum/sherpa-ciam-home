@@ -56,7 +56,8 @@
                 "dev",
                 "dev_sandbox",
                 "dev_staging"
-            ]
+            ],
+            "deployment_nodes": 1
         },
         "test": {
             "keycloak_url": "https://test-idp.identicum.com",
@@ -66,7 +67,8 @@
                 "test",
                 "test_sandbox",
                 "test_private_balancer"
-            ]
+            ],
+            "deployment_nodes": 4
         },
         "prod": {
             "keycloak_url": "https://idp.identicum.com",
@@ -76,7 +78,18 @@
                 "prod",
                 "prod_sandbox",
                 "prod_private_balancer"
-            ]
+            ],
+            "deployment_nodes": 10
         }
-    }
+    },
+    "deployment_artifacts": [
+        "sherpa-themes",
+        "sherpa-authentication",
+        "sherpa-repoprovider",
+        "sherpa-events",
+        "sherpa-registration",
+        "sherpa-password",
+        "sherpa-resetcreds",
+        "sherpa-utils"
+    ]
 }

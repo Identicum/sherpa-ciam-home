@@ -696,7 +696,7 @@ def getTestReports(logger: Logger, environment: str):
 
 
 def getTestFailedImages(logger: Logger, environment: str, timestamp: str, test_media_dir: str) -> list:
-    """Obtiene la lista de imágenes test-failed-*.png de un directorio de prueba
+    """Gets the list of .png images from a test directory
     
     Args:
         logger (Logger): Logger instance
@@ -720,21 +720,7 @@ def getTestFailedImages(logger: Logger, environment: str, timestamp: str, test_m
         return []
     
     try:
-        images = []
-        files_in_dir = test_media_path.iterdir()
-        file_list = list(files_in_dir)
-        logger.debug("Files in directory '{}': {}", test_media_path, [f.name for f in file_list])
-        
-        for file_path in file_list:
-            filename = file_path.name
-            if filename.startswith("test-failed-") and filename.endswith(".png"):
-                images.append(filename)
-                logger.debug("Found image: '{}'", filename)
-        
-        images.sort(key=lambda x: int(x.replace("test-failed-", "").replace(".png", "")) if x.replace("test-failed-", "").replace(".png", "").isdigit() else 0)
-        
-        logger.info("Found {} failed images in '{}': {}", len(images), test_media_path, images)
-        return images
+        return sorted([file.name for file in test_media_path.iterdir() if file.is_file() and file.suffix.lower() == ".png"])
     except Exception as e:
         logger.error("Error listing test failed images in '{}': {}", test_media_path, e)
         return []
@@ -758,6 +744,18 @@ def checkTestsScheduled(logger: Logger, environment: str) -> str:
         return "running"
     logger.trace("Environment is available for test execution - No PID file found.")
     return "available"
+
+
+def getReportTimestamp(ts_str):
+    """Convert a timestamp string to Unix milliseconds
+
+    Args:
+        ts_str (str): Timestamp string in format YYYYMMDD_HHMMSS
+    Returns:
+        int: Unix timestamp in milliseconds
+    """
+    dt = datetime.strptime(ts_str, "%Y%m%d_%H%M%S")
+    return int(dt.timestamp() * 1000)
 
 
 # Create a single logger instance

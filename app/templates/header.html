@@ -66,6 +66,23 @@
                 </div>
             </li>
             <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.deployments'] }}</a>
+                <div class="dropdown-content">
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
+                        {% if environment != 'local' %}
+                            <div class="submenu-parent">
+                                <a href="/deployments/{{environment}}">{{environment}} &raquo;</a>
+                                <div class="dropdown-submenu">
+                                    {% for artifact in utils.config.get("deployment_artifacts", []) %}
+                                        <a href="/deployments/{{environment}}/{{artifact}}">{{artifact}}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="dropdown">
                 <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.usersessions'] }}</a>
                 <div class="dropdown-content">
                     {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}

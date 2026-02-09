@@ -112,6 +112,17 @@
                 </td>
             </tr>
             <tr class="table-group-divider"><th colspan="3"></th></tr>
+            <tr><th>Theme</th><th>Realm</th><th>Client</th></tr>
+            <tr><th>Login Theme</th><td>{{ normalizedClient.realm_login_theme }}</td><td><strong>{{ normalizedClient.client_login_theme }}</strong></td></tr>
+            <tr><th>Account Theme</th><td>{{ normalizedClient.realm_account_theme }}</td><td><strong>{{ normalizedClient.client_account_theme }}</strong></td></tr>
+            <tr><th>Email Theme</th><td>{{ normalizedClient.realm_email_theme }}</td><td><strong>{{ normalizedClient.client_email_theme }}</strong></td></tr>
+            <tr class="table-group-divider"><th colspan="3"></th></tr>
+            <tr><th>Authentication Flow</th><th>Realm</th><th>Client</th></tr>
+            <tr><th>Browser Flow</th><td>{{ normalizedClient.realm_browser_flow }}</td><td><strong>{{ normalizedClient.client_browser_flow }}</strong></td></tr>
+            <tr><th>Direct Grant Flow</th><td>{{ normalizedClient.realm_direct_grant_flow }}</td><td><strong>{{ normalizedClient.client_direct_grant_flow }}</strong></td></tr>
+            <tr><th>Registration Flow</th><td>{{ normalizedClient.realm_registration_flow }}</td><td><strong>{{ normalizedClient.client_registration_flow }}</strong></td></tr>
+            <tr><th>Reset Credentials</th><td>{{ normalizedClient.realm_reset_credentials_flow }}</td><td><strong>{{ normalizedClient.client_reset_credentials_flow }}</strong></td></tr>
+            <tr class="table-group-divider"><th colspan="3"></th></tr>
             <tr><th></th><th>Realm</th><th>Client</th></tr>
             <tr><th>Access Token Lifespan</th><td>{{normalizedClient.realm_access_token_lifespan}}</td><td><strong>{{normalizedClient.access_token_lifespan}}</strong></td></tr>
             <tr><th>Client Session Idle</th><td>{{normalizedClient.realm_client_session_idle}}</td><td><strong>{{normalizedClient.client_session_idle}}</strong></td></tr>

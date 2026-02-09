@@ -432,6 +432,32 @@ def getNormalizedClient(logger, environment: str, realmName: str, client_id: str
             if client["attributes"] and client["attributes"].get("saml_name_id_format"):
                 response["saml_nameid_format"] = client["attributes"]["saml_name_id_format"]
 
+        # Theme (Realm vs Client, inherit when client has no override)
+        response["realm_login_theme"] = realm.get("loginTheme") or ""
+        response["realm_account_theme"] = realm.get("accountTheme") or ""
+        response["realm_email_theme"] = realm.get("emailTheme") or ""
+        response["client_login_theme"] = client.get("loginTheme") or "(inherit)"
+        response["client_account_theme"] = client.get("accountTheme") or "(inherit)"
+        response["client_email_theme"] = client.get("emailTheme") or "(inherit)"
+
+        # Authentication Flow (Realm vs Client; resolve flow ID to alias for display)
+        flow_id_to_alias = {}
+        try:
+            for flow in kcAdmin.get_authentication_flows():
+                if flow.get("id") and flow.get("alias"):
+                    flow_id_to_alias[flow["id"]] = flow["alias"]
+        except Exception as e:
+            logger.trace("Could not resolve flow aliases: {}", e)
+        overrides = client.get("authenticationFlowBindingOverrides") or {}
+        response["realm_browser_flow"] = flow_id_to_alias.get(realm.get("browserFlow"), realm.get("browserFlow")) or ""
+        response["realm_direct_grant_flow"] = flow_id_to_alias.get(realm.get("directGrantFlow"), realm.get("directGrantFlow")) or ""
+        response["realm_registration_flow"] = flow_id_to_alias.get(realm.get("registrationFlow"), realm.get("registrationFlow")) or ""
+        response["realm_reset_credentials_flow"] = flow_id_to_alias.get(realm.get("resetCredentialsFlow"), realm.get("resetCredentialsFlow")) or ""
+        response["client_browser_flow"] = flow_id_to_alias.get(overrides.get("browser"), overrides.get("browser")) or "(inherit)"
+        response["client_direct_grant_flow"] = flow_id_to_alias.get(overrides.get("direct_grant"), overrides.get("direct_grant")) or "(inherit)"
+        response["client_registration_flow"] = flow_id_to_alias.get(overrides.get("registration"), overrides.get("registration")) or "(inherit)"
+        response["client_reset_credentials_flow"] = flow_id_to_alias.get(overrides.get("reset_credentials"), overrides.get("reset_credentials")) or "(inherit)"
+
         # All Clients' Attributes
         response["root_url"] = client.get("rootUrl", "")
         response["admin_url"] = client.get("adminUrl", "")

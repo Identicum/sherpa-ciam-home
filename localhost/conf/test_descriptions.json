@@ -1,0 +1,4 @@
+{
+  "tests/test_simple.py::TestSimple::test_simple_success[chromium]": "El usuario navega a la página principal de Google. Se valida que el título de la página sea 'Google'. Se espera que la carga sea correcta y la aserción pase.",
+  "tests/test_simple.py::TestSimple::test_simple_failure[chromium]": "El usuario navega a la página principal de Google. Se intenta validar un título incorrecto ('Gooogle'). Se espera que el test falle mostrando el error de aserción."
+}

@@ -97,6 +97,9 @@ def tests_report(environment: str, timestamp: str):
                 else:
                     utils.logger.debug("Test object does not have test_media_dir in metadata (test: {}, outcome: {})", 
                                test_attributes.get("name", "unknown"), test_outcome)
+
+        # Enrich each test with description from config mapping (or keep from report if present)
+        utils.enrichTestsWithDescriptions(utils.logger, json_report)
     except Exception as e:
         error_message = e
 
@@ -149,6 +152,9 @@ def tests_report_download(environment: str, timestamp: str):
     if "data" in json_report:
         for item in json_report["data"]:
             item.pop("relationships", None)
+
+    # Include description for each test in downloaded JSON
+    utils.enrichTestsWithDescriptions(utils.logger, json_report)
 
     json_string = json.dumps(json_report, indent=2, ensure_ascii=False)
     return Response(

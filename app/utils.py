@@ -758,6 +758,28 @@ def getReportTimestamp(ts_str):
     return int(dt.timestamp() * 1000)
 
 
+def enrichTestsWithDescriptions(logger: Logger, json_report: dict) -> None:
+    """
+    Load descriptions from /conf/test_descriptions.json and set attributes.description
+    on each test in json_report["included"].
+    """
+    path = "/conf/test_descriptions.json"
+    with open(path, "r", encoding="utf-8") as descriptions_file:
+        descriptions_map = json.load(descriptions_file)
+    logger.debug("Loaded {} description key(s) from {}", len(descriptions_map), path)
+
+    included = json_report["included"]
+    count = 0
+    for test_object in included:
+        attrs = test_object["attributes"]
+        key = attrs["name"]
+        if key in descriptions_map:
+            attrs["description"] = descriptions_map[key]
+            count += 1
+    if count:
+        logger.debug("Enriched {} test(s) with description.", count)
+
+
 # Create a single logger instance
 logger = Logger(
     "sherpa-ciam-home", 

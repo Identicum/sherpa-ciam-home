@@ -143,7 +143,7 @@ def _idp_logout(refresh_token: str) -> None:
         if 'Session not active' in error_str or ('200' in error_str and 'Logging out' in error_str):
             utils.logger.debug("IdP session was already inactive (expected when session expires server-side).")
         else:
-            utils.logger.warning("Failed to revoke IdP session: {}", e)
+            utils.logger.warn("Failed to revoke IdP session: {}", e)
 
 def _ensure_valid_token() -> bool:
     """

@@ -143,37 +143,20 @@ def _idp_logout(refresh_token: str) -> None:
         else:
             utils.logger.warning("Failed to revoke IdP session: {}", e)
 
-
-def _logout_and_redirect():
-    """
-    Revoke the IdP session if possible, clear the local session, and redirect to /login.
-    Called when token renewal fails or the refresh token is expired.
-    """
-    refresh_token = _get_refresh_token()
-    if refresh_token:
-        _idp_logout(refresh_token)
-    session.clear()
-    utils.logger.debug("Session cleared. Redirecting to /login.")
-    return redirect('/login')
-
-def _ensure_valid_token():
+def _ensure_valid_token() -> bool:
     """
     Verify the session token and renew it silently if expired.
 
     Returns:
-      True            — a valid access token is available.
-      None            — no session exists; caller should redirect to /login.
-      redirect(...)   — renewal failed; IdP session revoked and local session cleared.
+      True  — a valid access token is available.
+      False — no session exists or renewal failed.
     """
     if not session.get('token'):
-        return None
+        return False
     if not _is_access_token_expired():
         return True
     utils.logger.debug("Access token expired. Attempting renewal.")
-    if _do_refresh():
-        return True
-    utils.logger.debug("Token renewal failed. Logging out.")
-    return _logout_and_redirect()
+    return _do_refresh()
 
 
 # ---------- Userinfo ----------
@@ -247,9 +230,11 @@ def check_session():
     if not session.get('token'):
         return None
 
+    refresh_token = _get_refresh_token()
     result = _ensure_valid_token()
     if result is not True:
-        _idp_logout(_get_refresh_token())
+        if refresh_token:
+            _idp_logout(refresh_token)
         session.clear()
 
 # ---------- Routes ----------

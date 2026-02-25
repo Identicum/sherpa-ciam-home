@@ -25,8 +25,10 @@ oauth.register(
     name='oidc',
     client_id=os.environ.get('OIDC_CLIENT_ID'),
     client_secret=os.environ.get('OIDC_CLIENT_SECRET'),
-    server_metadata_url=discovery_endpoint,
     client_kwargs={'scope': 'openid email profile'},
+    authorize_url=discovery_document['authorization_endpoint'],
+    access_token_url=discovery_document['token_endpoint'],
+    jwks_uri=discovery_document['jwks_uri'],
 )
 
 

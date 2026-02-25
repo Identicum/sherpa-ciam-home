@@ -25,7 +25,7 @@ def clientcreation():
         Template: Rendered HTML page with Request Client form
     """
     data = request.form.to_dict()
-    logger.debug(f"Received data: {data}")
+    utils.logger.debug(f"Received data: {data}")
 
     return render_template(
         'clientcreation_feedback.html',

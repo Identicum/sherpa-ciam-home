@@ -137,7 +137,12 @@ def _idp_logout(refresh_token: str) -> None:
         ).logout(refresh_token=refresh_token)
         utils.logger.debug("IdP session revoked.")
     except Exception as e:
-        utils.logger.debug("Failed to revoke IdP session (non-fatal): {}", e)
+        error_str = str(e)
+        if 'Session not active' in error_str or ('200' in error_str and 'Logging out' in error_str):
+            utils.logger.debug("IdP session was already inactive (expected when session expires server-side).")
+        else:
+            utils.logger.warning("Failed to revoke IdP session: {}", e)
+
 
 def _logout_and_redirect():
     """
@@ -214,11 +219,8 @@ def make_require_oidc_login():
     def require_oidc_login(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            result = _ensure_valid_token()
-            if result is None:
+            if not session.get('token'):
                 return redirect('/login')
-            if result is not True:
-                return result
             store_username_in_session()
             return f(*args, **kwargs)
         return decorated_function
@@ -231,6 +233,24 @@ MESSAGES = utils.load_messages()
 @app.context_processor
 def inject_messages():
     return dict(messages=MESSAGES)
+
+# ---------- Middlewares ----------
+@app.before_request
+def check_session():
+    """
+    If the user has an active session but the token cannot be renewed,
+    clear the session so they return to an unauthenticated state.
+    Does not redirect, allowing access to public routes.
+    """
+    if request.endpoint == 'static':
+        return None
+    if not session.get('token'):
+        return None
+
+    result = _ensure_valid_token()
+    if result is not True:
+        _idp_logout(_get_refresh_token())
+        session.clear()
 
 # ---------- Routes ----------
 

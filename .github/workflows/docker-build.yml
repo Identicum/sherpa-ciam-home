@@ -1,0 +1,19 @@
+name: docker-build
+  
+on:
+  push:
+    branches:
+      - main
+    paths:
+    - 'app/**'
+    - 'Dockerfile'
+    - 'requirements.txt'
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    uses: Identicum/github-actions/.github/workflows/docker-build-autotag.yml@main
+    with:
+      image_name: ${{ github.event.repository.name }}
+      context: .
+    secrets: inherit # This passes GITHUB_TOKEN so it can push to GHCR

@@ -805,6 +805,17 @@ def enrichTestsWithDescriptions(logger: Logger, json_report: dict) -> None:
     if count:
         logger.debug("Enriched {} test(s) with description.", count)
 
+def build_role(environment: str, module: str) -> str:
+    """Build a role name from an environment and module name.
+    
+    Args:
+        environment (str): Environment name (e.g. 'local', 'dev', 'prod')
+        module (str): Module/blueprint name (e.g. 'deployments', 'clientinfo')
+
+    Returns:
+        str: Role name in the format '{environment}_{module}'
+    """
+    return f"{environment}_{module}"
 
 # Create a single logger instance
 logger = Logger(

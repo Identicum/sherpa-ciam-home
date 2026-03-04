@@ -7,6 +7,7 @@ import time
 import requests
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakOpenID
 import utils
+import jwt
 
 app = Flask(__name__)
 
@@ -19,6 +20,7 @@ discovery_document = response.json()
 app.config.update({
     'SECRET_KEY': os.environ.get('SECRET_KEY', 'default-secret-key-change-me'),
 })
+ROLES_CLAIM = os.environ.get('OIDC_ROLES_CLAIM', 'sherpa_ciam_home_roles')
 
 oauth = OAuth(app)
 oauth.register(
@@ -160,6 +162,23 @@ def _ensure_valid_token() -> bool:
     utils.logger.debug("Access token expired. Attempting renewal.")
     return _do_refresh()
 
+def _decode_access_token() -> dict:
+    """Decode the access token JWT payload without signature verification."""
+    access_token = _get_access_token()
+    if not access_token:
+        return {}
+    try:
+        return jwt.decode(
+            access_token,
+            options={"verify_signature": False},
+        )
+    except Exception as e:
+        utils.logger.debug("Failed to decode access token: {}", e)
+        return {}
+
+def _get_user_roles() -> list:
+    """Return the list of roles from the access token JWT claim defined by ROLES_CLAIM."""
+    return _decode_access_token().get(ROLES_CLAIM, [])
 
 # ---------- Userinfo ----------
 
@@ -211,6 +230,16 @@ def make_require_oidc_login():
         return decorated_function
     return require_oidc_login
 
+def make_check_role():
+    """
+    Return a function that checks whether the current user has a given role.
+    Assigned to utils.check_role so blueprints can use it via utils.check_role(role).
+    """
+    def check_role(role: str) -> bool:
+        return role in _get_user_roles()
+    return check_role
+
+utils.check_role = make_check_role()
 utils.require_oidc_login = make_require_oidc_login()
 
 MESSAGES = utils.load_messages()

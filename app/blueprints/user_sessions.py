@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 import json
 import uuid
+# from app.main import UNRESTRICTED_ENVIRONMENTS
 import utils
 
 MESSAGES = utils.load_messages()
@@ -12,6 +13,8 @@ user_sessions_bp = Blueprint('user-sessions', __name__)
 def check_tests_role():
     """Enforce role-based access for all deployments routes."""
     environment = request.view_args.get('environment')
+    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+        return None
     if environment and not utils.check_role(utils.build_role(environment, 'user-sessions')):
         return render_template('403.html', utils=utils), 403
 

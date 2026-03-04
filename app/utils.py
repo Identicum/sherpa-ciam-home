@@ -824,6 +824,10 @@ logger = Logger(
     "/tmp/python-flask.log"
 )
 
+UNRESTRICTED_ENVIRONMENTS = set(
+    os.environ.get('UNRESTRICTED_ENVIRONMENTS', 'local').split(',')
+)
+
 # Create a single properties instance
 properties = Properties("/local.properties", "/local.properties")
 

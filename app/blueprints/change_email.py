@@ -8,24 +8,6 @@ import utils
 change_email_bp = Blueprint("change-email", __name__)
 
 
-def get_iamcrud_token() -> str:
-    """Get access token for IAM CRUD using client credentials flow. Raises on failure."""
-    token_url = os.environ.get("IAMCRUD_TOKEN_URL")
-    client_id = os.environ.get("IAM_CRUD_CONSULTA_CLIENT_ID")
-    client_secret = os.environ.get("IAM_CRUD_CONSULTA_CLIENT_SECRET")
-
-    r = requests.post(
-        token_url,
-        data={"grant_type": "client_credentials"},
-        auth=(client_id, client_secret)
-    )
-    r.raise_for_status()
-    token = r.json().get("access_token")
-    if not token:
-        raise ValueError("No access_token in IAM CRUD token response")
-    return token
-
-
 def search_user(base_url: str, realm: str, access_token: str, target_user: str) -> str:
     """Resolve target_user (username, UUID or email) to user id via IAM CRUD. Raises if not found."""
     headers = {"X-Realm": realm, "Authorization": f"Bearer {access_token}"}
@@ -73,7 +55,7 @@ def change_email_realms(environment: str):
 @change_email_bp.route("/change-email/<environment>/<realm>", methods=["GET"])
 @utils.require_oidc_login
 def change_email_form(environment: str, realm: str):
-    """Show email change form (realm claro)."""
+    """Show email change form for the given realm."""
     return render_template(
         "change_email_form.html",
         utils=utils,
@@ -90,23 +72,27 @@ def change_email_submit(environment: str, realm: str):
     new_email = (request.form.get("new_email") or "").strip()
     if not target_user or not new_email:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, success=False, message="Faltan usuario o nuevo email.")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="Faltan usuario o nuevo email.")
         )
     base_url = (os.environ.get("IAMCRUD_API_BASE_URL") or "").rstrip("/")
     if not base_url:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, success=False, message="IAM CRUD API no configurada (IAMCRUD_API_BASE_URL / IAM_CRUD_API_URL).")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="IAM CRUD API no configurada (IAMCRUD_API_BASE_URL).")
+        )
+    access_token = utils.get_valid_access_token()
+    if not access_token:
+        return redirect(
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="No se pudo obtener el token de sesión. Vuelva a iniciar sesión.")
         )
     try:
-        access_token = get_iamcrud_token()
         user_id = search_user(base_url, realm, access_token, target_user)
         change_email(base_url, realm, access_token, user_id, new_email)
     except (ValueError, requests.exceptions.RequestException) as e:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, success=False, message=str(e))
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=str(e))
         )
     return redirect(
-        url_for("change-email.change_email_result", environment=environment, success=True, message="Email actualizado correctamente.")
+        url_for("change-email.change_email_result", environment=environment, realm=realm, success=True, message="Email actualizado correctamente.")
     )
 
 
@@ -118,10 +104,12 @@ def change_email_result(environment: str):
     message = request.args.get("message", "")
     raw_code = request.args.get("status_code")
     status_code = int(raw_code) if raw_code and raw_code.isdigit() else None
+    realm = request.args.get("realm")
     return render_template(
         "change_email_result.html",
         utils=utils,
         environment=environment,
+        realm=realm,
         success=success,
         message=message,
         status_code=status_code,

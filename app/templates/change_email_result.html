@@ -11,7 +11,11 @@
         {% else %}
             <div class="alert alert-info" role="alert">{{ message }}</div>
         {% endif %}
-        <p><a href="{{ url_for('change-email.change_email_form', environment=environment, realm='claro') }}">{{ messages['changeemail.again'] }}</a></p>
+        {% if realm %}
+        <p><a href="{{ url_for('change-email.change_email_form', environment=environment, realm=realm) }}">{{ messages['changeemail.again'] }}</a></p>
+        {% else %}
+        <p><a href="{{ url_for('change-email.change_email_realms', environment=environment) }}">{{ messages['changeemail.again'] }}</a></p>
+        {% endif %}
         <p><a href="{{ url_for('index') }}">{{ messages['back_home'] }}</a></p>
     </div>
 {% endblock %}

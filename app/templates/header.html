@@ -97,6 +97,14 @@
                     {% endfor %}
                 </div>
             </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.changeemail'] }}</a>
+                <div class="dropdown-content">
+                    {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
+                        <a href="/change-email/{{environment}}">{{environment}}</a>
+                    {% endfor %}
+                </div>
+            </li>
             {% endif %}
         </ul>
         <ul class="user-menu-right">

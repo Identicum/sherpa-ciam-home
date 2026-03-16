@@ -101,7 +101,14 @@
                 <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.changeemail'] }}</a>
                 <div class="dropdown-content">
                     {% for environment in utils.getEnvironments(logger=utils.logger, config=utils.config) %}
-                        <a href="/change-email/{{environment}}">{{environment}}</a>
+                        <div class="submenu-parent">
+                            <a href="/change-email/{{environment}}">{{environment}} &raquo;</a>
+                            <div class="dropdown-submenu">
+                                {% for realm in utils.getRealms(logger=utils.logger, environment=environment, config=utils.config) %}
+                                    <a href="/change-email/{{environment}}/{{realm}}">{{realm}}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
             </li>

@@ -1,6 +1,4 @@
-"""
-Change Email: consumes IAM CRUD API to update user email. Realm fijo: claro.
-"""
+"""Change Email: consumes IAM CRUD API to update user email."""
 from flask import Blueprint, redirect, render_template, request, url_for
 import os
 import requests
@@ -59,6 +57,17 @@ def change_email(base_url: str, realm: str, access_token: str, user_id: str, new
         except Exception:
             msg = r.text or f"HTTP {r.status_code}"
         raise ValueError(msg or f"HTTP {r.status_code}")
+
+
+@change_email_bp.route("/change-email/<environment>", methods=["GET"])
+@utils.require_oidc_login
+def change_email_realms(environment: str):
+    """Show realm list for Change Email for the given environment."""
+    return render_template(
+        "change_email_list_realms.html",
+        utils=utils,
+        environment=environment,
+    )
 
 
 @change_email_bp.route("/change-email/<environment>/<realm>", methods=["GET"])

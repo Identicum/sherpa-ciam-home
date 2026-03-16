@@ -1,0 +1,33 @@
+{% extends "index.html" %}
+
+{% block title %}{{ messages['changeemail.title'] }} - {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ messages['changeemail.title'] }} - Realm list for {{ environment }}</h1>
+    {% set realms = utils.getRealms(logger=utils.logger, environment=environment, config=utils.config) %}
+    {% if realms and realms|length > 0 %}
+    <table class="admin-links-table">
+        <thead>
+            <tr>
+                <th>Realm</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for realmName in realms %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('change-email.change_email_form', environment=environment, realm=realmName) }}">
+                        {{ realmName }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No realms found for this environment.</p>
+    {% endif %}
+</div>
+{% endblock %}
+

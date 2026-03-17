@@ -213,6 +213,16 @@ def make_require_oidc_login():
 
 utils.require_oidc_login = make_require_oidc_login()
 
+
+def get_valid_access_token():
+    """Return a valid access token for the logged-in user, or None. Refreshes if expired."""
+    if not _ensure_valid_token():
+        return None
+    return _get_access_token()
+
+
+utils.get_valid_access_token = get_valid_access_token
+
 MESSAGES = utils.load_messages()
 
 @app.context_processor

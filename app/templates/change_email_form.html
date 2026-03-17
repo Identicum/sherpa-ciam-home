@@ -1,0 +1,20 @@
+{% extends "index.html" %}
+{% block title %}{{ messages['changeemail.title'] }} - {{ environment }} (realm {{ realm }}){% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>{{ messages['changeemail.title'] }} - {{ environment }} (realm {{ realm }})</h1>
+        <p>{{ messages['changeemail.subtitle'] }}</p>
+        <form method="post" action="{{ url_for('change-email.change_email_submit', environment=environment, realm=realm) }}">
+            <div class="form-group">
+                <label for="target_user">{{ messages['changeemail.target_user'] }}</label>
+                <input type="text" id="target_user" name="target_user" class="form-control" required value="{{ request.form.target_user or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="new_email">{{ messages['changeemail.new_email'] }}</label>
+                <input type="email" id="new_email" name="new_email" class="form-control" required value="{{ request.form.new_email or '' }}">
+            </div>
+            <button type="submit" class="btn btn-primary">{{ messages['changeemail.submit'] }}</button>
+        </form>
+        <p><a href="{{ url_for('index') }}">{{ messages['back_home'] }}</a></p>
+    </div>
+{% endblock %}

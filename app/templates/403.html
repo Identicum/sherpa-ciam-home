@@ -1,0 +1,12 @@
+{% extends "index.html" %}
+
+{% block title %}403 - Forbidden{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 60vh;">
+    <h1 class="display-1 fw-bold text-danger">403</h1>
+    <h2 class="mb-3">{{ messages['security.access_denied.title'] }}</h2>
+    <p class="text-muted mb-4">{{ messages['security.access_denied.message'] }}</p>
+    <a href="/" class="btn btn-primary">{{ messages['security.access_denied.back_button'] }}</a>
+</div>
+{% endblock %}

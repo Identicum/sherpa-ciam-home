@@ -5,6 +5,14 @@ import utils
 
 deployments_bp = Blueprint('deployments', __name__)
 
+@deployments_bp.before_request
+def check_deployments_role():
+    """Enforce role-based access for all deployments routes."""
+    environment = request.view_args.get('environment')
+    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+        return None
+    if environment and not utils.check_role(utils.build_role(environment, 'deployments')):
+        return render_template('403.html', utils=utils), 403
 
 def getDeploymentArtifacts(logger: Logger, config: dict) -> list:
     """Returns the list of deployment artifacts available from the configuration
@@ -231,7 +239,6 @@ class DeploymentReports:
     getArtifactsLastStatus = staticmethod(getArtifactsLastStatus)
 
 deployment_reports = DeploymentReports()
-
 
 @deployments_bp.route('/deployments/<environment>', methods=["GET"])
 @deployments_bp.route('/deployments/<environment>/<artifact>', methods=["GET"])

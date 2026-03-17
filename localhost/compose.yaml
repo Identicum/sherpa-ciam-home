@@ -94,6 +94,8 @@ services:
             - OIDC_CLIENT_SECRET=sherpaciamhome_client_secret
             - OIDC_REDIRECT_URI=http://localhost/oidc_callback
             - OIDC_REALM=employees
+            - OIDC_ROLES_CLAIM=sherpa_ciam_home_roles
+            - UNRESTRICTED_ENVIRONMENTS=local,localhost
         volumes:
             - ../app/:/app/
             - ./conf/:/conf/

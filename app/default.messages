@@ -53,6 +53,10 @@ tests.detail.description=Descripción
 
 back_home=Back home
 
+security.access_denied.title=Access Denied!
+security.access_denied.message=You don't have permission to access this page.
+security.access_denied.back_button=Back to Home
+
 welcome_message=Welcome to Sherpa CIAM Home!
 client_created=Client has been successfully created.
 error_generic=An error has occurred. Please try again.

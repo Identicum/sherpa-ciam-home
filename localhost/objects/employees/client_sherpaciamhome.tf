@@ -25,5 +25,5 @@ resource "keycloak_openid_client_optional_scopes" "sherpaciamhome" {
 resource "keycloak_openid_client_default_scopes" "sherpaciamhome" {
   realm_id  = resource.keycloak_realm.realm.id
   client_id = keycloak_openid_client.sherpaciamhome.id
-  default_scopes = [ "basic", "email", "profile" ]
+  default_scopes = [ "basic", "email", "profile", "sherpa_ciam_home_roles" ]
 }

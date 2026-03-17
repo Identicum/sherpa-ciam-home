@@ -1,8 +1,18 @@
 from flask import Blueprint, redirect, render_template, request, Response, send_from_directory, url_for
 import json
+# from app.main import UNRESTRICTED_ENVIRONMENTS
 import utils
 
 tests_bp = Blueprint('tests', __name__)
+
+@tests_bp.before_request
+def check_tests_role():
+    """Enforce role-based access for all deployments routes."""
+    environment = request.view_args.get('environment')
+    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+        return None
+    if environment and not utils.check_role(utils.build_role(environment, 'tests')):
+        return render_template('403.html', utils=utils), 403
 
 
 @tests_bp.route('/tests/<environment>', methods=["GET"])

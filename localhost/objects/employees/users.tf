@@ -23,7 +23,10 @@ resource "keycloak_user_roles" "user1" {
     keycloak_role.prod_tests.id,
     keycloak_role.dev_userSessions.id,
     keycloak_role.test_userSessions.id,
-    keycloak_role.prod_userSessions.id
+    keycloak_role.prod_userSessions.id,
+    keycloak_role.dev_changeEmail.id,
+    keycloak_role.test_changeEmail.id,
+    keycloak_role.prod_changeEmail.id
   ]
 }
 
@@ -49,7 +52,8 @@ resource "keycloak_user_roles" "user2" {
     keycloak_role.test_deployments.id,
     keycloak_role.dev_tests.id,
     keycloak_role.test_tests.id,
-    keycloak_role.dev_userSessions.id
+    keycloak_role.dev_userSessions.id,
+    keycloak_role.dev_changeEmail.id
   ]
 }
 

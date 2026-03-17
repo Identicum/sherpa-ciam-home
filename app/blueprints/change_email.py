@@ -7,6 +7,15 @@ import utils
 
 change_email_bp = Blueprint("change-email", __name__)
 
+@change_email_bp.before_request
+def check_tests_role():
+    """Enforce role-based access for all change email routes."""
+    environment = request.view_args.get('environment')
+    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+        return None
+    if environment and not utils.check_role(utils.build_role(environment, 'change-email')):
+        return render_template('403.html', utils=utils), 403
+    
 
 def search_user(base_url: str, realm: str, access_token: str, target_user: str) -> str:
     """Resolve target_user (username, UUID or email) to user id via IAM CRUD. Raises if not found."""

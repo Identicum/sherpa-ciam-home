@@ -36,3 +36,16 @@ resource "keycloak_role" "prod_userSessions" {
   realm_id = keycloak_realm.realm.id
   name     = "prod_user-sessions"
 }
+
+resource "keycloak_role" "dev_changeEmail" {
+  realm_id = keycloak_realm.realm.id
+  name     = "dev_change-email"
+}
+resource "keycloak_role" "test_changeEmail" {
+  realm_id = keycloak_realm.realm.id
+  name     = "test_change-email"
+}
+resource "keycloak_role" "prod_changeEmail" {
+  realm_id = keycloak_realm.realm.id
+  name     = "prod_change-email"
+}

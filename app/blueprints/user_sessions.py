@@ -11,7 +11,7 @@ user_sessions_bp = Blueprint('user-sessions', __name__)
 
 @user_sessions_bp.before_request
 def check_tests_role():
-    """Enforce role-based access for all deployments routes."""
+    """Enforce role-based access for all sessions routes."""
     environment = request.view_args.get('environment')
     if environment in utils.UNRESTRICTED_ENVIRONMENTS:
         return None

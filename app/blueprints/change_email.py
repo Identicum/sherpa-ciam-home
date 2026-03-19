@@ -83,10 +83,11 @@ def change_email_submit(environment: str, realm: str):
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="Faltan usuario o nuevo email.")
         )
-    base_url = (os.environ.get("IAMCRUD_API_BASE_URL") or "").rstrip("/")
+    env = (environment).upper()
+    base_url = (os.environ.get(f"IAMCRUD_API_BASE_URL_{env}"))
     if not base_url:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="IAM CRUD API no configurada (IAMCRUD_API_BASE_URL).")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=f"IAM CRUD API no configurada (IAMCRUD_API_BASE_URL_{env}).")
         )
     access_token = utils.get_valid_access_token()
     if not access_token:

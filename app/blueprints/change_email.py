@@ -1,6 +1,5 @@
 """Change Email: consumes IAM CRUD API to update user email."""
 from flask import Blueprint, redirect, render_template, request, url_for
-import os
 import requests
 import utils
 
@@ -83,11 +82,12 @@ def change_email_submit(environment: str, realm: str):
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="Faltan usuario o nuevo email.")
         )
-    env = (environment).upper()
-    base_url = (os.environ.get(f"IAMCRUD_API_BASE_URL_{env}"))
+    env = (environment)
+    config_environments = utils.config["environments"]
+    base_url = config_environments[env]["iamcrud_api_base_url"]
     if not base_url:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=f"IAM CRUD API no configurada (IAMCRUD_API_BASE_URL_{env}).")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=f"IAM CRUD API no configurada.")
         )
     access_token = utils.get_valid_access_token()
     if not access_token:

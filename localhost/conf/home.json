@@ -41,6 +41,7 @@
     "environments": {
         "local": {
             "keycloak_url": "https://localhost.idsherpa.com",
+            "iamcrud_api_base_url": "",
             "keycloak_username": "sherpaciamhome",
             "keycloak_password": "$env:LOCAL_KEYCLOAK_PASSWORD",
             "elastic_urls": [],
@@ -50,6 +51,7 @@
         },
         "dev": {
             "keycloak_url": "https://dev.identicum.com",
+            "iamcrud_api_base_url": "",
             "elastic_urls": [],
             "var_files": [],
             "testing_custom_envs": [
@@ -61,6 +63,7 @@
         },
         "test": {
             "keycloak_url": "https://test-idp.identicum.com",
+            "iamcrud_api_base_url": "",
             "elastic_urls": [],
             "var_files": [],
             "testing_custom_envs": [
@@ -72,6 +75,7 @@
         },
         "prod": {
             "keycloak_url": "https://idp.identicum.com",
+            "iamcrud_api_base_url": "",
             "elastic_urls": [],
             "var_files": [],
             "testing_custom_envs": [

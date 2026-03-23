@@ -5,7 +5,7 @@ menu.deployments=Deployments
 menu.changeemail=Change Email
 
 changeemail.title=Cambio de email
-changeemail.subtitle=Indique el usuario a modificar (realm claro) y el nuevo email.
+changeemail.subtitle=Indique el usuario a modificar y el nuevo email.
 changeemail.target_user=Usuario a modificar (username, email o UUID)
 changeemail.new_email=Nuevo email
 changeemail.submit=Ejecutar cambio

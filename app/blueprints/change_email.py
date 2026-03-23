@@ -7,7 +7,7 @@ import utils
 change_email_bp = Blueprint("change-email", __name__)
 
 @change_email_bp.before_request
-def check_tests_role():
+def check_change_email_role():
     """Enforce role-based access for all change email routes."""
     environment = request.view_args.get('environment')
     if environment in utils.UNRESTRICTED_ENVIRONMENTS:

@@ -61,7 +61,7 @@ check_session()  (app.before_request in main.py)
       ▼
 Blueprint.before_request  (per blueprint, e.g. check_deployments_role)
       ├─ environment in UNRESTRICTED_ENVIRONMENTS  → allow
-      ├─ utils.check_role('{environment}_{module}')
+      ├─ utils.hasRole('{environment}_{module}')
       │     ├─ role present in token  → allow
       │     └─ role missing           → 403
 ```

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, render_template
 import terraformcheck_report
 import json
 import os
@@ -33,6 +33,8 @@ def terraformcheck_show_report(environment: str):
         errorMessage = f"An unexpected error occurred while reading {reportFilePath}: {str(e)}"
     return render_template(
         'terraformcheck.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         reportData=reportData,
@@ -51,14 +53,16 @@ def terraformcheck_generate_report(environment: str):
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
     output = terraformcheck_report.run(
-        logger=utils.logger,
+        logger=current_app.logger,
         objectsPath="/terraform-objects",
         outputPath="/data",
         environment=environment,
-        config=utils.config
+        config=current_app.json_config
     )
     return render_template(
         'terraformcheck_output.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         process_output=output

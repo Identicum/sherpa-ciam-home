@@ -1,10 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash
 import json
 import uuid
 # from app.main import UNRESTRICTED_ENVIRONMENTS
 import utils
 
-MESSAGES = utils.load_messages()
 
 user_sessions_bp = Blueprint('user-sessions', __name__)
 
@@ -15,8 +14,9 @@ def check_tests_role():
     environment = request.view_args.get('environment')
     if environment in utils.UNRESTRICTED_ENVIRONMENTS:
         return None
-    if environment and not utils.check_role(utils.build_role(environment, 'user-sessions')):
+    if environment and not utils.hasRole(utils.build_role(environment, 'user-sessions')):
         return render_template('403.html', utils=utils), 403
+
 
 @user_sessions_bp.route('/user-sessions/<environment>', methods=["GET"])
 @utils.require_oidc_login
@@ -28,9 +28,12 @@ def user_sessions_realm_list(environment: str):
     """
     return render_template(
         'user_sessions_list_realms.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment
     )
+
 
 @user_sessions_bp.route('/user-sessions/<environment>/<realm>', methods=["GET"])
 @utils.require_oidc_login
@@ -40,13 +43,13 @@ def user_sessions_form(environment: str, realm: str):
     Returns:
         Template: Rendered HTML page with User Sessions Lookup Form.
     """
-    # Render form
-    utils.logger.info(f"No Incluye identifier")
     return render_template(
         'user_sessions_form.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
+        utils=utils,
         environment=environment,
-        realm=realm,
-        utils=utils
+        realm=realm
     )
 
 
@@ -58,11 +61,12 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
     Returns:
         Template: Rendered HTML page containing the User Session Lookup Result
     """
-    # Fetch user's sessions
-    response = utils.getUserSessions(environment, realm, userIdentifier, utils.config)
-    utils.logger.info(f"getUserSessions: {response}")
+    response = utils.getUserSessions(environment, realm, userIdentifier, current_app.json_config)
+    current_app.logger.trace("User sessions: {}", response)
     return render_template(
         'user_sessions_detail.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         success=response.get('success', False),
         sessions=response.get('sessions', []),
@@ -85,12 +89,12 @@ def kill_session(environment: str, realm: str, userIdentifier: str):
     is_offline_session = request.form.get('is_offline_session', 'false').lower() == 'true'
     
     if not session_id:
-        flash(MESSAGES.get('usersesssions.kill_session_error', 'Error al eliminar sesión') + ': Session ID not provided', 'error')
+        flash(current_app.messages.get('usersesssions.kill_session_error', 'Error al eliminar sesión') + ': Session ID not provided', 'error')
         return redirect(url_for('user-sessions.user_sessions_detail', 
                               environment=environment, realm=realm, userIdentifier=userIdentifier))
     
     try:
-        kc_admin = utils.getKeycloakAdmin(logger=utils.logger, environment=environment, realmName=realm, config=utils.config)
+        kc_admin = utils.getKeycloakAdmin(logger=current_app.logger, environment=environment, realmName=realm, config=current_app.json_config)
         kc_admin.delete_session(session_id, isOffline=is_offline_session)
         
         if not is_offline_session:
@@ -119,10 +123,10 @@ def kill_session(environment: str, realm: str, userIdentifier: str):
             except Exception:
                 pass
         
-        flash(MESSAGES.get('usersesssions.kill_session_success', 'Sesión eliminada exitosamente'), 'success')
+        flash(current_app.messages.get('usersesssions.kill_session_success', 'Sesión eliminada exitosamente'), 'success')
     except Exception as e:
-        utils.logger.error("Error killing session {}: {}", session_id, e)
-        error_msg = MESSAGES.get('usersesssions.kill_session_error', 'Error al eliminar sesión')
+        current_app.logger.error("Error killing session {}: {}", session_id, e)
+        error_msg = current_app.messages.get('usersesssions.kill_session_error', 'Error al eliminar sesión')
         flash(f'{error_msg}: {str(e)}', 'error')
     
     return redirect(url_for('user-sessions.user_sessions_detail', 
@@ -138,7 +142,7 @@ def kill_all_sessions(environment: str, realm: str, userIdentifier: str):
         Redirect: Redirects back to the user sessions detail page
     """
     try:
-        kc_admin = utils.getKeycloakAdmin(logger=utils.logger, environment=environment, realmName=realm, config=utils.config)
+        kc_admin = utils.getKeycloakAdmin(logger=current_app.logger, environment=environment, realmName=realm, config=current_app.json_config)
         kc_admin.sherpa_logout_user_sessions(username=userIdentifier)
         
         try:
@@ -156,10 +160,10 @@ def kill_all_sessions(environment: str, realm: str, userIdentifier: str):
                 except Exception:
                     pass
         
-        flash(MESSAGES.get('usersesssions.kill_all_sessions_success', 'Todas las sesiones eliminadas exitosamente'), 'success')
+        flash(current_app.messages.get('usersesssions.kill_all_sessions_success', 'Todas las sesiones eliminadas exitosamente'), 'success')
     except Exception as e:
-        utils.logger.error("Error killing all sessions for user {}: {}", userIdentifier, e)
-        error_msg = MESSAGES.get('usersesssions.kill_all_sessions_error', 'Error al eliminar sesiones')
+        current_app.logger.error("Error killing all sessions for user {}: {}", userIdentifier, e)
+        error_msg = current_app.messages.get('usersesssions.kill_all_sessions_error', 'Error al eliminar sesiones')
         flash(f'{error_msg}: {str(e)}', 'error')
     
     return redirect(url_for('user-sessions.user_sessions_detail', 

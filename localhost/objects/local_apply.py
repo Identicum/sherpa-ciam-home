@@ -27,7 +27,6 @@ def main(arguments):
 			instanceVarFiles = utils.getConfig(logger=logger).get("realms").get(realmType).get("environments").get(environment).get(workspace).get("var_files", [])
 			varFiles = environmentVarFiles + instanceVarFiles
 			terraform.apply(logger=logger, objectsFolder=realmFolder, varFiles=varFiles)
-
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

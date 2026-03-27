@@ -1,5 +1,5 @@
 """Change Email: consumes IAM CRUD API to update user email."""
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, redirect, render_template, request, url_for
 import requests
 import utils
 
@@ -12,9 +12,9 @@ def check_change_email_role():
     environment = request.view_args.get('environment')
     if environment in utils.UNRESTRICTED_ENVIRONMENTS:
         return None
-    if environment and not utils.check_role(utils.build_role(environment, 'change-email')):
+    if environment and not utils.hasRole(utils.build_role(environment, 'change-email')):
         return render_template('403.html', utils=utils), 403
-    
+
 
 def search_user(base_url: str, realm: str, access_token: str, target_user: str) -> str:
     """Resolve target_user (username, UUID or email) to user id via IAM CRUD. Raises if not found."""
@@ -55,6 +55,8 @@ def change_email_realms(environment: str):
     """Show realm list for Change Email for the given environment."""
     return render_template(
         "change_email_list_realms.html",
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
     )
@@ -66,6 +68,8 @@ def change_email_form(environment: str, realm: str):
     """Show email change form for the given realm."""
     return render_template(
         "change_email_form.html",
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         realm=realm,
@@ -83,13 +87,13 @@ def change_email_submit(environment: str, realm: str):
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="Faltan usuario o nuevo email.")
         )
     env = (environment)
-    config_environments = utils.config["environments"]
+    config_environments = current_app.json_config["environments"]
     base_url = config_environments[env]["iamcrud_api_base_url"]
     if not base_url:
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=f"IAM CRUD API no configurada.")
         )
-    access_token = utils.get_valid_access_token()
+    access_token = utils.getCurrentAccessToken()
     if not access_token:
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="No se pudo obtener el token de sesión. Vuelva a iniciar sesión.")
@@ -117,6 +121,8 @@ def change_email_result(environment: str):
     realm = request.args.get("realm")
     return render_template(
         "change_email_result.html",
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         realm=realm,

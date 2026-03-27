@@ -5,8 +5,8 @@
 {% block content %}
 <div class="container">
     <h1>Testing - {{ environment }}</h1>
-    {% set reports = utils.getTestReports(logger=utils.logger, environment=environment) %}
-    {% set tests_scheduled = utils.checkTestsScheduled(utils.logger, environment=environment) %}
+    {% set reports = utils.getTestReports(logger=logger, environment=environment) %}
+    {% set tests_scheduled = utils.checkTestsScheduled(logger, environment=environment) %}
 
     <h3>{{ messages['tests.runner.title'] }}</h3>
     {% if tests_scheduled == 'available' %}

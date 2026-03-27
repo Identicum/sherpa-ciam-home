@@ -1,7 +1,7 @@
+import auth_utils
 from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash
 import json
 import uuid
-# from app.main import UNRESTRICTED_ENVIRONMENTS
 import utils
 
 
@@ -12,9 +12,9 @@ user_sessions_bp = Blueprint('user-sessions', __name__)
 def check_tests_role():
     """Enforce role-based access for all sessions routes."""
     environment = request.view_args.get('environment')
-    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+    if environment in current_app.unrestricted_environments:
         return None
-    if environment and not utils.hasRole(utils.build_role(environment, 'user-sessions')):
+    if environment and not auth_utils.hasRole(logger=current_app.logger, required_role=auth_utils.buildRole(environment, 'user-sessions')):
         return render_template('403.html', utils=utils), 403
 
 
@@ -61,7 +61,7 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
     Returns:
         Template: Rendered HTML page containing the User Session Lookup Result
     """
-    response = utils.getUserSessions(environment, realm, userIdentifier, current_app.json_config)
+    response = utils.getUserSessions(logger=current_app.logger, properties=current_app.properties, environment=environment, realm=realm, identifier=userIdentifier, config=current_app.json_config)
     current_app.logger.trace("User sessions: {}", response)
     return render_template(
         'user_sessions_detail.html',
@@ -94,7 +94,7 @@ def kill_session(environment: str, realm: str, userIdentifier: str):
                               environment=environment, realm=realm, userIdentifier=userIdentifier))
     
     try:
-        kc_admin = utils.getKeycloakAdmin(logger=current_app.logger, environment=environment, realmName=realm, config=current_app.json_config)
+        kc_admin = utils.getKeycloakAdmin(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realm, config=current_app.json_config)
         kc_admin.delete_session(session_id, isOffline=is_offline_session)
         
         if not is_offline_session:
@@ -142,7 +142,7 @@ def kill_all_sessions(environment: str, realm: str, userIdentifier: str):
         Redirect: Redirects back to the user sessions detail page
     """
     try:
-        kc_admin = utils.getKeycloakAdmin(logger=current_app.logger, environment=environment, realmName=realm, config=current_app.json_config)
+        kc_admin = utils.getKeycloakAdmin(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realm, config=current_app.json_config)
         kc_admin.sherpa_logout_user_sessions(username=userIdentifier)
         
         try:

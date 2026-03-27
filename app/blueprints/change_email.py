@@ -1,4 +1,5 @@
 """Change Email: consumes IAM CRUD API to update user email."""
+import auth_utils
 from flask import Blueprint, current_app, redirect, render_template, request, url_for
 import requests
 import utils
@@ -10,9 +11,9 @@ change_email_bp = Blueprint("change-email", __name__)
 def check_change_email_role():
     """Enforce role-based access for all change email routes."""
     environment = request.view_args.get('environment')
-    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+    if environment in current_app.unrestricted_environments:
         return None
-    if environment and not utils.hasRole(utils.build_role(environment, 'change-email')):
+    if environment and not auth_utils.hasRole(logger=current_app.logger, required_role=auth_utils.buildRole(environment, 'change-email')):
         return render_template('403.html', utils=utils), 403
 
 

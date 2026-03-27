@@ -4,21 +4,15 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from elasticsearch import Elasticsearch
-from flask import session
 import json
-import jwt
 import mimetypes
 import os
 from pathlib import Path
-import requests
-from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
+from sherpa.utils.basics import Properties
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
-import time
 import uuid
-
-ROLES_CLAIM = os.environ.get('OIDC_ROLES_CLAIM', 'sherpa_ciam_home_roles')
 
 
 def load_messages():
@@ -56,7 +50,7 @@ def getLocalDatetime() -> str:
     return localNow.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def getConfig(logger) -> dict:
+def getConfig(logger: Logger) -> dict:
     """Returns the parsed contents of /conf/home.json
 
     Args:
@@ -87,7 +81,7 @@ def getConfig(logger) -> dict:
         return {}
 
 
-def getRealmTypes(logger, config: dict) -> list:
+def getRealmTypes(logger: Logger, config: dict) -> list:
     """Returns the list of realm types in the configuration
 
     Args:
@@ -100,7 +94,7 @@ def getRealmTypes(logger, config: dict) -> list:
     return list(config.get("realms", {}).keys())
 
 
-def getRealms(logger, environment: str, config: dict) -> list:
+def getRealms(logger: Logger, environment: str, config: dict) -> list:
     """Returns only the list of realms from the configuration
 
     Args:
@@ -121,11 +115,12 @@ def getRealms(logger, environment: str, config: dict) -> list:
     return realmsList
 
 
-def getRealm(logger, environment: str, realmName: str, config: dict) -> dict:
+def getRealm(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict) -> dict:
     """Will fetch a realm from a given Environment using Keycloak's Admin API and return it
 
     Args:
         logger: Logger instance
+        properties: Properties instance
         environment (str): Environment name
         realmName (str): Realm name
         config (dict): JSON configuration
@@ -133,7 +128,7 @@ def getRealm(logger, environment: str, realmName: str, config: dict) -> dict:
     Returns:
         dict: Realm Object from the Keycloak API
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, config=config)
+    kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         return []
     try:
@@ -144,7 +139,7 @@ def getRealm(logger, environment: str, realmName: str, config: dict) -> dict:
         return []
 
 
-def getDiscoveryUrl(logger, environment: str, realm: dict, config: dict) -> str:
+def getDiscoveryUrl(logger: Logger, environment: str, realm: dict, config: dict) -> str:
     """Returns the OpenID Connect Discovery URL for a given environment and realm
 
     Args:
@@ -162,7 +157,7 @@ def getDiscoveryUrl(logger, environment: str, realm: dict, config: dict) -> str:
     return discoveryUrl
 
 
-def getRealmName(logger, realmType: str, environment: str, workspace: str, config: dict) -> str:
+def getRealmName(logger: Logger, realmType: str, environment: str, workspace: str, config: dict) -> str:
     """Get realm name from its type, environment and workspace
 
     Args:
@@ -180,7 +175,7 @@ def getRealmName(logger, realmType: str, environment: str, workspace: str, confi
     return realmName
 
 
-def getEnvironments(logger, config: dict) -> list:
+def getEnvironments(logger: Logger, config: dict) -> list:
     """Returns the list of environments in the configuration
 
     Args:
@@ -193,7 +188,7 @@ def getEnvironments(logger, config: dict) -> list:
     return list(config.get("environments", {}).keys())
 
 
-def getRealmWorkspaces(logger, realmType: str, environment: str, config: dict) -> list:
+def getRealmWorkspaces(logger: Logger, realmType: str, environment: str, config: dict) -> list:
     """Returns workspaces for a realmType and environment
 
     Args:
@@ -209,7 +204,7 @@ def getRealmWorkspaces(logger, realmType: str, environment: str, config: dict) -
     return list(config.get("realms").get(realmType).get("environments").get(environment, {}).keys())
 
 
-def getElastic(logger, environment: str, config: dict):
+def getElastic(logger: Logger, environment: str, config: dict):
     """Returns ElasticSearch connection
 
     Args:
@@ -235,7 +230,7 @@ def getElastic(logger, environment: str, config: dict):
         return None
 
 
-def getKibanaUrl(logger, environment: str, config: dict, realmName: str, client_id: str) -> str:
+def getKibanaUrl(logger: Logger, environment: str, config: dict, realmName: str, client_id: str) -> str:
     """Returns Kibana URL connection
 
     Args:
@@ -259,7 +254,7 @@ def getKibanaUrl(logger, environment: str, config: dict, realmName: str, client_
         return None
 
 
-def getKeycloakAdmin(logger, environment: str, realmName: str, config: dict) -> SherpaKeycloakAdmin:
+def getKeycloakAdmin(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict) -> SherpaKeycloakAdmin:
     """Creates an instance of SherpaKeycloakAdmin
     See in [sherpa-py-keycloak](https://github.com/Identicum/sherpa-py-keycloak/blob/main/sherpa/keycloak/keycloak_lib.py)
 
@@ -283,10 +278,12 @@ def getKeycloakAdmin(logger, environment: str, realmName: str, config: dict) -> 
     return kcAdmin
 
 
-def getClients(logger, environment: str, realmName: str, config: dict) -> list:
+def getClients(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict) -> list:
     """Will fetch a given realm in a given environment's client list from the Keycloak API and return it.
 
     Args:
+        logger: Logger instance
+        properties: Properties instance
         environment (str): Environment name
         realmName (str): Realm name
         config (dict): JSON configuration
@@ -294,7 +291,7 @@ def getClients(logger, environment: str, realmName: str, config: dict) -> list:
     Returns:
         list: List of clients in the realm
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, config=config)
+    kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         logger.error("Error fetching clients for {}/{}. No kcAdmin.", environment, realmName)
         return []
@@ -306,7 +303,7 @@ def getClients(logger, environment: str, realmName: str, config: dict) -> list:
         return []
 
 
-def getClientLastActivity(logger, elastic: Elasticsearch, realmName: str, client_id: str) -> list:
+def getClientLastActivity(logger: Logger, elastic: Elasticsearch, realmName: str, client_id: str) -> list:
     """List Clients including last activity.
 
     Args:
@@ -340,11 +337,12 @@ def getClientLastActivity(logger, elastic: Elasticsearch, realmName: str, client
         return "No activity"
 
 
-def getNormalizedClient(logger, environment: str, realmName: str, client_id: str, config: dict) -> dict:
+def getNormalizedClient(logger: Logger, properties: Properties, environment: str, realmName: str, client_id: str, config: dict) -> dict:
     """Will fetch a Client from a given Realm in a given Environment using the provided `client_id` in the Keycloak API, then format the object so as to standardize the output between different client types
 
     Args:
         logger: Logger instance
+        properties: Properties instance
         environment (str): Environment name
         realmName (str): Realm name
         client_id (str): Client ID
@@ -353,7 +351,7 @@ def getNormalizedClient(logger, environment: str, realmName: str, client_id: str
     Returns:
         dict: Resulting Normalized Client object
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, environment=environment, realmName=realmName, config=config)
+    kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         return {}
     try:
@@ -490,7 +488,7 @@ def getNormalizedClient(logger, environment: str, realmName: str, client_id: str
         return {}
 
 
-def splitDescription(logger, description: str, position: int, defaultValue: str) -> str:
+def splitDescription(logger: Logger, description: str, position: int, defaultValue: str) -> str:
     """Extracts whichever detail it finds in the provided `position` inside of a client `description` (also provided). Will return the provided default value if it finds nothing.
 
     Args:
@@ -512,7 +510,7 @@ def splitDescription(logger, description: str, position: int, defaultValue: str)
         return defaultValue
 
 
-def getClientTag(logger, description: str, client_id: str, client_type: str) -> str:
+def getClientTag(logger: Logger, description: str, client_id: str, client_type: str) -> str:
     """Extracts a client tag from a provided description (Custom Syntax) \n
     Will automatically filter Native keycloak client tags using the provided client_id and mark unsupported tags as [TAG_INVALID]
 
@@ -538,7 +536,7 @@ def getClientTag(logger, description: str, client_id: str, client_type: str) -> 
     return tag
 
 
-def getVarFiles(logger, environment: str, config: dict) -> list:
+def getVarFiles(logger: Logger, environment: str, config: dict) -> list:
     """Returns the list of var_file paths related to the provided environment
 
     Args:
@@ -552,7 +550,7 @@ def getVarFiles(logger, environment: str, config: dict) -> list:
     return list(config.get("environments", {}).get(environment, {}).get("var_files", []))
 
 
-def smtpSend(logger, subject, body, to_addr, cc_addr=None, attached_files=[]):
+def smtpSend(logger: Logger, subject, body, to_addr, cc_addr=None, attached_files=[]):
     """
     Send SMTP email with optional file attachments.
     """
@@ -592,7 +590,7 @@ def smtpSend(logger, subject, body, to_addr, cc_addr=None, attached_files=[]):
         logger.error("Error sending email: {}", e)
 
 
-def formatUrl(logger, url: str, rootUrl: str) -> str:
+def formatUrl(logger: Logger, url: str, rootUrl: str) -> str:
     """
     Format URL adding rootUrl if necessary.
 
@@ -610,10 +608,12 @@ def formatUrl(logger, url: str, rootUrl: str) -> str:
     return f"{rootUrl}{url}"
 
 
-def getUserSessions(environment: str, realm: str, identifier: str, config: dict) -> dict:
+def getUserSessions(logger: Logger, properties: Properties, environment: str, realm: str, identifier: str, config: dict) -> dict:
     """Retrieves all of a user's sessions in a given environment and realm
 
     Args:
+        logger: Logger instance
+        properties: Properties instance
         environment (str)
         realm (str)
         identifier (str): May be a username or user's UUID
@@ -642,6 +642,7 @@ def getUserSessions(environment: str, realm: str, identifier: str, config: dict)
     
     kc_admin = getKeycloakAdmin(
         logger=logger,
+        properties=properties,
         environment=environment,
         realmName=realm,
         config=config
@@ -810,212 +811,3 @@ def enrichTestsWithDescriptions(logger: Logger, json_report: dict) -> None:
             count += 1
     if count:
         logger.debug("Enriched {} test(s) with description.", count)
-
-def build_role(environment: str, module: str) -> str:
-    """Build a role name from an environment and module name.
-    
-    Args:
-        environment (str): Environment name (e.g. 'local', 'dev', 'prod')
-        module (str): Module/blueprint name (e.g. 'deployments', 'clientinfo')
-
-    Returns:
-        str: Role name in the format '{environment}_{module}'
-    """
-    return f"{environment}_{module}"
-
-
-def storeResponseInSession(logger: Logger, token_response: dict) -> None:
-    """
-    Persist token_endpoint response in session.
-    """
-    logger.trace("Starting.")
-    storeTokensInSession(logger=logger, token_response=token_response)
-    storeUsernameInSession(logger=logger, token_response=token_response)
-    storeRolesInSession(logger=logger, token_response=token_response)
-    logger.trace("session contents: {}", dict(session))
-
-
-def storeUsernameInSession(logger: Logger, token_response: dict) -> None:
-    """
-    Persist username in session.
-    """
-    logger.trace("Starting, token_response: {}", token_response)
-    userinfo = token_response.get('userinfo', {})
-    username = (
-        userinfo.get('preferred_username')
-        or userinfo.get('email')
-        or userinfo.get('sub')
-    )
-    if username is None:
-        logger.debug("Could not extract username from userinfo: {}", userinfo)
-        id_token = token_response.get('id_token', {})
-        id_token_json = jwt.decode(id_token, options={"verify_signature": False})
-        username = (
-            id_token_json.get('preferred_username')
-            or id_token_json.get('email')
-            or id_token_json.get('sub')
-        )
-        if username is None:
-            logger.debug("Could not extract username from id_token: {}", id_token_json)
-            access_token = token_response.get('access_token', {})
-            access_token_json = jwt.decode(access_token, options={"verify_signature": False})
-            username = (
-                access_token_json.get('preferred_username')
-                or access_token_json.get('email')
-                or access_token_json.get('sub')
-                or "unknown_user"
-            )
-    session['username'] = username
-    logger.trace("Username stored in session: '{}'", username)
-
-
-def storeRolesInSession(logger: Logger, token_response: dict) -> None:
-    """
-    Persist roles in session.
-    """
-    logger.trace("Starting.")
-    userinfo = token_response.get('userinfo', {})
-    roles = userinfo.get(ROLES_CLAIM)
-    if roles is None:
-        logger.debug("Could not extract roles from userinfo: {}", userinfo)
-        id_token = token_response.get('id_token', {})
-        id_token_json = jwt.decode(id_token, options={"verify_signature": False})
-        roles = id_token_json.get(ROLES_CLAIM)
-        if roles is None:
-            logger.debug("Could not extract roles from id_token: {}", id_token_json)
-            access_token = token_response.get('access_token', {})
-            access_token_json = jwt.decode(access_token, options={"verify_signature": False})
-            roles = ( access_token_json.get(ROLES_CLAIM) or [] )
-    session['roles'] = roles
-    logger.trace("Roles stored in session: '{}'", roles)
-
-
-def storeTokensInSession(logger: Logger, token_response: dict) -> None:
-    """
-    Persist tokens and expiration in session.
-    """
-    logger.trace("Starting.")
-    if 'access_token' in token_response:
-        session['access_token'] = token_response['access_token']
-        if 'expires_in' in token_response:
-            session['access_token_expiration'] = time.time() + int(token_response['expires_in'])
-    if 'refresh_token' in token_response:
-        session['refresh_token'] = token_response['refresh_token']
-        if 'refresh_expires_in' in token_response:
-            session['refresh_token_expiration'] = time.time() + int(token_response['refresh_expires_in'])
-    logger.trace("session contents: {}", dict(session))
-
-
-def isAccessTokenExpired() -> bool:
-    """
-    Return True if the access token is missing or about to expire.
-    Uses a 30-second safety margin to account for clock skew.
-    """
-    expires_at = session.get('access_token_expiration')
-    if not expires_at:
-        return True
-    return time.time() >= (expires_at - 30)
-
-
-def isRefreshTokenExpired() -> bool:
-    """
-    Return True if the refresh token has expired or is about to expire.
-
-    Keycloak includes 'refresh_expires_in' (seconds) in the token response.
-    Authlib does not compute an absolute expiry for it, so we derive it from
-    '_obtained_at', which we store at token-save time. Uses a 30-second margin.
-    Returns False if the required fields are absent, deferring to the IdP.
-    """
-    expires_at = session.get('refresh_token_expiration')
-    if not expires_at:
-        return True
-    return time.time() >= (expires_at - 30)
-
-
-def refreshToken(discovery_document: dict) -> bool:
-    """
-    Attempt to renew the access token using the refresh token (RFC 6749 §6).
-    Clears cached userinfo on success so it is re-fetched with the new token.
-    Returns True on success, False on any failure.
-    """
-    logger.trace("Starting token refresh.")
-    refresh_token = session.get('refresh_token')
-    if not refresh_token:
-        logger.debug("No refresh token found in session.")
-        return False
-    if isRefreshTokenExpired():
-        logger.debug("Refresh token has expired.")
-        return False
-    try:
-        token_response = requests.post(
-            discovery_document['token_endpoint'],
-            data={
-                'grant_type': 'refresh_token',
-                'refresh_token': refresh_token,
-                'client_id': os.environ.get('OIDC_CLIENT_ID'),
-                'client_secret': os.environ.get('OIDC_CLIENT_SECRET'),
-            },
-            timeout=10,
-        )
-        if token_response.status_code >= 400:
-            logger.debug("Token refresh rejected by IdP (HTTP {}).", token_response.status_code)
-            return False
-        storeTokensInSession(logger=logger, token_response=token_response.json())
-        session.pop('username', None)
-        session.pop('userinfo', None)
-        logger.debug("Token refreshed successfully.")
-        return True
-    except Exception as e:
-        logger.error("Unexpected error during token refresh: {}", e)
-        return False
-
-
-def ensureValidToken(discovery_document: dict) -> bool:
-    """
-    Verify the session token and renew it silently if expired.
-
-    Returns:
-      True  — a valid access token is available.
-      False — no session exists or renewal failed.
-    """
-    logger.trace("Ensuring valid token.")
-    if not session.get('token'):
-        return False
-    if not isAccessTokenExpired():
-        return True
-    logger.debug("Access token expired. Attempting renewal.")
-    return refreshToken(discovery_document)
-
-
-def hasRole(required_role: str) -> bool:
-    """
-    Return True if the user session has the required role.
-    """
-    logger.trace("Ensuring session has role: '{}'", required_role)
-    roles = session.get('roles', [])
-    return required_role in roles
-
-
-def getCurrentAccessToken():
-    """Return a valid access token for the logged-in user, or None. Refreshes if expired."""
-    if not ensureValidToken(discovery_document):
-        return None
-    return session.get('access_token')
-
-
-# Create a single logger instance
-logger = Logger(
-    "sherpa-home-utils", 
-    os.environ.get("LOG_LEVEL"), 
-    "/tmp/sherpa-home-utils.log"
-)
-
-UNRESTRICTED_ENVIRONMENTS = set(
-    os.environ.get('UNRESTRICTED_ENVIRONMENTS', 'local').split(',')
-)
-
-# Create a single properties instance
-properties = Properties("/local.properties", "/local.properties")
-
-# # Create a single config instance
-# config = getConfig(logger=logger)

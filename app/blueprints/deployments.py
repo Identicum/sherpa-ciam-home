@@ -1,3 +1,4 @@
+import auth_utils
 from flask import Blueprint, current_app, redirect, render_template, url_for, request, Response
 import os
 from sherpa.utils.basics import Logger
@@ -9,9 +10,9 @@ deployments_bp = Blueprint('deployments', __name__)
 def check_deployments_role():
     """Enforce role-based access for all deployments routes."""
     environment = request.view_args.get('environment')
-    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+    if environment in current_app.unrestricted_environments:
         return None
-    if environment and not utils.hasRole(utils.build_role(environment, 'deployments')):
+    if environment and not auth_utils.hasRole(logger=current_app.logger, required_role=auth_utils.buildRole(environment, 'deployments')):
         return render_template('403.html', utils=utils), 403
 
 def getDeploymentArtifacts(logger: Logger, config: dict) -> list:

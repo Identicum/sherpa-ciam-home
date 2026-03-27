@@ -5,18 +5,19 @@ import json
 import os
 import sys
 from sherpa.utils.basics import Logger
+from sherpa.utils.basics import Properties
 import utils
 
 
-
-def run(logger: Logger, outputPath: str, environment: str, config: dict) -> list:
+def run(logger: Logger, properties: Properties, outputPath: str, environment: str, config: dict) -> list:
 	"""Runs Clients activity report generation
 
 	Args:
 		logger (Logger): Logger instance
+		properties (Properties): Properties instance
 		outputPath (str): **Directory** Path in which to save the JSON output
 		environment (str): Environment in which to run Diff Report Generation
-        config (dict): JSON configuration
+		config (dict): JSON configuration
 
 	Returns:
 		str: Process output
@@ -31,15 +32,15 @@ def run(logger: Logger, outputPath: str, environment: str, config: dict) -> list
 		elastic = utils.getElastic(logger=logger, environment=environment, config=config)
 		if not elastic:
 			last_activity = "No Elastic configuration"
-		for client in utils.getClients(logger=logger, environment=environment, realmName=realmName, config=config):
+		for client in utils.getClients(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config):
 			if elastic:
 				last_activity = utils.getClientLastActivity(logger=logger, elastic=elastic, realmName=realmName, client_id=client["clientId"])
 			client_activity = {
 				"client_id": client["clientId"],
-                "name": client.get("name", ""),
-                "enabled": client["enabled"],
-                "last_activity": last_activity
-            }
+				"name": client.get("name", ""),
+				"enabled": client["enabled"],
+				"last_activity": last_activity
+			}
 			realm_activity.append(client_activity)
 		output_content["activity"][realmName] = realm_activity
 	logger.info("Storing activity into: {}", output_file_path)
@@ -49,13 +50,14 @@ def run(logger: Logger, outputPath: str, environment: str, config: dict) -> list
 
 
 def main(arguments):
-	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/clientsactivity_report.log")
+	logger = Logger(name=os.path.basename(__file__), log_level=os.environ.get("LOG_LEVEL"), log_path="/tmp/clientsactivity_report.log")
+	properties = Properties("/local.properties", "/local.properties")
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('outputPath', type=str, help="Path to clientsactivity_*.json files.")
 	args = parser.parse_args(arguments)
 	config = utils.getConfig(logger=logger)
 	for environment in utils.getEnvironments(logger=logger, config=config):
-		run(logger=logger, outputPath=args.outputPath, environment=environment, config=config)
+		run(logger=logger, properties=properties, outputPath=args.outputPath, environment=environment, config=config)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

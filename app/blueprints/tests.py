@@ -1,6 +1,6 @@
+import auth_utils
 from flask import Blueprint, current_app, redirect, render_template, request, Response, send_from_directory, url_for
 import json
-# from app.main import UNRESTRICTED_ENVIRONMENTS
 import utils
 
 tests_bp = Blueprint('tests', __name__)
@@ -9,9 +9,9 @@ tests_bp = Blueprint('tests', __name__)
 def check_tests_role():
     """Enforce role-based access for all deployments routes."""
     environment = request.view_args.get('environment')
-    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+    if environment in current_app.unrestricted_environments:
         return None
-    if environment and not utils.hasRole(utils.build_role(environment, 'tests')):
+    if environment and not auth_utils.hasRole(logger=current_app.logger, required_role=auth_utils.buildRole(environment, 'tests')):
         return render_template('403.html', utils=utils), 403
 
 

@@ -61,7 +61,7 @@ check_session()  (app.before_request in main.py)
       ▼
 Blueprint.before_request  (per blueprint, e.g. check_deployments_role)
       ├─ environment in UNRESTRICTED_ENVIRONMENTS  → allow
-      ├─ utils.hasRole('{environment}_{module}')
+      ├─ auth_utils.hasRole('{environment}_{module}')
       │     ├─ role present in token  → allow
       │     └─ role missing           → 403
 ```
@@ -86,7 +86,7 @@ def check_my_feature_role():
     environment = request.view_args.get('environment')
     if not environment or environment in utils.UNRESTRICTED_ENVIRONMENTS:
         return None
-    if not utils.check_role(utils.build_role(environment, 'my-feature')):
+    if not utils.check_role(auth_utils.buildRole(environment, 'my-feature')):
         return render_template('403.html', utils=utils), 403
 ```
 
@@ -105,11 +105,11 @@ def my_feature(environment: str):
 
 ## Reference
 
-| Component | Location | Responsibility |
-|---|---|---|
-| `check_session()` | `main.py` | Token validation and silent renewal on every request |
-| `make_require_oidc_login()` | `main.py` | Decorator that enforces authentication on a route |
-| `make_check_role()` | `main.py` | Function assigned to `utils.check_role` for inline role checks |
-| `build_role()` | `utils.py` | Builds `{environment}_{module}` role string |
-| `UNRESTRICTED_ENVIRONMENTS` | `utils.py` | Set of environments exempt from role checks |
-| `Blueprint.before_request` | each blueprint | Enforces role check for all routes in the blueprint |
+| Component                   | Location        | Responsibility                                                 |
+|-----------------------------|-----------------|----------------------------------------------------------------|
+| `check_session()`           | `main.py`       | Token validation and silent renewal on every request           |
+| `make_require_oidc_login()` | `main.py`       | Decorator that enforces authentication on a route              |
+| `make_check_role()`         | `main.py`       | Function assigned to `utils.check_role` for inline role checks |
+| `buildRole()`               | `auth_utils.py` | Builds `{environment}_{module}` role string                    |
+| `UNRESTRICTED_ENVIRONMENTS` | `utils.py`      | Set of environments exempt from role checks                    |
+| `Blueprint.before_request`  | each blueprint  | Enforces role check for all routes in the blueprint            |

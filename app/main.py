@@ -1,3 +1,4 @@
+import auth_utils
 from flask import Blueprint, Flask, redirect, render_template, request, session, url_for
 from authlib.integrations.flask_client import OAuth
 from functools import wraps
@@ -6,18 +7,21 @@ import os
 import requests
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakOpenID
 from sherpa.utils.basics import Logger
+from sherpa.utils.basics import Properties
 import utils
 
 app = Flask(__name__)
 
+app.properties = Properties("/local.properties", "/local.properties")
 app.logger = Logger(
-    "sherpa-home-main", 
-    os.environ.get("LOG_LEVEL"), 
-    "/tmp/sherpa-home-main.log"
+    name="sherpa-home-main", 
+    log_level=os.environ.get("LOG_LEVEL"), 
+    log_path="/tmp/python-flask.log",
+    stdout=False
 )
 app.json_config = utils.getConfig(logger=app.logger)
-
 app.messages = utils.load_messages()
+app.unrestricted_environments = os.environ.get('UNRESTRICTED_ENVIRONMENTS', 'local').split(',')
 
 issuer = os.environ.get('IDP_BASE_URL') + '/realms/' + os.environ.get('OIDC_REALM')
 discovery_endpoint = issuer + '/.well-known/openid-configuration'
@@ -40,8 +44,6 @@ oauth.register(
     jwks_uri=discovery_document['jwks_uri'],
 )
 
-
-# ---------- Token helpers ----------
 
 def _idp_logout(refresh_token: str) -> None:
     """
@@ -103,14 +105,14 @@ def check_session():
     if not session.get('access_token'):
         app.logger.debug("Access token not found. No session present.")
         return None
-    if utils.isAccessTokenExpired():
-        if utils.isRefreshTokenExpired():
+    if auth_utils.isAccessTokenExpired():
+        if auth_utils.isRefreshTokenExpired():
             app.logger.debug("Refresh token expired, clearing session.")
             session.clear()
             return None
         else:
             app.logger.debug("Access token expired, attempting to refresh.")
-            if not utils.refreshToken(discovery_document):
+            if not auth_utils.refreshToken(logger=app.logger, discovery_document=discovery_document):
                 app.logger.warn("Failed to refresh access token, clearing session.")
                 session.clear()
                 return None
@@ -119,7 +121,7 @@ def check_session():
 @app.route('/', methods=['GET'])
 def index():
     app.logger.trace("Starting")
-    return render_template('index.html', logger=app.logger, config=app.config, utils=utils)
+    return render_template('index.html', logger=app.logger, config=app.json_config, utils=utils)
 
 
 @app.route('/health', methods=['GET'])
@@ -141,7 +143,7 @@ def oidc_callback():
     """Exchange the authorization code for tokens and establish the local session."""
     app.logger.trace("OIDC callback initiated.")
     token_response = oauth.oidc.authorize_access_token()
-    utils.storeResponseInSession(logger=app.logger, token_response=token_response)
+    auth_utils.storeResponseInSession(logger=app.logger, token_response=token_response)
     app.logger.debug("OIDC callback processed, session: {}", session)
     return redirect('/')
 

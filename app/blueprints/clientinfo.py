@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, current_app, render_template, request
 import checkclients_report
 import utils
 
@@ -15,9 +15,11 @@ def clientinfo_list_realms(environment: str):
     Returns:
         Template: Realm list rendered HTML Page
     """
-    utils.logger.debug("Rendering clientinfo realm list for environment: {}", environment)
+    current_app.logger.debug("Rendering clientinfo realm list for environment: {}", environment)
     return render_template(
         'clientinfo_list_realms.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment
     )
@@ -34,10 +36,12 @@ def clientinfo_list(environment: str, realmName: str):
     Returns:
         Template: 'Client Info' Realm's Client List Rendered HTML Page
     """
-    clients = utils.getClients(logger=utils.logger, environment=environment, realmName=realmName, config=utils.config)
-    utils.logger.debug("Rendering clientinfo Client list for environment: {}, realm: {}", environment, realmName)
+    clients = utils.getClients(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, config=current_app.json_config)
+    current_app.logger.debug("Rendering clientinfo Client list for environment: {}, realm: {}", environment, realmName)
     return render_template(
         'clientinfo_list.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         realmName=realmName,
@@ -57,22 +61,24 @@ def clientinfo_detail(environment: str, realmName: str, client_id: str):
     Returns:
         Template: 'Client Info' Client Detail Rendered HTML Page
     """
-    normalizedClient = utils.getNormalizedClient(logger=utils.logger, environment=environment, realmName=realmName, client_id=client_id, config=utils.config)
-    utils.logger.trace("client: {}", normalizedClient)
-    realm = utils.getRealm(logger=utils.logger, environment=environment, realmName=realmName, config=utils.config)
-    warns = checkclients_report.getClientWarns(logger=utils.logger, environment=environment, realmName=realmName, normalizedClient=normalizedClient, config=utils.config)
+    normalizedClient = utils.getNormalizedClient(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, client_id=client_id, config=current_app.json_config)
+    current_app.logger.trace("client: {}", normalizedClient)
+    realm = utils.getRealm(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, config=current_app.json_config)
+    warns = checkclients_report.getClientWarns(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, normalizedClient=normalizedClient, config=current_app.json_config)
     secretVerification = ""
     if request.method == "POST":
         form_secret = request.form.get("secret", "")
-        utils.logger.trace("Processing form submission with secret: {}", form_secret)
+        current_app.logger.trace("Processing form submission with secret: {}", form_secret)
         if form_secret and form_secret.strip()==normalizedClient.get('client_secret'):
             secretVerification = "OK"
         else:
             secretVerification = "INCORRECT"
-    utils.logger.debug("secretVerification: {}", secretVerification)
-    utils.logger.debug("Rendering clientinfo Client detail for environment: {}, realm: {}, client_id: {}", environment, realmName, client_id)
+    current_app.logger.debug("secretVerification: {}", secretVerification)
+    current_app.logger.debug("Rendering clientinfo Client detail for environment: {}, realm: {}, client_id: {}", environment, realmName, client_id)
     return render_template(
         'clientinfo_detail.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         realm=realm,
@@ -94,9 +100,9 @@ def clientinfo_send(environment: str, realmName: str, client_id: str):
     Returns:
         Feedback page once email was sent.
     """
-    normalizedClient = utils.getNormalizedClient(logger=utils.logger, environment=environment, realmName=realmName, client_id=client_id, config=utils.config)
-    utils.logger.trace("client: {}", normalizedClient)
-    realm = utils.getRealm(logger=utils.logger, environment=environment, realmName=realmName, config=utils.config)
+    normalizedClient = utils.getNormalizedClient(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, client_id=client_id, config=current_app.json_config)
+    current_app.logger.trace("client: {}", normalizedClient)
+    realm = utils.getRealm(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, config=current_app.json_config)
 
     to_addr = normalizedClient["owner_email"]
     subject = "IDP - Client info - {}".format(environment)
@@ -109,12 +115,14 @@ def clientinfo_send(environment: str, realmName: str, client_id: str):
     )
     email_status = "OK"
     try :
-        utils.smtpSend(logger=utils.logger, subject=subject, body=body, to_addr=to_addr)
+        utils.smtpSend(logger=current_app.logger, subject=subject, body=body, to_addr=to_addr)
     except Exception as e:
-        utils.logger.error("Error sending email: {}", e)
+        current_app.logger.error("Error sending email: {}", e)
         email_status = "ERROR"
     return render_template(
         'clientinfo_sendemail_feedback.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         realm=realm,

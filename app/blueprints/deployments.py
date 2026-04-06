@@ -1,4 +1,5 @@
-from flask import Blueprint, redirect, render_template, url_for, request, Response
+import auth_utils
+from flask import Blueprint, current_app, redirect, render_template, url_for, request, Response
 import os
 from sherpa.utils.basics import Logger
 import utils
@@ -9,9 +10,9 @@ deployments_bp = Blueprint('deployments', __name__)
 def check_deployments_role():
     """Enforce role-based access for all deployments routes."""
     environment = request.view_args.get('environment')
-    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+    if environment in current_app.unrestricted_environments:
         return None
-    if environment and not utils.check_role(utils.build_role(environment, 'deployments')):
+    if environment and not auth_utils.hasRole(logger=current_app.logger, required_role=auth_utils.buildRole(environment, 'deployments')):
         return render_template('403.html', utils=utils), 403
 
 def getDeploymentArtifacts(logger: Logger, config: dict) -> list:
@@ -68,7 +69,7 @@ def getDeploymentStatus(logger: Logger, environment: str, artifact: str = None) 
             logger.trace("Artifact {} in environment {} is scheduled for deployment.", artifact, environment)
             return "execute"
     else:
-        artifacts = getDeploymentArtifacts(logger, utils.config)
+        artifacts = getDeploymentArtifacts(logger, current_app.json_config)
         for art in artifacts:
             deploy_execute_path = f"/data/deployment_reports/{environment}/{art}/deploy.execute"
             deploy_running_path = f"/data/deployment_reports/{environment}/{art}/deploy.running"
@@ -255,13 +256,15 @@ def deployments(environment: str, artifact: str = None):
         Template: Deployment list Rendered HTML Page
     """
     if environment == 'local':
-        utils.logger.warn("Attempted access to local environment, redirecting to dev")
+        current_app.logger.warn("Attempted access to local environment, redirecting to dev")
         if artifact:
             return redirect(url_for('deployments.deployments', environment='dev', artifact=artifact))
         return redirect(url_for('deployments.deployments', environment='dev'))
     
     return render_template(
         'deployments.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         deployment_reports=deployment_reports,
         environment=environment,
@@ -284,7 +287,7 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
         Template: Deployment report detail Rendered HTML Page
     """
     if environment == 'local':
-        utils.logger.warn("Attempted access to local environment, redirecting to dev")
+        current_app.logger.warn("Attempted access to local environment, redirecting to dev")
         return redirect(url_for('deployments.deployment_report', environment='dev', artifact=artifact, timestamp=timestamp))
     
     log_file_path = f"/data/deployment_reports/{environment}/{artifact}/{timestamp}.log"
@@ -292,19 +295,18 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
     from_artifact = request.args.get('from', 'all')
     
     if not os.path.exists(log_file_path):
-        utils.logger.error("Deployment log not found: {}", log_file_path)
+        current_app.logger.error("Deployment log not found: {}", log_file_path)
         if from_artifact == 'all':
             return redirect(url_for('deployments.deployments', environment=environment))
         return redirect(url_for('deployments.deployments', environment=environment, artifact=from_artifact))
-    
     try:
         with open(log_file_path, 'r', encoding='utf-8') as f:
             logs = f.read()
-        
-        status = extractDeploymentStatusFromLog(utils.logger, log_file_path)
-        
+        status = extractDeploymentStatusFromLog(current_app.logger, log_file_path)
         return render_template(
             'deployment_report.html',
+            logger=current_app.logger,
+            config=current_app.json_config,
             utils=utils,
             environment=environment,
             artifact=artifact,
@@ -314,7 +316,7 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
             from_artifact=from_artifact
         )
     except Exception as e:
-        utils.logger.error("Error reading deployment log {}: {}", log_file_path, e)
+        current_app.logger.error("Error reading deployment log {}: {}", log_file_path, e)
         return redirect(url_for('deployments.deployments', environment=environment, artifact=artifact))
 
 
@@ -353,17 +355,17 @@ def deployments_execute(environment: str):
         environment (str): Environment name
     """
     if environment == 'local':
-        utils.logger.warn("Attempted access to local environment, redirecting to dev")
+        current_app.logger.warn("Attempted access to local environment, redirecting to dev")
         return redirect(url_for('deployments.deployments', environment='dev'))
     
     artifact = request.form.get('artifact')
     if not artifact:
-        utils.logger.error("No artifact provided for deployment")
+        current_app.logger.error("No artifact provided for deployment")
         return redirect(url_for('deployments.deployments', environment=environment))
     
     selected_node = request.form.get('node')
     if not selected_node:
-        utils.logger.error("No node provided for deployment")
+        current_app.logger.error("No node provided for deployment")
         return redirect(url_for('deployments.deployments', environment=environment, artifact=artifact))
     
     pid_file_path = f"/data/deployment_reports/{environment}/{artifact}/deploy.execute"
@@ -371,5 +373,5 @@ def deployments_execute(environment: str):
     
     with open(pid_file_path, "w") as pid_file:
         pid_file.write(str(selected_node))
-    utils.logger.debug(f"Deployment execution PID File created at: {pid_file_path} with content: {selected_node}")
+    current_app.logger.debug(f"Deployment execution PID File created at: {pid_file_path} with content: {selected_node}")
     return redirect(url_for('deployments.deployments', environment=environment, artifact=artifact))

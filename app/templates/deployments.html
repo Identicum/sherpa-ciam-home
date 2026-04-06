@@ -5,13 +5,13 @@
 {% block content %}
 <div class="container">
     <h1 style="margin-bottom: 30px;">Deployments - {{ environment }}{% if artifact %} - {{ artifact }}{% endif %}</h1>
-    {% set deployment_nodes = deployment_reports.getDeploymentNodes(logger=utils.logger, environment=environment, config=utils.config) %}
-    {% set deployment_status = deployment_reports.getDeploymentStatus(logger=utils.logger, environment=environment, artifact=artifact) %}
+    {% set deployment_nodes = deployment_reports.getDeploymentNodes(logger=logger, environment=environment, config=config) %}
+    {% set deployment_status = deployment_reports.getDeploymentStatus(logger=logger, environment=environment, artifact=artifact) %}
     {% set is_all = (not artifact) %}
     {% if is_all %}
-        {% set reports = deployment_reports.getDeploymentReports(logger=utils.logger, environment=environment, artifact=None, include_logs=False) %}
+        {% set reports = deployment_reports.getDeploymentReports(logger=logger, environment=environment, artifact=None, include_logs=False) %}
     {% else %}
-        {% set reports = deployment_reports.getDeploymentReports(logger=utils.logger, environment=environment, artifact=artifact, include_logs=False) %}
+        {% set reports = deployment_reports.getDeploymentReports(logger=logger, environment=environment, artifact=artifact, include_logs=False) %}
     {% endif %}
 
     {% if artifact %}
@@ -97,7 +97,7 @@
 
     {% if is_all %}
     <h3>Artifacts Status</h3>
-    {% set artifacts_status = deployment_reports.getArtifactsLastStatus(logger=utils.logger, environment=environment, config=utils.config) %}
+    {% set artifacts_status = deployment_reports.getArtifactsLastStatus(logger=logger, environment=environment, config=config) %}
     {% if artifacts_status and artifacts_status|length > 0 %}
         <table class="admin-links-table" style="table-layout: fixed; width: 100%;">
             <thead>

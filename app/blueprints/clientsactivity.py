@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, render_template
 import clientsactivity_report
 import json
 import os
@@ -20,6 +20,8 @@ def clientsactivity_list_realms(environment: str):
     """
     return render_template(
         'clientsactivity_list_realms.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment
     )
@@ -36,13 +38,15 @@ def clientsactivity_generate_report(environment: str):
         Template: Environment-Specific 'Clients activity' Report **GENERATION** Rendered Page HTML
     """
     processOutput = clientsactivity_report.run(
-        logger=utils.logger,
+        logger=current_app.logger,
         outputPath="/data",
         environment=environment,
-        config=utils.config
+        config=current_app.json_config
     )
     return render_template(
         'terraformcheck_output.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         processOutput=processOutput
@@ -80,6 +84,8 @@ def clientsactivity_show_report(environment: str, realmName: str):
         errorMessage = f"An unexpected error occurred while reading {reportFilePath}: {str(e)}"
     return render_template(
         'clientsactivity_list.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         realmName=realmName,

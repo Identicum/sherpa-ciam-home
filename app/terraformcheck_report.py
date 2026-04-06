@@ -200,7 +200,7 @@ def run(logger: Logger, objectsPath: str, outputPath: str, environment: str, con
 
 
 def main(arguments):
-	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/terraformcheck_report.log")
+	logger = Logger(name=os.path.basename(__file__), log_level=os.environ.get("LOG_LEVEL"), log_path="/tmp/terraformcheck_report.log")
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('objectsPath', type=str, help="Path to terraform objects.")
 	parser.add_argument('outputPath', type=str, help="Path to terraformcheck_*.json files.")

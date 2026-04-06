@@ -10,7 +10,7 @@ import utils
 
 
 def main(arguments):
-	logger = Logger(os.path.basename(__file__), os.environ.get("LOG_LEVEL"), "/tmp/localhost_apply.log")
+	logger = Logger(name=os.path.basename(__file__), log_level=os.environ.get("LOG_LEVEL"), log_path="/tmp/localhost_apply.log")
 	environment = "local"
 	objectsPath = "/terraform-objects"
 	environmentVarFiles = ["../env/local.tfvars", "../env/local_secrets.tfvars"]
@@ -27,7 +27,6 @@ def main(arguments):
 			instanceVarFiles = utils.getConfig(logger=logger).get("realms").get(realmType).get("environments").get(environment).get(workspace).get("var_files", [])
 			varFiles = environmentVarFiles + instanceVarFiles
 			terraform.apply(logger=logger, objectsFolder=realmFolder, varFiles=varFiles)
-
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

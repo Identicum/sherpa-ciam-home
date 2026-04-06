@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, current_app, render_template, request
 import json
 import utils
 
@@ -14,6 +14,8 @@ def clientcreation_form():
     """
     return render_template(
         'clientcreation_form.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils
     )
 
@@ -25,9 +27,11 @@ def clientcreation():
         Template: Rendered HTML page with Request Client form
     """
     data = request.form.to_dict()
-    utils.logger.debug(f"Received data: {data}")
+    current_app.logger.debug(f"Received data: {data}")
 
     return render_template(
         'clientcreation_feedback.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils
     )

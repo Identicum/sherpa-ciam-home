@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, render_template
 import checkclients_report
 import json
 import os
@@ -35,9 +35,11 @@ def checkclients_show_report(environment: str):
         errorMessage = f"Error decoding JSON from report file: {report_file_path}"
     except Exception as e:
         errorMessage = f"An unexpected error occurred while reading {report_file_path}: {str(e)}"
-    utils.logger.debug("Rendering CheckClients for environment: {}", environment)
+    current_app.logger.debug("Rendering CheckClients for environment: {}", environment)
     return render_template(
         'checkclients.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         warns=warns,
@@ -57,13 +59,15 @@ def checkclient_generate_report(environment: str):
         Template: Environment-Specific 'Terraform Check' Diff Report **GENERATION** Rendered Page HTML
     """
     processOutput = checkclients_report.run(
-        logger=utils.logger,
+        logger=current_app.logger,
         outputPath="/data",
         environment=environment,
-        config=utils.config
+        config=current_app.json_config
     )
     return render_template(
         'terraformcheck_output.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         processOutput=processOutput

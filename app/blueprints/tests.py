@@ -1,6 +1,6 @@
-from flask import Blueprint, redirect, render_template, request, Response, send_from_directory, url_for
+import auth_utils
+from flask import Blueprint, current_app, redirect, render_template, request, Response, send_from_directory, url_for
 import json
-# from app.main import UNRESTRICTED_ENVIRONMENTS
 import utils
 
 tests_bp = Blueprint('tests', __name__)
@@ -9,9 +9,9 @@ tests_bp = Blueprint('tests', __name__)
 def check_tests_role():
     """Enforce role-based access for all deployments routes."""
     environment = request.view_args.get('environment')
-    if environment in utils.UNRESTRICTED_ENVIRONMENTS:
+    if environment in current_app.unrestricted_environments:
         return None
-    if environment and not utils.check_role(utils.build_role(environment, 'tests')):
+    if environment and not auth_utils.hasRole(logger=current_app.logger, required_role=auth_utils.buildRole(environment, 'tests')):
         return render_template('403.html', utils=utils), 403
 
 
@@ -27,9 +27,11 @@ def tests_list(environment: str):
     Returns:
         Template: Test list Rendered HTML Page
     """
-    execution_options = utils.config.get("environments", {}).get(environment, {}).get("testing_custom_envs", [])
+    execution_options = current_app.json_config.get("environments", {}).get(environment, {}).get("testing_custom_envs", [])
     return render_template(
         'tests_list.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         execution_options=execution_options
@@ -49,7 +51,7 @@ def tests_execute(environment: str):
     pid_file_path = f"/data/idp_testing_reports/{environment}.execute"
     with open(pid_file_path, "w") as pid_file:
         pid_file.write(execution_option)
-    utils.logger.debug(f"Test execution PID File created at: {pid_file_path} with content: {execution_option}")
+    current_app.logger.debug(f"Test execution PID File created at: {pid_file_path} with content: {execution_option}")
     return redirect(url_for('tests.tests_list', environment=environment))
 
 
@@ -84,37 +86,39 @@ def tests_report(environment: str, timestamp: str):
                 
                 if test_metadata.get("test_media_dir"):
                     test_media_dir = test_metadata["test_media_dir"]
-                    utils.logger.debug("Processing test with test_media_dir: '{}' (outcome: {})", test_media_dir, test_outcome)
+                    current_app.logger.debug("Processing test with test_media_dir: '{}' (outcome: {})", test_media_dir, test_outcome)
                     
                     if test_outcome == "failed" or call_outcome == "failed":
                         failed_images = utils.getTestFailedImages(
-                            logger=utils.logger,
+                            logger=current_app.logger,
                             environment=environment,
                             timestamp=timestamp,
                             test_media_dir=test_media_dir
                         )
                         if failed_images:
-                            utils.logger.info("Adding {} failed images to test object (test_media_dir: '{}', images: {})", 
+                            current_app.logger.info("Adding {} failed images to test object (test_media_dir: '{}', images: {})", 
                                        len(failed_images), test_media_dir, failed_images)
                             if "metadata" not in test_object["attributes"]["call"]:
                                 test_object["attributes"]["call"]["metadata"] = {}
                             test_object["attributes"]["call"]["metadata"]["failed_images"] = failed_images
                         else:
-                            utils.logger.warn("No failed images found for test_media_dir: '{}' (but test failed). Path checked: /data/idp_testing_reports/{}/{}/{}", 
+                            current_app.logger.warn("No failed images found for test_media_dir: '{}' (but test failed). Path checked: /data/idp_testing_reports/{}/{}/{}", 
                                        test_media_dir, environment, timestamp, test_media_dir)
                     else:
-                        utils.logger.debug("Test passed, skipping image search for test_media_dir: '{}'", test_media_dir)
+                        current_app.logger.debug("Test passed, skipping image search for test_media_dir: '{}'", test_media_dir)
                 else:
-                    utils.logger.debug("Test object does not have test_media_dir in metadata (test: {}, outcome: {})", 
+                    current_app.logger.debug("Test object does not have test_media_dir in metadata (test: {}, outcome: {})", 
                                test_attributes.get("name", "unknown"), test_outcome)
 
         # Enrich each test with description from config mapping (or keep from report if present)
-        utils.enrichTestsWithDescriptions(utils.logger, json_report)
+        utils.enrichTestsWithDescriptions(current_app.logger, json_report)
     except Exception as e:
         error_message = e
 
     return render_template(
         'tests_detail.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         json_report=json_report,
         error_message=error_message,
@@ -164,7 +168,7 @@ def tests_report_download(environment: str, timestamp: str):
             item.pop("relationships", None)
 
     # Include description for each test in downloaded JSON
-    utils.enrichTestsWithDescriptions(utils.logger, json_report)
+    utils.enrichTestsWithDescriptions(current_app.logger, json_report)
 
     json_string = json.dumps(json_report, indent=2, ensure_ascii=False)
     return Response(
@@ -196,7 +200,7 @@ def metrics(environment: str):
     output.append('# TYPE playwright_tests_duration gauge')
     output.append('')
 
-    test_reports = utils.getTestReports(utils.logger, environment)
+    test_reports = utils.getTestReports(current_app.logger, environment)
     for run_id, exec_option, passed, failed, num_tests, duration in test_reports:
         unix_timestamp = utils.getReportTimestamp(run_id)
         output.append(f'playwright_tests_info{{run_id="{run_id}",exec_option="{exec_option}"}} 1  {unix_timestamp}')

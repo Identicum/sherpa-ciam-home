@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, render_template
 import json
 import utils
 
@@ -20,6 +20,8 @@ def links(environment: str):
     links = linksJson.get(environment, [])
     return render_template(
         'links.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         links=links,
         environment=environment

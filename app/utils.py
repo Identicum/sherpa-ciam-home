@@ -527,7 +527,7 @@ def getClientTag(logger: Logger, description: str, client_id: str, client_type: 
     if client_type=="realm" or client_id in native_clients:
         return "[KEYCLOAK_NATIVE]"
 
-    valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]
+    valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[PROXY]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]
     tag = splitDescription(logger=logger, description=description, position=0, defaultValue="")
     if tag == "":
         return "[TAG_MISSING]"

@@ -14,7 +14,7 @@ def check_change_email_role():
     if environment in current_app.unrestricted_environments:
         return None
     if environment and not auth_utils.hasRole(logger=current_app.logger, required_role=auth_utils.buildRole(environment, 'change-email')):
-        return render_template('403.html', utils=utils), 403
+        return render_template('403.html', logger=current_app.logger, config=current_app.json_config, utils=utils), 403
 
 
 def search_user(base_url: str, realm: str, access_token: str, target_user: str) -> str:

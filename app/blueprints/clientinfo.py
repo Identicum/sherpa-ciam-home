@@ -108,6 +108,8 @@ def clientinfo_send(environment: str, realmName: str, client_id: str):
     subject = "IDP - Client info - {}".format(environment)
     body = render_template(
         'email/clientinfo.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
         utils=utils,
         environment=environment,
         realm=realm,

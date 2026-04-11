@@ -418,7 +418,7 @@ def getNormalizedClient(logger: Logger, properties: Properties, environment: str
             response["frontchannel_logout_url"] = client["attributes"].get("frontchannel.logout.url", "")
 
             response["access_token_lifespan"] = client["attributes"].get("access.token.lifespan", "(inherit)")
-            response["effective_access_token_lifespan"] = client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0))
+            response["effective_access_token_lifespan"] = int(client["attributes"].get("access.token.lifespan", realm.get("accessTokenLifespan", 0)))
             response["realm_access_token_lifespan"] = realm["accessTokenLifespan"]
 
             response["client_session_idle"] = client["attributes"].get("client.session.idle.timeout", "(inherit)")

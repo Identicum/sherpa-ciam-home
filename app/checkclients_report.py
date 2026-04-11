@@ -199,10 +199,10 @@ def checkAccessTokenLifespan(logger: Logger, normalizedClient: dict) -> list:
         list: Respective warning should the accessTokenLifespan not be set. Empty list otherwise.
     """
     logger.trace("checkAccessTokenLifespan({})", normalizedClient.get("client_id"))
-    access_token_lifespan = normalizedClient["access_token_lifespan"]
-    logger.trace("access_token_lifespan: {}, type: {}", access_token_lifespan, type(access_token_lifespan))
+    effective_access_token_lifespan = normalizedClient["effective_access_token_lifespan"]
+    logger.trace("effective_access_token_lifespan: {}, type: {}", effective_access_token_lifespan, type(effective_access_token_lifespan))
     if normalizedClient["tag"] == "[CLIENT_CREDENTIALS]":
-        if access_token_lifespan is None or isinstance(access_token_lifespan, str) or int(access_token_lifespan) < 1800:
+        if effective_access_token_lifespan < 1800:
             return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have an access token lifespan of (at least) 1800 seconds.")]
     return []
 

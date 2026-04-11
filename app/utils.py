@@ -189,6 +189,20 @@ def getEnvironments(logger: Logger, config: dict) -> list:
     return list(config.get("environments", {}).keys())
 
 
+def getEnvironmentType(logger: Logger, config: dict, environment: str) -> str:
+    """Returns the type of the environment
+
+    Args:
+        logger: Logger instance
+        config (dict): JSON configuration
+        environment (str): Environment name
+
+    Returns:
+        str: Type of the environment
+    """
+    return config.get("environments", {}).get(environment, {}).get("type")
+
+
 def getRealmWorkspaces(logger: Logger, realmType: str, environment: str, config: dict) -> list:
     """Returns workspaces for a realmType and environment
 

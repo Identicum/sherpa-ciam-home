@@ -91,7 +91,7 @@ def getClientWarns(logger: Logger, properties: Properties, environment: str, rea
     for warn in checkOwnerEmail(logger=logger, normalizedClient=normalizedClient):
         clientWarns.append(warn)
 
-    for warn in checkRedirectUrls(logger=logger, normalizedClient=normalizedClient, environment=environment):
+    for warn in checkRedirectUrls(logger=logger, normalizedClient=normalizedClient, environment=environment, config=config):
         clientWarns.append(warn)
 
     for warn in checkWebOrigins(logger=logger, normalizedClient=normalizedClient):
@@ -106,7 +106,7 @@ def getClientWarns(logger: Logger, properties: Properties, environment: str, rea
             clientWarns.append(warn)
         for warn in checkGrants(logger=logger, normalizedClient=normalizedClient):
                 clientWarns.append(warn)
-        for warn in checkPostLogoutRedirectUrls(logger=logger, normalizedClient=normalizedClient, environment=environment):
+        for warn in checkPostLogoutRedirectUrls(logger=logger, normalizedClient=normalizedClient, environment=environment, config=config):
             clientWarns.append(warn)
         realm = utils.getRealm(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config, kcAdmin=kcAdmin)
         for warn in checkSessionTimeout(logger=logger, normalizedClient=normalizedClient, realm=realm):
@@ -207,13 +207,14 @@ def checkAccessTokenLifespan(logger: Logger, normalizedClient: dict) -> list:
     return []
 
 
-def checkRedirectUrls(logger: Logger, normalizedClient: dict, environment: str) -> list:
+def checkRedirectUrls(logger: Logger, normalizedClient: dict, environment: str, config: dict) -> list:
     """Checks if a given client has Redirect URLs set up. Returns a warning if not.
 
     Args:
         logger (Logger): Logger instance
         client (dict): Normalized Client Object
         environment (str): Environment name
+        config (dict): JSON configuration
 
     Returns:
         list: Respective warning should the Redirect URLs be invalid or blank. Empty list otherwise.
@@ -240,7 +241,8 @@ def checkRedirectUrls(logger: Logger, normalizedClient: dict, environment: str) 
         if not redirectUrl.startswith("/"):
             absolute_redirect_urls_count += 1
 
-    if absolute_redirect_urls_count > 1 and environment != "dev":
+    environment_type = utils.getEnvironmentType(logger=logger, config=config, environment=environment)
+    if absolute_redirect_urls_count > 1 and environment_type != "development":
         return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have up to 1 absolute redirect_url value, but has {}.".format(redirectUrlsCount))]
 
     warns = []
@@ -249,9 +251,9 @@ def checkRedirectUrls(logger: Logger, normalizedClient: dict, environment: str) 
             if redirectUrl.startswith("http"):
                 return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client's redirect_url should not start with http.")]
         else:
-            if (environment != "dev") and (not redirectUrl.startswith("http")) and (not redirectUrl.startswith("/")):
+            if (environment_type != "development") and (not redirectUrl.startswith("http")) and (not redirectUrl.startswith("/")):
                 return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client's redirect_url should start with 'http' or '/'.")]
-        if environment != "dev":
+        if environment_type != "development":
             if "localhost" in redirectUrl:
                 return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client has a redirect_url that contains localhost.")]
             if "*" in redirectUrl or "+" in redirectUrl:
@@ -413,13 +415,14 @@ def checkWebOrigins(logger: Logger, normalizedClient: dict) -> list:
     return warns
 
 
-def checkPostLogoutRedirectUrls(logger: Logger, normalizedClient: dict, environment: str) -> list:
+def checkPostLogoutRedirectUrls(logger: Logger, normalizedClient: dict, environment: str, config: dict) -> list:
     """Checks if a given Client's PostLogoutRedirectUrls are set up properly. Returns a list of warnings if not.
 
     Args:
         logger (Logger): Logger instance
         normalizedClient (dict): Normalized Client Object
         environment (str): Environment name
+        config (dict): JSON configuration
 
     Returns:
         list: List of warnings should PostLogoutRedirectUrls not be set up properly, empty list otherwise.
@@ -434,7 +437,8 @@ def checkPostLogoutRedirectUrls(logger: Logger, normalizedClient: dict, environm
         if client_post_logout_redirect_urls_count > 0:
             return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should not have post_logout_redirect_url, but has {}.".format(client_post_logout_redirect_urls_count))]
     else:
-        if not environment == "dev":
+        environment_type = utils.getEnvironmentType(logger=logger, config=config, environment=environment)
+        if environment_type != "development":
             if client_post_logout_redirect_urls_count == 0:
                 return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have post_logout_redirect_url, but has none.")]
             elif client_post_logout_redirect_urls_count > 1:

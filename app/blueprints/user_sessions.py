@@ -1,11 +1,94 @@
 import auth_utils
+from datetime import datetime
 from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash
-import json
 import uuid
 import utils
 
 
 user_sessions_bp = Blueprint('user-sessions', __name__)
+
+def getUserSessions(environment: str, realm: str, userIdentifier: str, config: dict) -> dict:
+    """Retrieves all of a user's sessions in a given environment and realm
+
+    Args:
+        environment (str)
+        realm (str)
+        userIdentifier (str): May be a username or user's UUID
+        config (dict): Inherited config for the Keycloak Admin
+
+    Returns:
+        dict: _description_
+    """
+    username = None
+    userId = None
+
+    if userIdentifier is None or userIdentifier.strip() == "":
+        current_app.logger.warn("userIdentifier not provided.")
+        return {
+            "success": False,
+            "message": "Username or UUID not provided."
+        }
+    else:
+        try:
+            uuid.UUID(userIdentifier)
+            userId = userIdentifier
+        except ValueError:
+            username = userIdentifier
+
+    kcAdmin = utils.getKeycloakAdmin(
+        logger=current_app.logger,
+        properties=current_app.properties,
+        environment=environment,
+        realmName=realm,
+        config=config
+    )
+
+    if userId is None:
+        userId = kcAdmin.get_user_id(username)
+
+    if username is None:
+        try:
+            user = kcAdmin.get_user(userId)
+            username = user.get("username")
+        except Exception as e:
+            current_app.logger.debug("Could not get username for user_id {}: {}", userId, e)
+            username = None
+    current_app.logger.trace("User ID is {}, username is {}", userId, username)
+
+    try:
+        sessions = kcAdmin.get_sessions(userId)
+        for session in sessions:
+            session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
+            session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
+            session["username"] = username
+            session["userId"] = userId
+        current_app.logger.trace("Online Sessions: {}", sessions)
+
+        for client in kcAdmin.get_clients():
+            for session in kcAdmin.sherpa_get_user_client_offlinesessions(user_id=userId, client_id=client["clientId"]):
+                if "start" in session:
+                    session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
+                if "lastAccess" in session:
+                    session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
+                sessions.append({
+                    **session,
+                    "is_offline_session": True,
+                    "clientId": client["clientId"],
+                    "username": username,
+                    "userId": userId
+                })
+        return {
+            "sessions": sessions,
+            "success": True,
+            "message": "OK"
+        }
+    except Exception as e:
+        current_app.logger.error(e)
+        return {
+            "sessions": None,
+            "success": False,
+            "message": e
+        }
 
 
 @user_sessions_bp.before_request
@@ -61,7 +144,7 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
     Returns:
         Template: Rendered HTML page containing the User Session Lookup Result
     """
-    response = utils.getUserSessions(logger=current_app.logger, properties=current_app.properties, environment=environment, realm=realm, identifier=userIdentifier, config=current_app.json_config)
+    response = getUserSessions(environment=environment, realm=realm, userIdentifier=userIdentifier, config=current_app.json_config)
     current_app.logger.trace("User sessions: {}", response)
     return render_template(
         'user_sessions_detail.html',

@@ -12,7 +12,6 @@ from sherpa.utils.basics import Logger
 from sherpa.utils.basics import Properties
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
-import uuid
 
 
 def load_messages():
@@ -115,7 +114,7 @@ def getRealms(logger: Logger, environment: str, config: dict) -> list:
     return realmsList
 
 
-def getRealm(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict) -> dict:
+def getRealm(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict, kcAdmin: SherpaKeycloakAdmin = None) -> dict:
     """Will fetch a realm from a given Environment using Keycloak's Admin API and return it
 
     Args:
@@ -124,11 +123,13 @@ def getRealm(logger: Logger, properties: Properties, environment: str, realmName
         environment (str): Environment name
         realmName (str): Realm name
         config (dict): JSON configuration
+        kcAdmin (SherpaKeycloakAdmin, optional): SherpaKeycloakAdmin instance.
 
     Returns:
         dict: Realm Object from the Keycloak API
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
+    if kcAdmin is None:
+        kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         return []
     try:
@@ -278,7 +279,7 @@ def getKeycloakAdmin(logger: Logger, properties: Properties, environment: str, r
     return kcAdmin
 
 
-def getClients(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict) -> list:
+def getClients(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict, kcAdmin: SherpaKeycloakAdmin = None) -> list:
     """Will fetch a given realm in a given environment's client list from the Keycloak API and return it.
 
     Args:
@@ -287,11 +288,13 @@ def getClients(logger: Logger, properties: Properties, environment: str, realmNa
         environment (str): Environment name
         realmName (str): Realm name
         config (dict): JSON configuration
+        kcAdmin (SherpaKeycloakAdmin, optional): SherpaKeycloakAdmin instance. If not provided, one will be created.
 
     Returns:
         list: List of clients in the realm
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
+    if kcAdmin is None:
+        kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         logger.error("Error fetching clients for {}/{}. No kcAdmin.", environment, realmName)
         return []
@@ -337,7 +340,7 @@ def getClientLastActivity(logger: Logger, elastic: Elasticsearch, realmName: str
         return "No activity"
 
 
-def getNormalizedClient(logger: Logger, properties: Properties, environment: str, realmName: str, client_id: str, config: dict) -> dict:
+def getNormalizedClient(logger: Logger, properties: Properties, environment: str, realmName: str, client_id: str, config: dict, kcAdmin: SherpaKeycloakAdmin = None) -> dict:
     """Will fetch a Client from a given Realm in a given Environment using the provided `client_id` in the Keycloak API, then format the object so as to standardize the output between different client types
 
     Args:
@@ -347,11 +350,13 @@ def getNormalizedClient(logger: Logger, properties: Properties, environment: str
         realmName (str): Realm name
         client_id (str): Client ID
         config (dict): JSON configuration
+        kcAdmin (SherpaKeycloakAdmin, optional): SherpaKeycloakAdmin instance. If not provided, one will be created.
 
     Returns:
         dict: Resulting Normalized Client object
     """
-    kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
+    if kcAdmin is None:
+        kcAdmin = getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
     if not kcAdmin:
         return {}
     try:
@@ -606,95 +611,6 @@ def formatUrl(logger: Logger, url: str, rootUrl: str) -> str:
     if url in [ "*", "+" ]:
         return "*"
     return f"{rootUrl}{url}"
-
-
-def getUserSessions(logger: Logger, properties: Properties, environment: str, realm: str, identifier: str, config: dict) -> dict:
-    """Retrieves all of a user's sessions in a given environment and realm
-
-    Args:
-        logger: Logger instance
-        properties: Properties instance
-        environment (str)
-        realm (str)
-        identifier (str): May be a username or user's UUID
-        config (dict): Inherited config for the Keycloak Admin
-
-    Returns:
-        dict: _description_
-    """
-    # Validate identifier integrity
-    if not identifier:
-        return {
-            "success": False,
-            "message": "Username or UUID not provided."
-        }
-    logger.debug("Identifier is valid")
-    
-    # Define identifier type
-    id_type = ""
-    try:
-        uuid.UUID(identifier)
-        id_type = "UUID"
-    except ValueError:
-        id_type = "username"
-
-    logger.debug("ID Type {}", id_type)
-    
-    kc_admin = getKeycloakAdmin(
-        logger=logger,
-        properties=properties,
-        environment=environment,
-        realmName=realm,
-        config=config
-    )
-    
-    if id_type == "username":
-        username = identifier
-        identifier = kc_admin.get_user_id(identifier)
-    else:
-        try:
-            user = kc_admin.get_user(identifier)
-            username = user.get("username")
-        except Exception as e:
-            logger.debug("Could not get username for user_id {}: {}", identifier, e)
-            username = None
-    
-    logger.debug("ID is {}, username is {}", identifier, username)
-    
-    try:
-        sessions = kc_admin.get_sessions(identifier)
-        for session in sessions:
-            session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
-            session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
-            session["username"] = username
-            session["userId"] = identifier
-        logger.trace("Online Sessions: {}", sessions)
-
-        for client in kc_admin.get_clients():
-            for session in kc_admin.sherpa_get_user_client_offlinesessions(user_id=identifier, client_id=client["clientId"]):
-                if "start" in session:
-                    session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
-                if "lastAccess" in session:
-                    session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
-                sessions.append({
-                    **session,
-                    "is_offline_session": True,
-                    "clientId": client["clientId"],
-                    "username": username,
-                    "userId": identifier
-                })
-        return {
-            "sessions": sessions,
-            "success": True,
-            "message": "OK"
-        }
-    except Exception as e:
-        logger.error(e)
-        return {
-            "sessions": None,
-            "success": False,
-            "message": e
-        }
 
 
 def getTestReports(logger: Logger, environment: str):

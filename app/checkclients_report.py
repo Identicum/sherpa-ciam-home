@@ -43,9 +43,10 @@ def getRealmWarns(logger: Logger, properties: Properties, environment: str, real
         list: List of realm warnings
     """
     realmWarns = []
-    for client in utils.getClients(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config):
-        normalizedClient = utils.getNormalizedClient(logger=logger, properties=properties, environment=environment, realmName=realmName, client_id=client["clientId"], config=config)
-        clientWarns = getClientWarns(logger=logger, properties=properties, environment=environment, realmName=realmName, normalizedClient=normalizedClient, config=config)
+    kcAdmin = utils.getKeycloakAdmin(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
+    for client in utils.getClients(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config, kcAdmin=kcAdmin):
+        normalizedClient = utils.getNormalizedClient(logger=logger, properties=properties, environment=environment, realmName=realmName, client_id=client["clientId"], config=config, kcAdmin=kcAdmin)
+        clientWarns = getClientWarns(logger=logger, properties=properties, environment=environment, realmName=realmName, normalizedClient=normalizedClient, config=config, kcAdmin=kcAdmin)
         for clientWarn in clientWarns:
             logger.trace("Adding client warning: {}", clientWarn)
             realmWarns.append(clientWarn)
@@ -54,12 +55,8 @@ def getRealmWarns(logger: Logger, properties: Properties, environment: str, real
     return realmWarns
 
 
-def getClientWarns(logger: Logger, properties: Properties, environment: str, realmName: str, normalizedClient: dict, config: dict) -> list:
-    """ # TODO: Add support for SAML clients.
-    # SAML clients are not supported yet.
-    return warns
-    
-    Gathers and returns a list of a given `client` in the provided `realm`'s active warnings
+def getClientWarns(logger: Logger, properties: Properties, environment: str, realmName: str, normalizedClient: dict, config: dict, kcAdmin = None) -> list:
+    """Returns a list of warnings regarding for a `client` in a `realm` in `environment`
 
     Args:
         logger (Logger): Logger instance
@@ -68,6 +65,7 @@ def getClientWarns(logger: Logger, properties: Properties, environment: str, rea
         realmName (str): Realm name
         normalizedClient (dict): Normalized Client object
         config (dict): JSON configuration
+        kcAdmin: Optional SherpaKeycloakAdmin instance.
 
     Returns:
         list: Client's warnings.
@@ -110,7 +108,7 @@ def getClientWarns(logger: Logger, properties: Properties, environment: str, rea
                 clientWarns.append(warn)
         for warn in checkPostLogoutRedirectUrls(logger=logger, normalizedClient=normalizedClient, environment=environment):
             clientWarns.append(warn)
-        realm = utils.getRealm(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config)
+        realm = utils.getRealm(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config, kcAdmin=kcAdmin)
         for warn in checkSessionTimeout(logger=logger, normalizedClient=normalizedClient, realm=realm):
             clientWarns.append(warn)
         for warn in checkScopes(logger=logger, normalizedClient=normalizedClient):
@@ -126,7 +124,7 @@ def getWarn(logger: Logger, normalizedClient: dict, issueLevel: str, issueDescri
     """Returns a warning dictionary for a given client.
     
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         normalizedClient (dict): Normalized Client object
         level (str): Warning level (e.g., "WARN", "ERROR")
         issueDescription (str): Description of the issue
@@ -149,7 +147,7 @@ def checkTag(logger: Logger, normalizedClient: dict) -> list:
     """Checks the tag and verifies with client.type
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
 
     Returns:
@@ -177,7 +175,7 @@ def checkOwnerEmail(logger: Logger, normalizedClient: dict) -> list:
     """Checks if a given client has an Owner Email set up. Returns a warning if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
 
     Returns:
@@ -194,7 +192,7 @@ def checkAccessTokenLifespan(logger: Logger, normalizedClient: dict) -> list:
     """Checks if a given client has an accessTokenLifespan set up. Returns a warning if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
 
     Returns:
@@ -213,7 +211,7 @@ def checkRedirectUrls(logger: Logger, normalizedClient: dict, environment: str) 
     """Checks if a given client has Redirect URLs set up. Returns a warning if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
         environment (str): Environment name
 
@@ -265,7 +263,7 @@ def checkFrontChannelLogout(logger: Logger, normalizedClient: dict) -> list:
     """Checks if a given client has FrontChannelLogout set up properly. Returns a warning if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
 
     Returns:
@@ -287,7 +285,7 @@ def checkAccessType(logger: Logger, normalizedClient: dict) -> list:
     """Checks if a given client has AccessType set up properly. Returns a list of warnings if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
 
     Returns:
@@ -311,7 +309,7 @@ def checkGrants(logger: Logger, normalizedClient: dict) -> list:
     """Checks if a given client has Grants set up properly. Returns a list of warnings if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
 
     Returns:
@@ -351,7 +349,7 @@ def checkScopes(logger: Logger, normalizedClient: dict) -> list:
     """Checks if a given client has Scopes set up properly. Returns a list of warnings if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
 
     Returns:
@@ -375,7 +373,7 @@ def checkMappers(logger: Logger, normalizedClient: dict) -> list:
     """Checks if a given client has Protocol Mappers set up properly. Returns a list of warnings if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         client (dict): Normalized Client Object
 
     Returns:
@@ -391,7 +389,7 @@ def checkWebOrigins(logger: Logger, normalizedClient: dict) -> list:
     """Checks if a given Client's Web Origins are set up propertly. Returns a list of warnings if not
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         normalizedClient (dict): Normalized Client Object
 
     Returns:
@@ -419,7 +417,7 @@ def checkPostLogoutRedirectUrls(logger: Logger, normalizedClient: dict, environm
     """Checks if a given Client's PostLogoutRedirectUrls are set up properly. Returns a list of warnings if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         normalizedClient (dict): Normalized Client Object
         environment (str): Environment name
 
@@ -448,7 +446,7 @@ def checkSessionTimeout(logger: Logger, normalizedClient: str, realm: str) -> li
     """Checks if a given Client's SessionTimeout is set up properly. Returns a list of warnings if not.
 
     Args:
-		logger (Logger): Logger instance
+        logger (Logger): Logger instance
         normalizedClient (str): Normalized Client Object
         realm (str): Realm name
     
@@ -465,51 +463,51 @@ def checkSessionTimeout(logger: Logger, normalizedClient: str, realm: str) -> li
 
 
 def storeWarns(logger: Logger, warns: list, outputFilePath: str):
-	"""Saves warns to a JSON file
+    """Saves warns to a JSON file
 
-	Args:
-		logger (Logger): Logger instance
-		warns (list): List of warnings
-		output_file_path (str): **File** Path in which to save the JSON Plan
-	"""
-	metadata = { "timestamp": utils.getLocalDatetime() }
-	outputContent = { "metadata": metadata, "warns": warns }
-	logger.info("Storing warns into: {}", outputFilePath)
-	with open(outputFilePath, 'w') as f:
-		json.dump(outputContent, f, indent=4)
+    Args:
+        logger (Logger): Logger instance
+        warns (list): List of warnings
+        output_file_path (str): **File** Path in which to save the JSON Plan
+    """
+    metadata = { "timestamp": utils.getLocalDatetime() }
+    outputContent = { "metadata": metadata, "warns": warns }
+    logger.info("Storing warns into: {}", outputFilePath)
+    with open(outputFilePath, 'w') as f:
+        json.dump(outputContent, f, indent=4)
 
 
 def run(logger: Logger, properties: Properties, outputPath: str, environment: str, config: dict) -> list:
-	"""Runs CheckClients Report Generation for a given Environment
+    """Runs CheckClients Report Generation for a given Environment
 
-	Args:
-		logger (Logger): Logger instance
-		properties (Properties): Properties instance
-		outputPath (str): **Directory** Path in which to save the JSON output
-		environment (str): Environment in which to run Diff Report Generation
-		config (dict): JSON configuration
+    Args:
+        logger (Logger): Logger instance
+        properties (Properties): Properties instance
+        outputPath (str): **Directory** Path in which to save the JSON output
+        environment (str): Environment in which to run Diff Report Generation
+        config (dict): JSON configuration
 
-	Returns:
-		str: Process output
-	"""
-	logger.info("Checking Client for environment: {}", environment)
-	outputFilePath = "{}/checkclients_{}.json".format(outputPath, environment)
-	environmentWarns = getEnvWarns(logger=logger, properties=properties, environment=environment, config=config)
-	storeWarns(logger=logger, warns=environmentWarns, outputFilePath=outputFilePath)
-	return ""
+    Returns:
+        str: Process output
+    """
+    logger.info("Checking Client for environment: {}", environment)
+    outputFilePath = "{}/checkclients_{}.json".format(outputPath, environment)
+    environmentWarns = getEnvWarns(logger=logger, properties=properties, environment=environment, config=config)
+    storeWarns(logger=logger, warns=environmentWarns, outputFilePath=outputFilePath)
+    return ""
 
 
 def main(arguments):
-	logger = Logger(name=os.path.basename(__file__), log_level=os.environ.get("LOG_LEVEL"), log_path="/tmp/checkclients_report.log")
-	properties = Properties("/local.properties", "/local.properties")
-	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-	parser.add_argument('outputPath', type=str, help="Path to checkclients_*.json files.")
-	args = parser.parse_args(arguments)
-	config = utils.getConfig(logger)
-	for environment in utils.getEnvironments(logger=logger, config=config):
-		run(logger=logger, properties=properties, outputPath=args.outputPath, environment=environment, config=config)
-	logger.info("{} finished.".format(os.path.basename(__file__)))
+    logger = Logger(name=os.path.basename(__file__), log_level=os.environ.get("LOG_LEVEL"), log_path="/tmp/checkclients_report.log")
+    properties = Properties("/local.properties", "/local.properties")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('outputPath', type=str, help="Path to checkclients_*.json files.")
+    args = parser.parse_args(arguments)
+    config = utils.getConfig(logger)
+    for environment in utils.getEnvironments(logger=logger, config=config):
+        run(logger=logger, properties=properties, outputPath=args.outputPath, environment=environment, config=config)
+    logger.info("{} finished.".format(os.path.basename(__file__)))
 
 
 if __name__ == "__main__":
-	sys.exit(main(sys.argv[1:]))
+    sys.exit(main(sys.argv[1:]))

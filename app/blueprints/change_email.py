@@ -94,7 +94,7 @@ def change_email_submit(environment: str, realm: str):
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=f"IAM CRUD API no configurada.")
         )
-    access_token = utils.getCurrentAccessToken()
+    access_token = auth_utils.getCurrentAccessToken()
     if not access_token:
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="No se pudo obtener el token de sesión. Vuelva a iniciar sesión.")

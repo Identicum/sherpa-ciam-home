@@ -27,7 +27,7 @@ issuer = os.environ.get('IDP_BASE_URL') + '/realms/' + os.environ.get('OIDC_REAL
 discovery_endpoint = issuer + '/.well-known/openid-configuration'
 response = requests.get(discovery_endpoint)
 response.raise_for_status()
-discovery_document = response.json()
+app.discovery_document = response.json()
 
 app.config.update({
     'SECRET_KEY': os.environ.get('SECRET_KEY', 'default-secret-key-change-me'),
@@ -39,9 +39,9 @@ oauth.register(
     client_id=os.environ.get('OIDC_CLIENT_ID'),
     client_secret=os.environ.get('OIDC_CLIENT_SECRET'),
     client_kwargs={'scope': 'openid email profile'},
-    authorize_url=discovery_document['authorization_endpoint'],
-    access_token_url=discovery_document['token_endpoint'],
-    jwks_uri=discovery_document['jwks_uri'],
+    authorize_url=app.discovery_document['authorization_endpoint'],
+    access_token_url=app.discovery_document['token_endpoint'],
+    jwks_uri=app.discovery_document['jwks_uri'],
 )
 
 
@@ -112,7 +112,7 @@ def check_session():
             return None
         else:
             app.logger.debug("Access token expired, attempting to refresh.")
-            if not auth_utils.refreshToken(logger=app.logger, discovery_document=discovery_document):
+            if not auth_utils.refreshToken(logger=app.logger, discovery_document=app.discovery_document):
                 app.logger.warn("Failed to refresh access token, clearing session.")
                 session.clear()
                 return None

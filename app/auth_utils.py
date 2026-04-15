@@ -194,8 +194,8 @@ def hasRole(logger: Logger, required_role: str) -> bool:
     return required_role in roles
 
 
-def getCurrentAccessToken(discovery_document: dict):
+def getCurrentAccessToken(logger: Logger, discovery_document: dict):
     """Return a valid access token for the logged-in user, or None. Refreshes if expired."""
-    if not ensureValidToken(discovery_document):
+    if not ensureValidToken(logger, discovery_document):
         return None
     return session.get('access_token')

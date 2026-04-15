@@ -177,7 +177,7 @@ def ensureValidToken(logger: Logger, discovery_document: dict) -> bool:
       False — no session exists or renewal failed.
     """
     logger.trace("Ensuring valid token.")
-    if not session.get('token'):
+    if not session.get('access_token'):
         return False
     if not isAccessTokenExpired():
         return True

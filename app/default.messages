@@ -30,6 +30,7 @@ usersesssions.sessions_title=Sesiones de
 usersesssions.username=Nombre de Usuario
 usersesssions.userId=ID de Usuario
 usersesssions.table.id=ID
+usersesssions.table.type=type
 usersesssions.table.ipAddress=IP
 usersesssions.table.start=Inicio
 usersesssions.table.lastAccess=Último Acceso

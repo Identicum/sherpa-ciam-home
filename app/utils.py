@@ -642,12 +642,12 @@ def getTestReports(logger: Logger, environment: str):
                 try:
                     with open(report_json_path, 'r') as f:
                         data = json.load(f)["data"]
-                    test_env_name = data[0].get("attributes", {}).get("environment", {}).get("test_env_name", "N/A")
+                    custom_test_env_name = data[0].get("attributes", {}).get("environment", {}).get("custom_test_env_name", "N/A")
                     passed = int(data[0].get("attributes", {}).get("summary", {}).get("passed", 0))
                     failed = int(data[0].get("attributes", {}).get("summary", {}).get("failed", 0))
                     num_tests = int(data[0].get("attributes", {}).get("summary", {}).get("num_tests", 0))
                     duration = round(float(data[0].get("attributes", {}).get("summary", {}).get("duration", 0)))
-                    REPORTS_LIST.append((directory_name, test_env_name, passed, failed, num_tests, duration))
+                    REPORTS_LIST.append((directory_name, custom_test_env_name, passed, failed, num_tests, duration))
                 except (KeyError) as e:
                     logger.warn(f"Could extracting data from {report_json_path}: {e}")
                     continue

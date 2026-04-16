@@ -10,10 +10,10 @@
         <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
     {% elif json_report %}
         <div class="mb-3">
-            {% if json_report.data and json_report.data[0].attributes.created_at %}
-                <p><strong>Report generated on:</strong> {{ json_report.data[0].attributes.created_at }}</p>
-                <p><strong>Image build date:</strong> {{ json_report.data[0].attributes.image_build_date }}</p>
-                <p><strong>Playwright version:</strong> {{ json_report.data[0].attributes.playwright_version }}</p>
+            {% if json_report.data[0] %}
+                <p><strong>Report generated on:</strong> {{ json_report.data[0].get('attributes', {}).get('created_at', 'N/A') }}</p>
+                <p><strong>Image build date:</strong> {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('image_build_date', 'N/A') }}, SHA: {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('image_sha', 'N/A') }}</p>
+                <p><strong>Playwright version:</strong> {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('playwright_version', 'N/A') }}</p>
             {% else %}
                 <p><em>Report data missing.</em></p>
             {% endif %}

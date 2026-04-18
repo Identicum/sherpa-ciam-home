@@ -157,26 +157,42 @@ class TestReportTable {
      * Update filter UI with available options
      */
     updateFilterOptions() {
+        // Update outcome filter
         const outcomeFilter = document.getElementById('filter-outcome');
-        // console.log('updateFilterOptions - Filter element found:', !!outcomeFilter);
         if (outcomeFilter) {
-            const values = this.getFilterValues('outcome');
-            // console.log('Outcome filter values:', values);
-            const currentValue = outcomeFilter.value;
-            // Preserve current selection
+            const outcomeValues = this.getFilterValues('outcome');
+            const currentOutcomeValue = outcomeFilter.value;
             outcomeFilter.innerHTML = '<option value="">All</option>';
-            values.forEach(value => {
+            outcomeValues.forEach(value => {
                 const option = document.createElement('option');
                 option.value = value;
                 option.textContent = value.charAt(0).toUpperCase() + value.slice(1);
                 outcomeFilter.appendChild(option);
             });
-            if (currentValue) {
-                outcomeFilter.value = currentValue;
+            if (currentOutcomeValue) {
+                outcomeFilter.value = currentOutcomeValue;
             }
-            // console.log('Filter options updated with', values.length, 'unique values');
         } else {
             console.warn('Filter element #filter-outcome not found');
+        }
+
+        // Update folder filter
+        const folderFilter = document.getElementById('filter-folder');
+        if (folderFilter) {
+            const folderValues = this.getFilterValues('folder');
+            const currentFolderValue = folderFilter.value;
+            folderFilter.innerHTML = '<option value="">All</option>';
+            folderValues.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                folderFilter.appendChild(option);
+            });
+            if (currentFolderValue) {
+                folderFilter.value = currentFolderValue;
+            }
+        } else {
+            console.warn('Filter element #filter-folder not found');
         }
     }
 
@@ -187,10 +203,21 @@ class TestReportTable {
         // Find filter within the test results table
         const mainTable = document.getElementById('test-results-table');
         if (!mainTable) return;
+        
+        // Outcome filter
         const outcomeFilter = mainTable.querySelector('#filter-outcome');
         if (outcomeFilter) {
             outcomeFilter.addEventListener('change', (e) => {
                 this.filters.outcome = e.target.value;
+                this.applyFiltersAndSort();
+            });
+        }
+
+        // Folder filter
+        const folderFilter = mainTable.querySelector('#filter-folder');
+        if (folderFilter) {
+            folderFilter.addEventListener('change', (e) => {
+                this.filters.folder = e.target.value;
                 this.applyFiltersAndSort();
             });
         }
@@ -203,6 +230,9 @@ class TestReportTable {
         // Apply filters
         this.filteredTests = this.originalTests.filter(test => {
             if (this.filters.outcome && test.outcome !== this.filters.outcome) {
+                return false;
+            }
+            if (this.filters.folder && test.folder !== this.filters.folder) {
                 return false;
             }
             return true;

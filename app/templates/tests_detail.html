@@ -28,7 +28,14 @@
                 <thead class="table-light">
                     <tr>
                         <th data-sort-column="id">ID</th>
-                        <th data-sort-column="folder">Folder</th>
+                        <th data-sort-column="folder" class="folder-header">
+                            <div>
+                                <span>Folder</span>
+                                <select id="filter-folder" class="form-select form-select-sm" style="flex: 0 1 120px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                    <option value="">All</option>
+                                </select>
+                            </div>
+                        </th>
                         <!-- <th data-sort-column="file">File</th> -->
                         <th data-sort-column="function">Function</th>
                         <th data-sort-column="outcome" class="outcome-header">
@@ -230,12 +237,21 @@
         gap: 0.5rem;
     }
     
-    #filter-outcome {
+    /* Folder header with filter styles */
+    th.folder-header {
+        padding: 0.5rem !important;
+    }
+    
+    th.folder-header .d-flex {
+        gap: 0.5rem;
+    }
+    
+    #filter-outcome, #filter-folder {
         cursor: pointer;
         border: 1px solid #dee2e6 !important;
     }
     
-    #filter-outcome:focus {
+    #filter-outcome:focus, #filter-folder:focus {
         border-color: #86b7fe !important;
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
     }

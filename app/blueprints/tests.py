@@ -127,6 +127,58 @@ def tests_report(environment: str, timestamp: str):
     )
 
 
+@tests_bp.route('/tests/<environment>/report/<timestamp>/data', methods=["GET"])
+@utils.require_oidc_login
+def tests_report_data(environment: str, timestamp: str):
+    """
+    Returns processed test report data as JSON for client-side sorting/filtering.
+    
+    Args:
+        environment (str): Environment Name
+        timestamp (str): Test Execution Timestamp
+        
+    Returns:
+        JSON: Processed test data with sanitized fields for UI interaction
+    """
+    current_app.logger.debug(f"Getting data for test env: {environment}, timestamp: {timestamp}")
+    try:
+        with open(f"/data/idp_testing_reports/{environment}/{timestamp}/report.json", "r") as json_report_file:
+            json_report = json.load(json_report_file)
+
+        # Extract and process test data
+        test_data = []
+        if json_report.get("included"):
+            for test_object in json_report["included"]:
+                test_attributes = test_object.get("attributes", {})
+                test_call = test_attributes.get("call", {})
+                test_metadata = test_call.get("metadata", {})
+
+                # Extract sortable/filterable fields
+                test_entry = {
+                    "id": test_object.get("id"),
+                    "name": test_attributes.get("name", ""),
+                    "folder": test_metadata.get("parent_directory", ""),
+                    "file": test_metadata.get("file_name", ""),
+                    "function": test_metadata.get("function_name", ""),
+                    # test_display_name (deprecated)
+                    "test_display_name": test_metadata.get("test_display_name", ""),
+                    "outcome": test_attributes.get("outcome", ""),
+                    "duration": test_attributes.get("duration", 0)
+                }
+                test_data.append(test_entry)
+        return Response(
+            json.dumps({"tests": test_data, "success": True}),
+            mimetype='application/json'
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error loading test report data: {e}")
+        return Response(
+            json.dumps({"tests": [], "success": False, "error": str(e)}),
+            mimetype='application/json',
+            status=500
+        )
+
+
 @tests_bp.route('/tests/<environment>/report/<timestamp>/images/<test_media_dir>/<filename>', methods=["GET"])
 @utils.require_oidc_login
 def tests_report_image(environment: str, timestamp: str, test_media_dir: str, filename: str):

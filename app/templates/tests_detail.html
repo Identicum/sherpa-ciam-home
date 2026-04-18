@@ -1,49 +1,56 @@
 {% extends "index.html" %}
 
-{% block title %}Test Report for {{ environment }}{% endblock %}
+{% block title %}sherpa-ciam-home - Test report{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Test Report for {{ environment }}</h1>
+<div class="container" data-environment="{{ environment }}" data-timestamp="{{ timestamp }}">
+    <h1>Test report for {{ environment }}</h1>
 
     {% if error_message %}
         <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
     {% elif json_report %}
         <div class="mb-3">
             {% if json_report.data[0] %}
-                <p><strong>Report generated on:</strong> {{ json_report.data[0].get('attributes', {}).get('created_at', 'N/A') }}</p>
-                <p><strong>Image build date:</strong> {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('image_build_date', 'N/A') }}, SHA: {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('image_sha', 'N/A') }}</p>
-                <p><strong>Playwright version:</strong> {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('playwright_version', 'N/A') }}</p>
+                <table class="table table-bordered equal-width-columns" style="width: 100%;">
+                    <tr>
+                        <td>Generated on:<strong> {{ json_report.data[0].get('attributes', {}).get('created_at', 'N/A') }}</strong></td>
+                        <td title="Build date: {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('image_build_date', 'N/A') }}&#10;SHA: {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('image_sha', 'N/A') }}&#10;Playwright version: {{ json_report.data[0].get('attributes', {}).get('environment', {}).get('playwright_version', 'N/A') }}" style="cursor: help;">Image metadata</td>
+                        <td><a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary">Download JSON</a></td>
+                    </tr>
+                </table>
             {% else %}
                 <p><em>Report data missing.</em></p>
             {% endif %}
-            <a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary">
-                Download JSON Report
-            </a>
         </div>
         <hr>
-        
         {% if json_report.included %}
-            <table class="table table-bordered table-hover" style="margin-top: 10px; width: 100%;">
+            <table id="test-results-table" class="table table-bordered table-hover" style="margin-top: 10px; width: 100%;">
                 <thead class="table-light">
                     <tr>
-                        <th>ID</th>
-                        <th>Folder</th>
-                        <th>File</th>
-                        <th>Function</th>
-                        <th>Outcome</th>
-                        <th>Duration</th>
+                        <th data-sort-column="id">ID</th>
+                        <th data-sort-column="folder">Folder</th>
+                        <th data-sort-column="file">File</th>
+                        <th data-sort-column="function">Function</th>
+                        <th data-sort-column="outcome" class="outcome-header">
+                            <div>
+                                <span>Outcome</span>
+                                <select id="filter-outcome" class="form-select form-select-sm" style="flex: 0 1 120px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                    <option value="">All</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th data-sort-column="duration">Duration</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for test_object in json_report.included %}
                         {% set detail_id = "test-detail-" ~ test_object.id %}
 
-                        <tr class="expandable-summary-row" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
+                        <tr class="expandable-summary-row" data-test-id="{{ test_object.id }}" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
                             <td>{{ test_object.id }}</td>
                             <td>{{ test_object.attributes.call.metadata.parent_directory }}</td>
                             <td>{{ test_object.attributes.call.metadata.file_name }}</td>
-                            <td>{{ test_object.attributes.call.metadata.function_name }}</td>
+                            <td>{{ test_object.attributes.call.metadata.test_display_name }}</td>
                             <td>
                                 {% if test_object.attributes.outcome == 'passed' %}
                                     <span class="badge bg-success">{{ test_object.attributes.outcome | upper }}</span>
@@ -190,5 +197,47 @@
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='js/expandable_table.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tests_report.js') }}"></script>
+
+<style>
+    /* Sort column indicator styles */
+    th[data-sort-column] {
+        position: relative;
+    }
+    
+    th[data-sort-column]:hover {
+        background-color: #e9ecef;
+    }
+    
+    th.sort-asc::after {
+        content: " ▲";
+        font-size: 0.75em;
+        color: #0d6efd;
+    }
+    
+    th.sort-desc::after {
+        content: " ▼";
+        font-size: 0.75em;
+        color: #0d6efd;
+    }
+    
+    /* Outcome header with filter styles */
+    th.outcome-header {
+        padding: 0.5rem !important;
+    }
+    
+    th.outcome-header .d-flex {
+        gap: 0.5rem;
+    }
+    
+    #filter-outcome {
+        cursor: pointer;
+        border: 1px solid #dee2e6 !important;
+    }
+    
+    #filter-outcome:focus {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    }
+</style>
 {% endblock %}

@@ -27,11 +27,12 @@
             <table class="table table-bordered table-hover" style="margin-top: 10px; width: 100%;">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 5%;"></th> {# For expand/collapse icon #}
-                        <th style="width: 3%;">ID</th>
-                        <th style="width: 47%;">Name</th>
-                        <th style="width: 15%;">Outcome</th>
-                        <th style="width: 15%;">Duration</th>
+                        <th>ID</th>
+                        <th>Folder</th>
+                        <th>File</th>
+                        <th>Function</th>
+                        <th>Outcome</th>
+                        <th>Duration</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -39,13 +40,10 @@
                         {% set detail_id = "test-detail-" ~ test_object.id %}
 
                         <tr class="expandable-summary-row" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
-                            <td class="text-center"><span class="toggle-icon">&#9658;</span></td>
                             <td>{{ test_object.id }}</td>
-                            {% if test_object.attributes.call.metadata.test_display_name %}
-                                <td>{{ test_object.attributes.call.metadata.test_display_name }}</td>
-                                {% else %}
-                                <td>{{ test_object.attributes.name }}</td>
-                            {% endif %}
+                            <td>{{ test_object.attributes.call.metadata.parent_directory }}</td>
+                            <td>{{ test_object.attributes.call.metadata.file_name }}</td>
+                            <td>{{ test_object.attributes.call.metadata.function_name }}</td>
                             <td>
                                 {% if test_object.attributes.outcome == 'passed' %}
                                     <span class="badge bg-success">{{ test_object.attributes.outcome | upper }}</span>

@@ -36,17 +36,14 @@
                 </thead>
                 <tbody>
                     {% for test_object in json_report.included %}
-                        {# Sanitize ID for use in HTML #}
-                        {% set detail_id = "test-details-" ~ test_object.id | string | replace('.', '_') | replace('-', '_') %}
+                        {% set detail_id = "test-detail-" ~ test_object.id %}
 
                         <tr class="expandable-summary-row" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
                             <td class="text-center"><span class="toggle-icon">&#9658;</span></td>
                             <td>{{ test_object.id }}</td>
                             {% if test_object.attributes.call.metadata.test_display_name %}
-                                <!-- metadata.test_display_name -->
                                 <td>{{ test_object.attributes.call.metadata.test_display_name }}</td>
                                 {% else %}
-                                <!-- test_object.attributes.name -->
                                 <td>{{ test_object.attributes.name }}</td>
                             {% endif %}
                             <td>

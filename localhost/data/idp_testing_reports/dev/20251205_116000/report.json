@@ -54,6 +54,12 @@
                     "duration": 0.6514871259860229,
                     "outcome": "passed",
                     "metadata": {
+                        "path": "/home/identicum/playwright/tests",
+                        "parent_directory": "tests",
+                        "file_name": "test_simple.py",
+                        "class_name": "TestSimple",
+                        "function_name": "test_simple_success[chromium]",
+                        "media_dir": "tests-test-simple-py-testsimple-test-simple-success-chromium",
                         "captured_logs": [
                             "2026-04-16 15:21:29.020 || INFO || Playwright Log || test_simple_success || Navigating to google.com main page.",
                             "2026-04-16 15:21:29.626 || DEBUG || Playwright Log || test_simple_success || Validating Title - Expecting 'Google'"
@@ -87,6 +93,12 @@
                     "duration": 5.426947669009678,
                     "outcome": "failed",
                     "metadata": {
+                        "path": "/home/identicum/playwright/tests",
+                        "parent_directory": "tests",
+                        "file_name": "test_simple.py",
+                        "class_name": "TestSimple",
+                        "function_name": "test_simple_failure[chromium]",
+                        "media_dir": "tests-test-simple-py-testsimple-test-simple-failure-chromium",
                         "captured_logs": [
                             "2026-04-16 15:21:29.759 || INFO || Playwright Log || test_simple_failure || Navigating to google.com main page.",
                             "2026-04-16 15:21:30.180 || DEBUG || Playwright Log || test_simple_failure || Validating Title - Expecting 'Gooogle'"

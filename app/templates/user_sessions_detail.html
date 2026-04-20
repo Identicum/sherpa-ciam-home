@@ -10,10 +10,10 @@
         {% if sessions %}
             <div class="mb-3">
                 <button type="button" class="btn btn-primary" onclick="location.reload();">
-                    <i class="fas fa-sync-alt"></i> Actualizar
+                    <i class="fas fa-sync-alt"></i> {{ messages['usersesssions.refresh'] }}
                 </button>
                 <form method="POST" action="{{ url_for('user-sessions.kill_all_sessions', environment=environment, realm=realm, userIdentifier=userIdentifier) }}" style="display: inline; margin-left: 10px;">
-                    <button type="submit" class="btn btn-danger" {% if not canUpdate %}disabled title="{{ messages['usersesssions.kill_forbidden_tooltip'] }}"{% endif %} onclick="return confirm('¿Está seguro de que desea eliminar todas las sesiones de este usuario?');">{{ messages['usersesssions.kill_all_sessions'] }}</button>
+                    <button type="submit" class="btn btn-danger" {% if not canUpdate %}disabled title="{{ messages['usersesssions.kill_forbidden_tooltip'] }}"{% endif %} data-confirm-msg="{{ messages['usersesssions.kill_all_sessions_confirm'] }}" onclick="return confirm(this.dataset.confirmMsg);">{{ messages['usersesssions.kill_all_sessions'] }}</button>
                 </form>
             </div>
             <h4>{{ messages['usersesssions.username'] }}: {{ username }}</h4>
@@ -36,7 +36,7 @@
                             <td style="text-align: center; vertical-align: middle;">
                                 <form method="POST" action="{{ url_for('user-sessions.kill_session', environment=environment, realm=realm, userIdentifier=userIdentifier) }}" style="display: inline-block; margin: 0;">
                                     <input type="hidden" name="session_id" value="{{ session['sessionId'] }}">
-                                    <button type="submit" class="btn btn-sm btn-danger" {% if not canUpdate %}disabled title="{{ messages['usersesssions.kill_forbidden_tooltip'] }}"{% endif %} onclick="return confirm('¿Está seguro de que desea eliminar esta sesión?');">{{ messages['usersesssions.kill_session'] }}</button>
+                                    <button type="submit" class="btn btn-sm btn-danger" {% if not canUpdate %}disabled title="{{ messages['usersesssions.kill_forbidden_tooltip'] }}"{% endif %} data-confirm-msg="{{ messages['usersesssions.kill_session_confirm'] }}" onclick="return confirm(this.dataset.confirmMsg);">{{ messages['usersesssions.kill_session'] }}</button>
                                 </form>
                             </td>
                         </tr>

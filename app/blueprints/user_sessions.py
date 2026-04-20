@@ -63,6 +63,11 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
     headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json", "X-Realm": realm}
     params = {"userId": userIdentifier}
 
+    user_search_response = requests.get(f"{base_url}/v1/users/search", headers=headers, params={"username": userIdentifier})
+    user = user_search_response.json()[0]
+    username = user["username"]
+    user_id = user["identifier"]
+
     iamcrud_response = requests.get(f"{base_url}/v1/sessions", headers=headers, params=params)
 
     payload = iamcrud_response.json()
@@ -70,7 +75,8 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
     sessions = [user_session for user_session in sessions if isinstance(user_session, dict)]
 
     response = {"success": iamcrud_response.ok, "sessions": sessions, "message": "OK" if iamcrud_response.ok else str(payload)}
-    current_app.logger.trace("User sessions: {}", response)
+    current_app.logger.trace(f"User sessions: {response}")
+    can_update = auth_utils.hasRole(logger=current_app.logger, required_role=f"{realm}_UPDATE_USERS")
     return render_template(
         'user_sessions_detail.html',
         logger=current_app.logger,
@@ -80,6 +86,9 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
         sessions=response.get('sessions', []),
         message=response.get('message', ''),
         userIdentifier=userIdentifier,
+        username=username,
+        userId=user_id,
+        canUpdate=can_update,
         environment=environment,
         realm=realm
     )
@@ -93,11 +102,15 @@ def kill_session(environment: str, realm: str, userIdentifier: str):
     Returns:
         Redirect: Redirects back to the user sessions detail page
     """
+    if not auth_utils.hasRole(logger=current_app.logger, required_role=f"{realm}_UPDATE_USERS"):
+        current_app.logger.warn("User without role attempted to kill a session")
+        flash(current_app.messages.get('usersesssions.kill_session_forbidden', 'No tiene permisos para eliminar sesiones'), 'error')
+        return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))
+
     session_id = request.form.get('session_id')
     if not session_id:
         flash(current_app.messages.get('usersesssions.kill_session_error', 'Error al eliminar sesión') + ': Session ID not provided', 'error')
-        return redirect(url_for('user-sessions.user_sessions_detail', 
-                              environment=environment, realm=realm, userIdentifier=userIdentifier))
+        return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))
     
     base_url = (current_app.json_config.get("environments", {}).get(environment, {}).get("iamcrud_api_base_url"))
     access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
@@ -107,12 +120,11 @@ def kill_session(environment: str, realm: str, userIdentifier: str):
     if iamcrud_response.ok:
         flash(current_app.messages.get('usersesssions.kill_session_success', 'Sesión eliminada exitosamente'), 'success')
     else:
-        current_app.logger.error("Error killing session {}: HTTP {} - {}", session_id, iamcrud_response.status_code, iamcrud_response.text)
+        current_app.logger.error(f"Error killing session {session_id}: HTTP {iamcrud_response.status_code} - {iamcrud_response.text}")
         error_msg = current_app.messages.get('usersesssions.kill_session_error', 'Error al eliminar sesión')
         flash(f'{error_msg}: HTTP {iamcrud_response.status_code}', 'error')
     
-    return redirect(url_for('user-sessions.user_sessions_detail', 
-                          environment=environment, realm=realm, userIdentifier=userIdentifier))
+    return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))
 
 
 @user_sessions_bp.route('/user-sessions/<environment>/<realm>/<userIdentifier>/kill-all-sessions', methods=["POST"])
@@ -123,6 +135,11 @@ def kill_all_sessions(environment: str, realm: str, userIdentifier: str):
     Returns:
         Redirect: Redirects back to the user sessions detail page
     """
+    if not auth_utils.hasRole(logger=current_app.logger, required_role=f"{realm}_UPDATE_USERS"):
+        current_app.logger.warn(f"User without role attempted to kill all sessions for user {userIdentifier}")
+        flash(current_app.messages.get('usersesssions.kill_all_sessions_forbidden', 'No tiene permisos para eliminar sesiones'), 'error')
+        return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))
+
     base_url = (current_app.json_config.get("environments", {}).get(environment, {}).get("iamcrud_api_base_url"))
     access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
     headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json", "X-Realm": realm}
@@ -132,9 +149,8 @@ def kill_all_sessions(environment: str, realm: str, userIdentifier: str):
     if iamcrud_response.ok:
         flash(current_app.messages.get('usersesssions.kill_all_sessions_success', 'Todas las sesiones eliminadas exitosamente'), 'success')
     else:
-        current_app.logger.error("Error killing all sessions for user {}: HTTP {} - {}", userIdentifier, iamcrud_response.status_code, iamcrud_response.text)
+        current_app.logger.error(f"Error killing all sessions for user {userIdentifier}: HTTP {iamcrud_response.status_code} - {iamcrud_response.text}")
         error_msg = current_app.messages.get('usersesssions.kill_all_sessions_error', 'Error al eliminar sesiones')
         flash(f'{error_msg}: HTTP {iamcrud_response.status_code}', 'error')
     
-    return redirect(url_for('user-sessions.user_sessions_detail', 
-                          environment=environment, realm=realm, userIdentifier=userIdentifier))
+    return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))

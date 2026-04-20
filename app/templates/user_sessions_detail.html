@@ -13,11 +13,11 @@
                     <i class="fas fa-sync-alt"></i> Actualizar
                 </button>
                 <form method="POST" action="{{ url_for('user-sessions.kill_all_sessions', environment=environment, realm=realm, userIdentifier=userIdentifier) }}" style="display: inline; margin-left: 10px;">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Está seguro de que desea eliminar todas las sesiones de este usuario?');">{{ messages['usersesssions.kill_all_sessions'] }}</button>
+                    <button type="submit" class="btn btn-danger" {% if not canUpdate %}disabled title="{{ messages['usersesssions.kill_forbidden_tooltip'] }}"{% endif %} onclick="return confirm('¿Está seguro de que desea eliminar todas las sesiones de este usuario?');">{{ messages['usersesssions.kill_all_sessions'] }}</button>
                 </form>
             </div>
-            <h4>{{ messages['usersesssions.username'] }}: {{ userIdentifier }}</h4>
-            <h4>{{ messages['usersesssions.userId'] }}: {{ userIdentifier }}</h4>
+            <h4>{{ messages['usersesssions.username'] }}: {{ username }}</h4>
+            <h4>{{ messages['usersesssions.userId'] }}: {{ userId }}</h4>
 
             <div class="table-responsive">
                 <table class="table table-striped table-bordered">
@@ -25,44 +25,18 @@
                         <tr>
                             <th>{{ messages['usersesssions.table.id'] }}</th>
                             <th>{{ messages['usersesssions.table.type'] }}</th>
-                            <th>{{ messages['usersesssions.table.ipAddress'] }}</th>
-                            <th>{{ messages['usersesssions.table.start'] }}</th>
-                            <th>{{ messages['usersesssions.table.lastAccess'] }}</th>
-                            <th>{{ messages['usersesssions.table.rememberMe'] }}</th>
-                            <th>{{ messages['usersesssions.table.clients'] }}</th>
-                            <th>{{ messages['usersesssions.table.is_offline_session'] }}</th>
                             <th>{{ messages['usersesssions.table.actions'] }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for session in sessions %}
                         <tr>
-                            <td class="no-wrap-cell">{{ session.get('sessionId') or '-' }}</td>
-                            <td>{{ session.get('type') or '-' }}</td>
-                            <td>{{ session.get('ipAddress') or '-' }}</td>
-                            <td>{{ session.get('start') or '-' }}</td>
-                            <td>{{ session.get('lastAccess') or '-' }}</td>
-                            <td>{% if 'rememberMe' in session %}{{ session['rememberMe'] }}{% else %}-{% endif %}</td>
-                            <td>
-                                {% if session.get('clients') is mapping and session['clients']|length > 0 %}
-                                <ul class="mb-0">
-                                    {% for cid, name in session['clients'].items() %}
-                                    <li>{{ name }}</li>
-                                    {% endfor %}
-                                </ul>
-                                {% else %}
-                                -
-                                {% endif %}
-                            </td>
-                            <td>{% if 'is_offline_session' in session %}{{ session['is_offline_session'] }}{% else %}-{% endif %}</td>
+                            <td class="no-wrap-cell">{{ session['sessionId'] }}</td>
+                            <td>{{ session['type'] }}</td>
                             <td style="text-align: center; vertical-align: middle;">
                                 <form method="POST" action="{{ url_for('user-sessions.kill_session', environment=environment, realm=realm, userIdentifier=userIdentifier) }}" style="display: inline-block; margin: 0;">
-                                    <input type="hidden" name="session_id" value="{{ session.get('sessionId', '') }}">
-                                    <input type="hidden" name="is_offline_session" value="{{ 'true' if session.get('type') == 'OFFLINE' else 'false' }}">
-                                    {% if session.get('clientId') %}
-                                    <input type="hidden" name="client_id" value="{{ session['clientId'] }}">
-                                    {% endif %}
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de que desea eliminar esta sesión?');">{{ messages['usersesssions.kill_session'] }}</button>
+                                    <input type="hidden" name="session_id" value="{{ session['sessionId'] }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" {% if not canUpdate %}disabled title="{{ messages['usersesssions.kill_forbidden_tooltip'] }}"{% endif %} onclick="return confirm('¿Está seguro de que desea eliminar esta sesión?');">{{ messages['usersesssions.kill_session'] }}</button>
                                 </form>
                             </td>
                         </tr>

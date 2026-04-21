@@ -1,303 +1,181 @@
 /**
- * Test Report Table Sorting and Filtering
- * Handles interactive sorting and filtering of the test report table
+ * Test Report Table — sorting + filtering
+ *
+ * All rows are server-rendered once. The JS reads the same normalized data via
+ * /data, caches the original row pairs (summary + collapsible detail) by id,
+ * and re-renders tbody in place whenever filters or sort change.
  */
+
+const FILTER_CONFIG = [
+    { id: 'filter-folder',      field: 'folder',      labelAll: 'All folders' },
+    { id: 'filter-realm-type',  field: 'realm_type',  labelAll: 'All realm types' },
+    { id: 'filter-realm',       field: 'realm',       labelAll: 'All realms' },
+    { id: 'filter-class-name',  field: 'class_name',  labelAll: 'All classes' },
+    { id: 'filter-outcome',     field: 'outcome',     labelAll: 'All outcomes', format: v => v.charAt(0).toUpperCase() + v.slice(1) },
+];
+
+const SEARCH_FIELDS = ['name', 'class_name', 'function_name', 'display_name', 'description'];
 
 class TestReportTable {
     constructor(environment, timestamp) {
         this.environment = environment;
         this.timestamp = timestamp;
-        this.originalTests = [];
-        this.filteredTests = [];
-        this.currentSort = { column: null, direction: 'asc' };
+        this.tests = [];
+        this.rowsById = {};
         this.filters = {};
-        this.originalRowsMap = {}; // Store original rows once
-        this.init();
+        this.search = '';
+        this.sort = { column: null, direction: 'asc' };
+
+        this.table = document.getElementById('test-results-table');
+        this.tbody = this.table ? this.table.querySelector('tbody') : null;
+        this.countEl = document.getElementById('visible-count');
+        this.noResultsEl = document.getElementById('no-results');
     }
 
     init() {
-        this.attachColumnHeaderListeners();
-        this.loadTestData();
+        if (!this.table || !this.tbody) return;
+        this.cacheOriginalRows();
+        this.attachSortListeners();
+        this.loadData();
     }
 
-    /**
-     * Load test data from the API endpoint
-     */
-    loadTestData() {
-        const dataUrl = `/tests/${this.environment}/report/${this.timestamp}/data`;
-        // console.log('Loading test data from:', dataUrl);
-        fetch(dataUrl)
-            .then(response => response.json())
-            .then(data => {
-                // console.log('Received test data:', data);
-                if (data.success) {
-                    this.originalTests = data.tests;
-                    this.filteredTests = [...this.originalTests];
-                    // console.log('Loaded tests:', this.originalTests.length, 'tests');
-                    // Delay caching to ensure all DOM elements are fully rendered
-                    setTimeout(() => {
-                        this.cacheOriginalRows();
-                        this.updateFilterOptions();
-                        this.attachFilterListeners();
-                    }, 100);
-                } else {
-                    console.error('Failed to load test data:', data.error);
-                }
-            })
-            .catch(error => console.error('Error loading test data:', error));
-    }
-
-    /**
-     * Cache original rows from the HTML table before any modifications
-     */
     cacheOriginalRows() {
-        // Find the test results table by its ID
-        const mainTable = document.getElementById('test-results-table');
-        const tbody = mainTable ? mainTable.querySelector('tbody') : null;
-        // console.log('cacheOriginalRows - tbody found:', !!tbody);
-        if (!tbody) {
-            console.warn('No tbody found for caching rows');
-            return;
-        }
-
-        // Only get direct children <tr> elements (not nested ones from detail tables)
-        const allRows = Array.from(tbody.children).filter(el => el.tagName === 'TR');
-        // console.log('cacheOriginalRows - total rows found:', allRows.length);
-        allRows.forEach((row, index) => {
-            const testId = row.getAttribute('data-test-id');
-            // console.log(`Row ${index} - data-test-id: ${testId}, id: ${row.id}, classes: ${row.className}`);
-            if (testId) {
-                if (!this.originalRowsMap[testId]) {
-                    this.originalRowsMap[testId] = [];
-                }
-                this.originalRowsMap[testId].push(row);
-                // console.log(`  -> Cached as summary row for test ID: ${testId}`);
-            } else if (row.id && row.id.startsWith('test-detail-')) {
-                // This is a detail row (has id like test-detail-X)
-                const testId = row.id.replace('test-detail-', '');
-                if (!this.originalRowsMap[testId]) {
-                    this.originalRowsMap[testId] = [];
-                }
-                this.originalRowsMap[testId].push(row);
-                // console.log(`  -> Cached as detail row for test ID: ${testId}`);
-            }
+        Array.from(this.tbody.children).forEach(row => {
+            if (row.tagName !== 'TR') return;
+            const testId = row.getAttribute('data-test-id')
+                || (row.id && row.id.startsWith('test-detail-') ? row.id.replace('test-detail-', '') : null);
+            if (!testId) return;
+            if (!this.rowsById[testId]) this.rowsById[testId] = [];
+            this.rowsById[testId].push(row);
         });
-        // console.log('Final cached original rows for test IDs:', Object.keys(this.originalRowsMap));
     }
 
-    /**
-     * Attach click listeners to column headers for sorting
-     */
-    attachColumnHeaderListeners() {
-        const mainTable = document.getElementById('test-results-table');
-        if (!mainTable) return;
-        const headers = mainTable.querySelectorAll('th[data-sort-column]');
-        headers.forEach(header => {
-            header.style.cursor = 'pointer';
-            header.addEventListener('click', (e) => {
-                // Don't sort if clicking on the filter dropdown
-                if (e.target.id === 'filter-outcome' || e.target.closest('select')) {
+    loadData() {
+        fetch(`/tests/${this.environment}/report/${this.timestamp}/data`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Failed to load test data:', data.error);
                     return;
                 }
-                const column = header.getAttribute('data-sort-column');
-                this.handleSort(column);
+                this.tests = data.tests || [];
+                this.populateFilters();
+                this.attachFilterListeners();
+                this.render();
+            })
+            .catch(err => console.error('Error loading test data:', err));
+    }
+
+    populateFilters() {
+        FILTER_CONFIG.forEach(cfg => {
+            const el = document.getElementById(cfg.id);
+            if (!el) return;
+            const values = [...new Set(this.tests.map(t => t[cfg.field]).filter(Boolean))].sort();
+            const current = el.value;
+            el.innerHTML = `<option value="">${cfg.labelAll}</option>`;
+            values.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = cfg.format ? cfg.format(v) : v;
+                el.appendChild(opt);
             });
+            if (current) el.value = current;
         });
     }
 
-    /**
-     * Handle column header click for sorting
-     */
-    handleSort(column) {
-        // Toggle direction if clicking the same column
-        if (this.currentSort.column === column) {
-            this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
-        } else {
-            this.currentSort.column = column;
-            this.currentSort.direction = 'asc';
-        }
-        
-        this.updateSortIndicators();
-        this.applyFiltersAndSort();
-    }
-
-    /**
-     * Update visual indicators for sort direction
-     */
-    updateSortIndicators() {
-        const mainTable = document.getElementById('test-results-table');
-        if (!mainTable) return;
-        const headers = mainTable.querySelectorAll('th[data-sort-column]');
-        headers.forEach(header => {
-            header.classList.remove('sort-asc', 'sort-desc');
-            const column = header.getAttribute('data-sort-column');
-            if (column === this.currentSort.column) {
-                header.classList.add(`sort-${this.currentSort.direction}`);
-            }
-        });
-    }
-
-    /**
-     * Get available filter values for a column
-     */
-    getFilterValues(column) {
-        const values = new Set();
-        this.originalTests.forEach(test => {
-            const value = test[column];
-            if (value) {
-                values.add(value);
-            }
-        });
-        const result = Array.from(values).sort();
-        // console.log(`getFilterValues('${column}'):`, result);
-        return result;
-    }
-
-    /**
-     * Update filter UI with available options
-     */
-    updateFilterOptions() {
-        // Update outcome filter
-        const outcomeFilter = document.getElementById('filter-outcome');
-        if (outcomeFilter) {
-            const outcomeValues = this.getFilterValues('outcome');
-            const currentOutcomeValue = outcomeFilter.value;
-            outcomeFilter.innerHTML = '<option value="">All</option>';
-            outcomeValues.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value.charAt(0).toUpperCase() + value.slice(1);
-                outcomeFilter.appendChild(option);
-            });
-            if (currentOutcomeValue) {
-                outcomeFilter.value = currentOutcomeValue;
-            }
-        } else {
-            console.warn('Filter element #filter-outcome not found');
-        }
-
-        // Update folder filter
-        const folderFilter = document.getElementById('filter-folder');
-        if (folderFilter) {
-            const folderValues = this.getFilterValues('folder');
-            const currentFolderValue = folderFilter.value;
-            folderFilter.innerHTML = '<option value="">All</option>';
-            folderValues.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                folderFilter.appendChild(option);
-            });
-            if (currentFolderValue) {
-                folderFilter.value = currentFolderValue;
-            }
-        } else {
-            console.warn('Filter element #filter-folder not found');
-        }
-    }
-
-    /**
-     * Attach listeners to filter controls
-     */
     attachFilterListeners() {
-        // Find filter within the test results table
-        const mainTable = document.getElementById('test-results-table');
-        if (!mainTable) return;
-        
-        // Outcome filter
-        const outcomeFilter = mainTable.querySelector('#filter-outcome');
-        if (outcomeFilter) {
-            outcomeFilter.addEventListener('change', (e) => {
-                this.filters.outcome = e.target.value;
-                this.applyFiltersAndSort();
+        FILTER_CONFIG.forEach(cfg => {
+            const el = document.getElementById(cfg.id);
+            if (!el) return;
+            el.addEventListener('change', e => {
+                this.filters[cfg.field] = e.target.value;
+                this.render();
             });
-        }
-
-        // Folder filter
-        const folderFilter = mainTable.querySelector('#filter-folder');
-        if (folderFilter) {
-            folderFilter.addEventListener('change', (e) => {
-                this.filters.folder = e.target.value;
-                this.applyFiltersAndSort();
+        });
+        const searchEl = document.getElementById('filter-search');
+        if (searchEl) {
+            searchEl.addEventListener('input', e => {
+                this.search = e.target.value.trim().toLowerCase();
+                this.render();
             });
         }
     }
 
-    /**
-     * Apply filters and sort to test data
-     */
-    applyFiltersAndSort() {
-        // Apply filters
-        this.filteredTests = this.originalTests.filter(test => {
-            if (this.filters.outcome && test.outcome !== this.filters.outcome) {
-                return false;
-            }
-            if (this.filters.folder && test.folder !== this.filters.folder) {
-                return false;
-            }
-            return true;
-        });
-        // Apply sort
-        if (this.currentSort.column) {
-            this.filteredTests.sort((a, b) => {
-                let aVal = a[this.currentSort.column];
-                let bVal = b[this.currentSort.column];
-                // Handle numeric values
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    return this.currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
-                }
-                // Handle string values
-                aVal = String(aVal).toLowerCase();
-                bVal = String(bVal).toLowerCase();
-                if (this.currentSort.direction === 'asc') {
-                    return aVal.localeCompare(bVal);
+    attachSortListeners() {
+        this.table.querySelectorAll('th[data-sort-column]').forEach(th => {
+            th.addEventListener('click', e => {
+                if (e.target.closest('select, input')) return;
+                const column = th.getAttribute('data-sort-column');
+                if (this.sort.column === column) {
+                    this.sort.direction = this.sort.direction === 'asc' ? 'desc' : 'asc';
                 } else {
-                    return bVal.localeCompare(aVal);
+                    this.sort.column = column;
+                    this.sort.direction = 'asc';
                 }
+                this.render();
             });
-        }
-        // console.log('Filtered tests:', this.filteredTests.length, 'Sort column:', this.currentSort.column, 'Direction:', this.currentSort.direction);
-        // Update table display
-        this.updateTableDisplay();
+        });
     }
 
-    /**
-     * Update table display with filtered/sorted data
-     */
-    updateTableDisplay() {
-        const mainTable = document.getElementById('test-results-table');
-        if (!mainTable) return;
-        const tbody = mainTable.querySelector('tbody');
-        // console.log('Updating table display with', this.filteredTests.length, 'visible tests');
-        // Create a fragment to hold reordered rows
-        const fragment = document.createDocumentFragment();
-        // Add filtered/sorted rows to fragment in correct order
-        this.filteredTests.forEach((test) => {
-            const testId = test.id.toString();
-            const rowsToAdd = this.originalRowsMap[testId];
-            if (rowsToAdd) {
-                rowsToAdd.forEach(row => {
-                    fragment.appendChild(row.cloneNode(true));
-                });
+    updateSortIndicators() {
+        this.table.querySelectorAll('th[data-sort-column]').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+            if (th.getAttribute('data-sort-column') === this.sort.column) {
+                th.classList.add(`sort-${this.sort.direction}`);
             }
         });
-        // Clear tbody and add reordered rows
-        tbody.innerHTML = '';
-        tbody.appendChild(fragment);
-        // console.log('Table display updated');
+    }
+
+    matchesFilters(test) {
+        for (const cfg of FILTER_CONFIG) {
+            const expected = this.filters[cfg.field];
+            if (expected && test[cfg.field] !== expected) return false;
+        }
+        if (this.search) {
+            const haystack = SEARCH_FIELDS.map(f => (test[f] || '').toString().toLowerCase()).join(' ');
+            if (!haystack.includes(this.search)) return false;
+        }
+        return true;
+    }
+
+    compare(a, b) {
+        const col = this.sort.column;
+        if (!col) return 0;
+        let av = a[col], bv = b[col];
+        if (av == null) av = '';
+        if (bv == null) bv = '';
+        if (typeof av === 'number' && typeof bv === 'number') {
+            return this.sort.direction === 'asc' ? av - bv : bv - av;
+        }
+        av = String(av).toLowerCase();
+        bv = String(bv).toLowerCase();
+        return this.sort.direction === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    }
+
+    render() {
+        this.updateSortIndicators();
+        const visible = this.tests.filter(t => this.matchesFilters(t));
+        if (this.sort.column) visible.sort((a, b) => this.compare(a, b));
+
+        const fragment = document.createDocumentFragment();
+        visible.forEach(t => {
+            const rows = this.rowsById[String(t.id)];
+            if (!rows) return;
+            rows.forEach(r => fragment.appendChild(r.cloneNode(true)));
+        });
+        this.tbody.innerHTML = '';
+        this.tbody.appendChild(fragment);
+
+        if (this.countEl) this.countEl.textContent = visible.length;
+        if (this.noResultsEl) this.noResultsEl.classList.toggle('d-none', visible.length > 0);
     }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Get environment and timestamp from page context
-    const containerElement = document.querySelector('[data-environment][data-timestamp]');
-    const environment = containerElement?.getAttribute('data-environment');
-    const timestamp = containerElement?.getAttribute('data-timestamp');
-    // console.log('Initializing TestReportTable - Environment:', environment, 'Timestamp:', timestamp);
-    if (environment && timestamp) {
-        window.testReportTable = new TestReportTable(environment, timestamp);
-    } else {
-        console.error('Could not find environment or timestamp in page attributes');
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.querySelector('[data-environment][data-timestamp]');
+    const environment = ctx?.getAttribute('data-environment');
+    const timestamp = ctx?.getAttribute('data-timestamp');
+    if (!environment || !timestamp) return;
+    window.testReportTable = new TestReportTable(environment, timestamp);
+    window.testReportTable.init();
 });

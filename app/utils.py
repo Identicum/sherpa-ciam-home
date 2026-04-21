@@ -721,23 +721,47 @@ def getReportTimestamp(ts_str):
     return int(dt.timestamp() * 1000)
 
 
-def enrichTestsWithDescriptions(logger: Logger, json_report: dict) -> None:
-    """
-    Load descriptions from /conf/test_descriptions.json and set attributes.description
-    on each test in json_report["included"].
-    """
-    path = "/conf/test_descriptions.json"
-    with open(path, "r", encoding="utf-8") as descriptions_file:
-        descriptions_map = json.load(descriptions_file)
-    logger.debug("Loaded {} description key(s) from {}", len(descriptions_map), path)
+def parse_test_report(logger: Logger, json_report: dict, environment: str, timestamp: str) -> list:
+    """Normalize a pytest-json report into a flat list of test case dicts.
 
-    included = json_report["included"]
-    count = 0
-    for test_object in included:
-        attrs = test_object["attributes"]
-        key = attrs["name"]
-        if key in descriptions_map:
-            attrs["description"] = descriptions_map[key]
-            count += 1
-    if count:
-        logger.debug("Enriched {} test(s) with description.", count)
+    Reads the standardized metadata fields emitted by the playwright conftest:
+    folder, filename, class_name, function_name, realm_type, realm, description,
+    media_dir, captured_logs. For failed tests, resolves failed_images against
+    the media directory on disk.
+    """
+    cases = []
+    for obj in json_report.get("included", []):
+        attrs = obj.get("attributes", {}) or {}
+        call = attrs.get("call", {}) or {}
+        md = call.get("metadata", {}) or {}
+
+        outcome = attrs.get("outcome", "")
+        media_dir = md.get("media_dir")
+        failed_images = []
+        if media_dir and (outcome == "failed" or call.get("outcome") == "failed"):
+            failed_images = getTestFailedImages(logger, environment, timestamp, media_dir)
+
+        cases.append({
+            "id": obj.get("id"),
+            "name": attrs.get("name", ""),
+            "outcome": outcome,
+            "duration": attrs.get("duration", 0),
+            "folder": md.get("folder", ""),
+            "filename": md.get("filename", ""),
+            "class_name": md.get("class_name"),
+            "function_name": md.get("function_name", ""),
+            "realm_type": md.get("realm_type"),
+            "realm": md.get("realm"),
+            "description": md.get("description"),
+            # Backwards compatibility: older reports used the "test_display_name" metadata key,
+            # and if that was also missing the template fell back to the test nodeid.
+            "display_name": md.get("display_name") or md.get("test_display_name") or attrs.get("name", ""),
+            "media_dir": media_dir,
+            "captured_logs": md.get("captured_logs", []),
+            "longrepr": call.get("longrepr"),
+            "setup": attrs.get("setup"),
+            "call": call,
+            "teardown": attrs.get("teardown"),
+            "failed_images": failed_images,
+        })
+    return cases

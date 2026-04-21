@@ -1,95 +1,9 @@
 import auth_utils
-from datetime import datetime
 from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash
-import uuid
 import utils
-
+import requests
 
 user_sessions_bp = Blueprint('user-sessions', __name__)
-
-def getUserSessions(environment: str, realm: str, userIdentifier: str, config: dict) -> dict:
-    """Retrieves all of a user's sessions in a given environment and realm
-
-    Args:
-        environment (str)
-        realm (str)
-        userIdentifier (str): May be a username or user's UUID
-        config (dict): Inherited config for the Keycloak Admin
-
-    Returns:
-        dict: _description_
-    """
-    username = None
-    userId = None
-
-    if userIdentifier is None or userIdentifier.strip() == "":
-        current_app.logger.warn("userIdentifier not provided.")
-        return {
-            "success": False,
-            "message": "Username or UUID not provided."
-        }
-    else:
-        try:
-            uuid.UUID(userIdentifier)
-            userId = userIdentifier
-        except ValueError:
-            username = userIdentifier
-
-    kcAdmin = utils.getKeycloakAdmin(
-        logger=current_app.logger,
-        properties=current_app.properties,
-        environment=environment,
-        realmName=realm,
-        config=config
-    )
-
-    if userId is None:
-        userId = kcAdmin.get_user_id(username)
-
-    if username is None:
-        try:
-            user = kcAdmin.get_user(userId)
-            username = user.get("username")
-        except Exception as e:
-            current_app.logger.debug("Could not get username for user_id {}: {}", userId, e)
-            username = None
-    current_app.logger.trace("User ID is {}, username is {}", userId, username)
-
-    try:
-        sessions = kcAdmin.get_sessions(userId)
-        for session in sessions:
-            session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
-            session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
-            session["username"] = username
-            session["userId"] = userId
-        current_app.logger.trace("Online Sessions: {}", sessions)
-
-        for client in kcAdmin.get_clients():
-            for session in kcAdmin.sherpa_get_user_client_offlinesessions(user_id=userId, client_id=client["clientId"]):
-                if "start" in session:
-                    session["start"] = datetime.fromtimestamp(session["start"] / 1000).strftime("%Y-%m-%d %H:%M")
-                if "lastAccess" in session:
-                    session["lastAccess"] = datetime.fromtimestamp(session["lastAccess"] / 1000).strftime("%Y-%m-%d %H:%M")
-                sessions.append({
-                    **session,
-                    "is_offline_session": True,
-                    "clientId": client["clientId"],
-                    "username": username,
-                    "userId": userId
-                })
-        return {
-            "sessions": sessions,
-            "success": True,
-            "message": "OK"
-        }
-    except Exception as e:
-        current_app.logger.error(e)
-        return {
-            "sessions": None,
-            "success": False,
-            "message": e
-        }
-
 
 @user_sessions_bp.before_request
 def check_tests_role():
@@ -144,8 +58,25 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
     Returns:
         Template: Rendered HTML page containing the User Session Lookup Result
     """
-    response = getUserSessions(environment=environment, realm=realm, userIdentifier=userIdentifier, config=current_app.json_config)
-    current_app.logger.trace("User sessions: {}", response)
+    base_url = (current_app.json_config.get("environments", {}).get(environment, {}).get("iamcrud_api_base_url"))
+    access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
+    headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json", "X-Realm": realm}
+    params = {"userId": userIdentifier}
+
+    user_search_response = requests.get(f"{base_url}/v1/users/search", headers=headers, params={"username": userIdentifier})
+    user = user_search_response.json()[0]
+    username = user["username"]
+    user_id = user["identifier"]
+
+    iamcrud_response = requests.get(f"{base_url}/v1/sessions", headers=headers, params=params)
+
+    payload = iamcrud_response.json()
+    sessions = payload if isinstance(payload, list) else []
+    sessions = [user_session for user_session in sessions if isinstance(user_session, dict)]
+
+    response = {"success": iamcrud_response.ok, "sessions": sessions, "message": "OK" if iamcrud_response.ok else str(payload)}
+    current_app.logger.trace(f"User sessions: {response}")
+    can_update = auth_utils.hasRole(logger=current_app.logger, required_role=f"{realm.upper()}_UPDATE_USERS")
     return render_template(
         'user_sessions_detail.html',
         logger=current_app.logger,
@@ -155,6 +86,9 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
         sessions=response.get('sessions', []),
         message=response.get('message', ''),
         userIdentifier=userIdentifier,
+        username=username,
+        userId=user_id,
+        canUpdate=can_update,
         environment=environment,
         realm=realm
     )
@@ -168,52 +102,28 @@ def kill_session(environment: str, realm: str, userIdentifier: str):
     Returns:
         Redirect: Redirects back to the user sessions detail page
     """
+    if not auth_utils.hasRole(logger=current_app.logger, required_role=f"{realm.upper()}_UPDATE_USERS"):
+        current_app.logger.warn("User without role attempted to kill a session")
+        flash(current_app.messages['usersesssions.kill_session_forbidden'], 'error')
+        return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))
+
     session_id = request.form.get('session_id')
-    is_offline_session = request.form.get('is_offline_session', 'false').lower() == 'true'
-    
     if not session_id:
-        flash(current_app.messages.get('usersesssions.kill_session_error', 'Error al eliminar sesión') + ': Session ID not provided', 'error')
-        return redirect(url_for('user-sessions.user_sessions_detail', 
-                              environment=environment, realm=realm, userIdentifier=userIdentifier))
-    
-    try:
-        kc_admin = utils.getKeycloakAdmin(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realm, config=current_app.json_config)
-        kc_admin.delete_session(session_id, isOffline=is_offline_session)
-        
-        if not is_offline_session:
-            try:
-                try:
-                    uuid.UUID(userIdentifier)
-                    user_id = userIdentifier
-                except ValueError:
-                    user_id = kc_admin.get_user_id(userIdentifier)
-                
-                clients = kc_admin.get_clients()
-                for client in clients:
-                    client_id_for_check = client.get("clientId")
-                    if client_id_for_check:
-                        try:
-                            offline_sessions = kc_admin.sherpa_get_user_client_offlinesessions(user_id=user_id, client_id=client_id_for_check)
-                            for offline_session in offline_sessions:
-                                if offline_session.get('id') == session_id:
-                                    try:
-                                        kc_admin.delete_session(session_id, isOffline=True)
-                                        break
-                                    except Exception:
-                                        pass
-                        except Exception:
-                            pass
-            except Exception:
-                pass
-        
-        flash(current_app.messages.get('usersesssions.kill_session_success', 'Sesión eliminada exitosamente'), 'success')
-    except Exception as e:
-        current_app.logger.error("Error killing session {}: {}", session_id, e)
-        error_msg = current_app.messages.get('usersesssions.kill_session_error', 'Error al eliminar sesión')
-        flash(f'{error_msg}: {str(e)}', 'error')
-    
-    return redirect(url_for('user-sessions.user_sessions_detail', 
-                          environment=environment, realm=realm, userIdentifier=userIdentifier))
+        flash(current_app.messages['usersesssions.kill_session_error'], 'error')
+        return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))
+
+    base_url = (current_app.json_config.get("environments", {}).get(environment, {}).get("iamcrud_api_base_url"))
+    access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
+    headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json", "X-Realm": realm}
+    iamcrud_response = requests.delete(f"{base_url}/v1/sessions/{session_id}", headers=headers)
+
+    if iamcrud_response.ok:
+        flash(current_app.messages['usersesssions.kill_session_success'], 'success')
+    else:
+        current_app.logger.error(f"Error killing session {session_id}: HTTP {iamcrud_response.status_code} - {iamcrud_response.text}")
+        flash(current_app.messages['usersesssions.kill_session_error'], 'error')
+
+    return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))
 
 
 @user_sessions_bp.route('/user-sessions/<environment>/<realm>/<userIdentifier>/kill-all-sessions', methods=["POST"])
@@ -224,30 +134,21 @@ def kill_all_sessions(environment: str, realm: str, userIdentifier: str):
     Returns:
         Redirect: Redirects back to the user sessions detail page
     """
-    try:
-        kc_admin = utils.getKeycloakAdmin(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realm, config=current_app.json_config)
-        kc_admin.sherpa_logout_user_sessions(username=userIdentifier)
-        
-        try:
-            uuid.UUID(userIdentifier)
-            user_id = userIdentifier
-        except ValueError:
-            user_id = kc_admin.get_user_id(userIdentifier)
-        
-        clients = kc_admin.get_clients()
-        for client in clients:
-            client_keycloak_id = client.get("id")
-            if client_keycloak_id:
-                try:
-                    kc_admin.logout_user_client_offlinesessions(user_id=user_id, client_id=client_keycloak_id)
-                except Exception:
-                    pass
-        
-        flash(current_app.messages.get('usersesssions.kill_all_sessions_success', 'Todas las sesiones eliminadas exitosamente'), 'success')
-    except Exception as e:
-        current_app.logger.error("Error killing all sessions for user {}: {}", userIdentifier, e)
-        error_msg = current_app.messages.get('usersesssions.kill_all_sessions_error', 'Error al eliminar sesiones')
-        flash(f'{error_msg}: {str(e)}', 'error')
-    
-    return redirect(url_for('user-sessions.user_sessions_detail', 
-                          environment=environment, realm=realm, userIdentifier=userIdentifier))
+    if not auth_utils.hasRole(logger=current_app.logger, required_role=f"{realm.upper()}_UPDATE_USERS"):
+        current_app.logger.warn(f"User without role attempted to kill all sessions for user {userIdentifier}")
+        flash(current_app.messages['usersesssions.kill_all_sessions_forbidden'], 'error')
+        return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))
+
+    base_url = (current_app.json_config.get("environments", {}).get(environment, {}).get("iamcrud_api_base_url"))
+    access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
+    headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json", "X-Realm": realm}
+    params = {"userId": userIdentifier}
+    iamcrud_response = requests.delete(f"{base_url}/v1/sessions", headers=headers, params=params)
+
+    if iamcrud_response.ok:
+        flash(current_app.messages['usersesssions.kill_all_sessions_success'], 'success')
+    else:
+        current_app.logger.error(f"Error killing all sessions for user {userIdentifier}: HTTP {iamcrud_response.status_code} - {iamcrud_response.text}")
+        flash(current_app.messages['usersesssions.kill_all_sessions_error'], 'error')
+
+    return redirect(url_for('user-sessions.user_sessions_detail', environment=environment, realm=realm, userIdentifier=userIdentifier))

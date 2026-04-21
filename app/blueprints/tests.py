@@ -55,125 +55,63 @@ def tests_execute(environment: str):
     return redirect(url_for('tests.tests_list', environment=environment))
 
 
+def _load_report(environment: str, timestamp: str) -> dict:
+    """Load the raw pytest-json report from disk. Raises FileNotFoundError if missing."""
+    report_path = f"/data/idp_testing_reports/{environment}/{timestamp}/report.json"
+    with open(report_path, "r", encoding="utf-8") as json_report_file:
+        return json.load(json_report_file)
+
+
 @tests_bp.route('/tests/<environment>/report/<timestamp>', methods=["GET"])
 @utils.require_oidc_login
 def tests_report(environment: str, timestamp: str):
-    """
-    Renders Tests Report Page
-
-    Args:
-        environment (str): Environment Name
-        timestamp (str): Test Execution Timestamp / Report File's Name
-
-    Returns:
-        Template: Test Report Rendered HTML Page
-    """    
-    
-    json_report = {}
+    """Renders the Test Report page."""
+    raw_report = {}
+    cases = []
     error_message = None
     try:
-        with open(f"/data/idp_testing_reports/{environment}/{timestamp}/report.json", "r") as json_report_file:
-            json_report = json.load(json_report_file)
-        
-        if json_report.get("included"):
-            for test_object in json_report["included"]:
-                test_attributes = test_object.get("attributes", {})
-                test_call = test_attributes.get("call", {})
-                test_metadata = test_call.get("metadata", {})
-                
-                test_outcome = test_attributes.get("outcome", "")
-                call_outcome = test_call.get("outcome", "")
-                
-                if test_metadata.get("test_media_dir"):
-                    test_media_dir = test_metadata["test_media_dir"]
-                    current_app.logger.debug("Processing test with test_media_dir: '{}' (outcome: {})", test_media_dir, test_outcome)
-                    
-                    if test_outcome == "failed" or call_outcome == "failed":
-                        failed_images = utils.getTestFailedImages(
-                            logger=current_app.logger,
-                            environment=environment,
-                            timestamp=timestamp,
-                            test_media_dir=test_media_dir
-                        )
-                        if failed_images:
-                            current_app.logger.info("Adding {} failed images to test object (test_media_dir: '{}', images: {})", 
-                                       len(failed_images), test_media_dir, failed_images)
-                            if "metadata" not in test_object["attributes"]["call"]:
-                                test_object["attributes"]["call"]["metadata"] = {}
-                            test_object["attributes"]["call"]["metadata"]["failed_images"] = failed_images
-                        else:
-                            current_app.logger.warn("No failed images found for test_media_dir: '{}' (but test failed). Path checked: /data/idp_testing_reports/{}/{}/{}", 
-                                       test_media_dir, environment, timestamp, test_media_dir)
-                    else:
-                        current_app.logger.debug("Test passed, skipping image search for test_media_dir: '{}'", test_media_dir)
-                else:
-                    current_app.logger.debug("Test object does not have test_media_dir in metadata (test: {}, outcome: {})", 
-                               test_attributes.get("name", "unknown"), test_outcome)
-
-        # Enrich each test with description from config mapping (or keep from report if present)
-        utils.enrichTestsWithDescriptions(current_app.logger, json_report)
+        raw_report = _load_report(environment, timestamp)
+        cases = utils.parse_test_report(current_app.logger, raw_report, environment, timestamp)
+    except FileNotFoundError:
+        error_message = "Report not found"
     except Exception as e:
-        error_message = e
+        current_app.logger.error("Error loading report {}/{}: {}", environment, timestamp, e)
+        error_message = str(e)
 
     return render_template(
         'tests_detail.html',
         logger=current_app.logger,
         config=current_app.json_config,
         utils=utils,
-        json_report=json_report,
+        raw_report=raw_report,
+        cases=cases,
         error_message=error_message,
         environment=environment,
-        timestamp=timestamp
+        timestamp=timestamp,
     )
 
 
 @tests_bp.route('/tests/<environment>/report/<timestamp>/data', methods=["GET"])
 @utils.require_oidc_login
 def tests_report_data(environment: str, timestamp: str):
-    """
-    Returns processed test report data as JSON for client-side sorting/filtering.
-    
-    Args:
-        environment (str): Environment Name
-        timestamp (str): Test Execution Timestamp
-        
-    Returns:
-        JSON: Processed test data with sanitized fields for UI interaction
-    """
-    current_app.logger.debug(f"Getting data for test env: {environment}, timestamp: {timestamp}")
+    """Returns normalized test data as JSON for client-side sorting/filtering."""
     try:
-        with open(f"/data/idp_testing_reports/{environment}/{timestamp}/report.json", "r") as json_report_file:
-            json_report = json.load(json_report_file)
-
-        # Extract and process test data
-        test_data = []
-        if json_report.get("included"):
-            for test_object in json_report["included"]:
-                test_attributes = test_object.get("attributes", {})
-                test_call = test_attributes.get("call", {})
-                test_metadata = test_call.get("metadata", {})
-
-                # Extract sortable/filterable fields
-                test_entry = {
-                    "id": test_object.get("id"),
-                    "name": test_attributes.get("name", ""),
-                    "folder": test_metadata.get("parent_directory", ""),
-                    "file": test_metadata.get("file_name", ""),
-                    "function": test_metadata.get("function_name", ""),
-                    # test_display_name (deprecated)
-                    "test_display_name": test_metadata.get("test_display_name", ""),
-                    "outcome": test_attributes.get("outcome", ""),
-                    "duration": test_attributes.get("duration", 0)
-                }
-                test_data.append(test_entry)
+        raw_report = _load_report(environment, timestamp)
+        cases = utils.parse_test_report(current_app.logger, raw_report, environment, timestamp)
         return Response(
-            json.dumps({"tests": test_data, "success": True}),
+            json.dumps({"success": True, "tests": cases}),
             mimetype='application/json'
         )
-    except Exception as e:
-        current_app.logger.error(f"Error loading test report data: {e}")
+    except FileNotFoundError:
         return Response(
-            json.dumps({"tests": [], "success": False, "error": str(e)}),
+            json.dumps({"success": False, "tests": [], "error": "Report not found"}),
+            mimetype='application/json',
+            status=404
+        )
+    except Exception as e:
+        current_app.logger.error("Error loading report data {}/{}: {}", environment, timestamp, e)
+        return Response(
+            json.dumps({"success": False, "tests": [], "error": str(e)}),
             mimetype='application/json',
             status=500
         )
@@ -211,18 +149,13 @@ def tests_report_download(environment: str, timestamp: str):
     Returns:
         Response: JSON report file as download
     """
-    report_path = f"/data/idp_testing_reports/{environment}/{timestamp}/report.json"
-    with open(report_path, 'r', encoding='utf-8') as f:
-        json_report = json.load(f)
+    raw_report = _load_report(environment, timestamp)
 
-    if "data" in json_report:
-        for item in json_report["data"]:
+    if "data" in raw_report:
+        for item in raw_report["data"]:
             item.pop("relationships", None)
 
-    # Include description for each test in downloaded JSON
-    utils.enrichTestsWithDescriptions(current_app.logger, json_report)
-
-    json_string = json.dumps(json_report, indent=2, ensure_ascii=False)
+    json_string = json.dumps(raw_report, indent=2, ensure_ascii=False)
     return Response(
         json_string,
         mimetype='application/json',

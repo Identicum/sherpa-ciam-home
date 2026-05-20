@@ -17,23 +17,28 @@ def check_change_email_role():
         return render_template('403.html', logger=current_app.logger, config=current_app.json_config, utils=utils), 403
 
 
-def search_user(base_url: str, realm: str, access_token: str, target_user: str) -> str:
+def search_user(base_url: str, realm: str, access_token: str, target_user: str, user_not_found_message: str) -> str:
     """Resolve target_user (username, UUID or email) to user id via IAM CRUD. Raises if not found."""
     headers = {"X-Realm": realm, "Authorization": f"Bearer {access_token}"}
     for param, value in [("username", target_user), ("identifier", target_user)]:
         r = requests.get(f"{base_url}/v1/users/search", params={param: value}, headers=headers)
-        r.raise_for_status()
+        if r.status_code == 404:
+            continue
+        if not r.ok:
+            raise ValueError(f"HTTP {r.status_code}")
         data = r.json()
         if isinstance(data, list) and len(data) > 0:
             user = data[0]
             return user["identifier"]
     r = requests.get(f"{base_url}/v1/users", params={"emailAddress": target_user}, headers=headers)
-    r.raise_for_status()
-    data = r.json()
-    if isinstance(data, list) and len(data) > 0:
-        user = data[0]
-        return user["identifier"]
-    raise ValueError(f"Usuario no encontrado: {target_user}")
+    if r.status_code != 404:
+        if not r.ok:
+            raise ValueError(f"HTTP {r.status_code}")
+        data = r.json()
+        if isinstance(data, list) and len(data) > 0:
+            user = data[0]
+            return user["identifier"]
+    raise ValueError(user_not_found_message)
 
 
 def change_email(base_url: str, realm: str, access_token: str, user_id: str, new_email: str) -> None:
@@ -100,9 +105,9 @@ def change_email_submit(environment: str, realm: str):
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="No se pudo obtener el token de sesión. Vuelva a iniciar sesión.")
         )
     try:
-        user_id = search_user(base_url, realm, access_token, target_user)
+        user_id = search_user(base_url, realm, access_token, target_user, current_app.messages["changeemail.user_not_found"])
         change_email(base_url, realm, access_token, user_id, new_email)
-    except (ValueError, requests.exceptions.RequestException) as e:
+    except ValueError as e:
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=str(e))
         )

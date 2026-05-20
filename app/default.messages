@@ -11,6 +11,7 @@ changeemail.new_email=New email
 changeemail.submit=Execute change
 changeemail.again=Perform another change
 changeemail.status_code=Response code
+changeemail.user_not_found=User to modify is non existent
 
 clientcreation.title=Request Client
 clientcreation.integration_type=Integration type

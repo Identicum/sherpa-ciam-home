@@ -1,5 +1,6 @@
 """Change Email: consumes IAM CRUD API to update user email."""
 import auth_utils
+from exceptions import ServiceException, UserNotFoundError
 from flask import Blueprint, current_app, redirect, render_template, request, url_for
 import requests
 import utils
@@ -17,7 +18,7 @@ def check_change_email_role():
         return render_template('403.html', logger=current_app.logger, config=current_app.json_config, utils=utils), 403
 
 
-def search_user(base_url: str, realm: str, access_token: str, target_user: str, user_not_found_message: str) -> str:
+def search_user(base_url: str, realm: str, access_token: str, target_user: str) -> str:
     """Resolve target_user (username, UUID or email) to user id via IAM CRUD. Raises if not found."""
     headers = {"X-Realm": realm, "Authorization": f"Bearer {access_token}"}
     for param, value in [("username", target_user), ("identifier", target_user)]:
@@ -25,7 +26,7 @@ def search_user(base_url: str, realm: str, access_token: str, target_user: str, 
         if r.status_code == 404:
             continue
         if not r.ok:
-            raise ValueError(f"HTTP {r.status_code}")
+            raise ServiceException(f"IAM server error (HTTP {r.status_code}).")
         data = r.json()
         if isinstance(data, list) and len(data) > 0:
             user = data[0]
@@ -33,12 +34,12 @@ def search_user(base_url: str, realm: str, access_token: str, target_user: str, 
     r = requests.get(f"{base_url}/v1/users", params={"emailAddress": target_user}, headers=headers)
     if r.status_code != 404:
         if not r.ok:
-            raise ValueError(f"HTTP {r.status_code}")
+            raise ServiceException(f"IAM server error (HTTP {r.status_code}).")
         data = r.json()
         if isinstance(data, list) and len(data) > 0:
             user = data[0]
             return user["identifier"]
-    raise ValueError(user_not_found_message)
+    raise UserNotFoundError(target_user)
 
 
 def change_email(base_url: str, realm: str, access_token: str, user_id: str, new_email: str) -> None:
@@ -90,29 +91,38 @@ def change_email_submit(environment: str, realm: str):
     new_email = (request.form.get("new_email") or "").strip()
     if not target_user or not new_email:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="Faltan usuario o nuevo email.")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="Missing user or new email.")
         )
     env = (environment)
     config_environments = current_app.json_config["environments"]
     base_url = config_environments[env]["iamcrud_api_base_url"]
     if not base_url:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=f"IAM CRUD API no configurada.")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=f"IAM CRUD API not configured.")
         )
     access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
     if not access_token:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="No se pudo obtener el token de sesión. Vuelva a iniciar sesión.")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="could not get session token. Please log in again.")
         )
     try:
-        user_id = search_user(base_url, realm, access_token, target_user, current_app.messages["changeemail.user_not_found"])
+        user_id = search_user(base_url, realm, access_token, target_user)
         change_email(base_url, realm, access_token, user_id, new_email)
+    except UserNotFoundError as e:
+        message = current_app.messages["changeemail.user_not_found_with_target"].format(str(e))
+        return redirect(
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=message)
+        )
+    except ServiceException as e:
+        return redirect(
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=str(e))
+        )
     except ValueError as e:
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=str(e))
         )
     return redirect(
-        url_for("change-email.change_email_result", environment=environment, realm=realm, success=True, message="Email actualizado correctamente.")
+        url_for("change-email.change_email_result", environment=environment, realm=realm, success=True, message="Email updated successfully.")
     )
 
 

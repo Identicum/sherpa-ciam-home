@@ -21,13 +21,13 @@ def search_user(base_url: str, realm: str, access_token: str, target_user: str) 
     """Resolve target_user (username, UUID or email) to user id via IAM CRUD. Raises if not found."""
     headers = {"X-Realm": realm, "Authorization": f"Bearer {access_token}"}
     for param, value in [("username", target_user), ("identifier", target_user)]:
-        r = requests.get(f"{base_url}/v1/users/search", params={param: value}, headers=headers)
+        r = requests.get(f"{base_url}/v1/users/search", params={param: value}, headers=headers, timeout=utils.DEFAULT_TIMEOUT)
         r.raise_for_status()
         data = r.json()
         if isinstance(data, list) and len(data) > 0:
             user = data[0]
             return user["identifier"]
-    r = requests.get(f"{base_url}/v1/users", params={"emailAddress": target_user}, headers=headers)
+    r = requests.get(f"{base_url}/v1/users", params={"emailAddress": target_user}, headers=headers, timeout=utils.DEFAULT_TIMEOUT)
     r.raise_for_status()
     data = r.json()
     if isinstance(data, list) and len(data) > 0:
@@ -40,7 +40,7 @@ def change_email(base_url: str, realm: str, access_token: str, user_id: str, new
     """Call IAM CRUD PATCH /v1/users/{id}/change-email. Raises on non-204."""
     url = f"{base_url}/v1/users/{user_id}/change-email"
     headers = {"X-Realm": realm, "Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
-    r = requests.patch(url, json={"emailAddress": new_email}, headers=headers)
+    r = requests.patch(url, json={"emailAddress": new_email}, headers=headers, timeout=utils.DEFAULT_TIMEOUT)
     if r.status_code != 204:
         try:
             err = r.json()

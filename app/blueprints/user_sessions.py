@@ -63,12 +63,12 @@ def user_sessions_detail(environment: str, realm: str, userIdentifier: str):
     headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json", "X-Realm": realm}
     params = {"userId": userIdentifier}
 
-    user_search_response = requests.get(f"{base_url}/v1/users/search", headers=headers, params={"username": userIdentifier})
+    user_search_response = requests.get(f"{base_url}/v1/users/search", headers=headers, params={"username": userIdentifier}, timeout=utils.DEFAULT_TIMEOUT)
     user = user_search_response.json()[0]
     username = user["username"]
     user_id = user["identifier"]
 
-    iamcrud_response = requests.get(f"{base_url}/v1/sessions", headers=headers, params=params)
+    iamcrud_response = requests.get(f"{base_url}/v1/sessions", headers=headers, params=params, timeout=utils.DEFAULT_TIMEOUT)
 
     payload = iamcrud_response.json()
     sessions = payload if isinstance(payload, list) else []
@@ -115,7 +115,7 @@ def kill_session(environment: str, realm: str, userIdentifier: str):
     base_url = (current_app.json_config.get("environments", {}).get(environment, {}).get("iamcrud_api_base_url"))
     access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
     headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json", "X-Realm": realm}
-    iamcrud_response = requests.delete(f"{base_url}/v1/sessions/{session_id}", headers=headers)
+    iamcrud_response = requests.delete(f"{base_url}/v1/sessions/{session_id}", headers=headers, timeout=utils.DEFAULT_TIMEOUT)
 
     if iamcrud_response.ok:
         flash(current_app.messages['usersesssions.kill_session_success'], 'success')
@@ -143,7 +143,7 @@ def kill_all_sessions(environment: str, realm: str, userIdentifier: str):
     access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
     headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json", "X-Realm": realm}
     params = {"userId": userIdentifier}
-    iamcrud_response = requests.delete(f"{base_url}/v1/sessions", headers=headers, params=params)
+    iamcrud_response = requests.delete(f"{base_url}/v1/sessions", headers=headers, params=params, timeout=utils.DEFAULT_TIMEOUT)
 
     if iamcrud_response.ok:
         flash(current_app.messages['usersesssions.kill_all_sessions_success'], 'success')

@@ -2,6 +2,7 @@ from flask import session
 import jwt
 import os
 import requests
+import utils
 from sherpa.utils.basics import Properties
 from sherpa.utils.basics import Logger
 import time
@@ -153,7 +154,7 @@ def refreshToken(logger: Logger, discovery_document: dict) -> bool:
                 'client_id': os.environ.get('OIDC_CLIENT_ID'),
                 'client_secret': os.environ.get('OIDC_CLIENT_SECRET'),
             },
-            timeout=10,
+            timeout=utils.DEFAULT_TIMEOUT,
         )
         if token_response.status_code >= 400:
             logger.debug("Token refresh rejected by IdP (HTTP {}).", token_response.status_code)

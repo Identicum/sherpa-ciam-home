@@ -113,7 +113,7 @@ def change_email_submit(environment: str, realm: str):
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=message)
         )
-    except ServiceException as e:
+    except Exception as e:
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=str(e))
         )

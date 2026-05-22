@@ -53,7 +53,7 @@ def change_email(base_url: str, realm: str, access_token: str, user_id: str, new
             msg = err.get("message") or r.text
         except Exception:
             msg = r.text or f"HTTP {r.status_code}"
-        raise ValueError(msg or f"HTTP {r.status_code}")
+        raise ServiceException(msg or f"HTTP {r.status_code}")
 
 
 @change_email_bp.route("/change-email/<environment>", methods=["GET"])
@@ -91,19 +91,19 @@ def change_email_submit(environment: str, realm: str):
     new_email = (request.form.get("new_email") or "").strip()
     if not target_user or not new_email:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="Missing user or new email.")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=current_app.messages["changeemail.missing_user_or_new_email"])
         )
     env = (environment)
     config_environments = current_app.json_config["environments"]
     base_url = config_environments[env]["iamcrud_api_base_url"]
     if not base_url:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=f"IAM CRUD API not configured.")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=current_app.messages["changeemail.iamcrud_not_configured"])
         )
     access_token = auth_utils.getCurrentAccessToken(logger=current_app.logger, discovery_document=current_app.discovery_document)
     if not access_token:
         return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message="could not get session token. Please log in again.")
+            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=current_app.messages["changeemail.session_token_error"])
         )
     try:
         user_id = search_user(base_url, realm, access_token, target_user)
@@ -117,12 +117,8 @@ def change_email_submit(environment: str, realm: str):
         return redirect(
             url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=str(e))
         )
-    except ValueError as e:
-        return redirect(
-            url_for("change-email.change_email_result", environment=environment, realm=realm, success=False, message=str(e))
-        )
     return redirect(
-        url_for("change-email.change_email_result", environment=environment, realm=realm, success=True, message="Email updated successfully.")
+        url_for("change-email.change_email_result", environment=environment, realm=realm, success=True, message=current_app.messages["changeemail.success"])
     )
 
 

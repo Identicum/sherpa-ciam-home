@@ -1,130 +1,173 @@
-<header>
-    <div class="logo">
-        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo">
-    </div>
-    <nav>
-        <ul>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">Links</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                    <a href="/links/{{environment}}">{{environment}}</a>
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">Client Info</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                        <div class="submenu-parent">
-                            <a href="/clientinfo/{{environment}}">{{environment}} &raquo;</a>
-                            <div class="dropdown-submenu">
-                                {% for realm in utils.getRealms(logger=logger, environment=environment, config=config) %}
-                                    <a href="/clientinfo/{{environment}}/{{realm}}">{{realm}}</a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </li>
-            <li>
-                <a href="/clientcreation">{{ messages['menu.clientcreation'] }}</a>
-            </li>
-            {% if session.get('username') %}
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">Check clients</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                        <div class="submenu-parent">
-                            <a href="/checkclients/{{environment}}">{{environment}}</a>
-                        </div>
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">Clients Activity</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                    <a href="/clientsactivity/{{environment}}">{{environment}}</a>
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">Terraform check</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                    <a href="/terraformcheck/{{environment}}">{{environment}}</a>
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.tests'] }}</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                        <a href="/tests/{{environment}}">{{environment}}</a>
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.deployments'] }}</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                        {% if environment != 'local' %}
-                            <div class="submenu-parent">
-                                <a href="/deployments/{{environment}}">{{environment}} &raquo;</a>
-                                <div class="dropdown-submenu">
-                                    {% for artifact in config.get("deployment_artifacts", []) %}
-                                        <a href="/deployments/{{environment}}/{{artifact}}">{{artifact}}</a>
+<nav class="navbar navbar-expand-xl sh-navbar sticky-top">
+    <div class="container-fluid px-3 px-xl-4">
+        <a class="navbar-brand" href="/">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Identicum">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#shNavbarMain" aria-controls="shNavbarMain" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="shNavbarMain">
+            <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-link-45deg me-1"></i>Links
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                        <li><a class="dropdown-item" href="/links/{{environment}}"><i class="bi bi-globe2"></i>{{environment}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-badge me-1"></i>Clients
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle-sub" href="/clientinfo/{{environment}}">
+                                    <span><i class="bi bi-globe2"></i>{{environment}}</span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    {% for realm in utils.getRealms(logger=logger, environment=environment, config=config) %}
+                                        <li><a class="dropdown-item" href="/clientinfo/{{environment}}/{{realm}}">{{realm}}</a></li>
                                     {% endfor %}
-                                </div>
-                            </div>
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/clientcreation"><i class="bi bi-plus-circle me-1"></i>{{ messages['menu.clientcreation'] }}</a>
+                </li>
+
+                {% if session.get('username') %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-clipboard-check me-1"></i>Check
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                            <li><a class="dropdown-item" href="/checkclients/{{environment}}"><i class="bi bi-globe2"></i>{{environment}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-activity me-1"></i>Activity
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                        <li><a class="dropdown-item" href="/clientsactivity/{{environment}}"><i class="bi bi-globe2"></i>{{environment}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-diagram-3 me-1"></i>Terraform
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                        <li><a class="dropdown-item" href="/terraformcheck/{{environment}}"><i class="bi bi-globe2"></i>{{environment}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-check2-square me-1"></i>{{ messages['menu.tests'] }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                            <li><a class="dropdown-item" href="/tests/{{environment}}"><i class="bi bi-globe2"></i>{{environment}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-rocket-takeoff me-1"></i>{{ messages['menu.deployments'] }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                            {% if environment != 'local' %}
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle-sub" href="/deployments/{{environment}}">
+                                        <span><i class="bi bi-globe2"></i>{{environment}}</span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        {% for artifact in config.get("deployment_artifacts", []) %}
+                                            <li><a class="dropdown-item" href="/deployments/{{environment}}/{{artifact}}">{{artifact}}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-people me-1"></i>{{ messages['menu.usersessions'] }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle-sub" href="/user-sessions/{{environment}}">
+                                    <span><i class="bi bi-globe2"></i>{{environment}}</span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    {% for realm in utils.getRealms(logger=logger, environment=environment, config=config) %}
+                                        <li><a class="dropdown-item" href="/user-sessions/{{environment}}/{{realm}}">{{realm}}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-envelope-at me-1"></i>{{ messages['menu.changeemail'] }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle-sub" href="/change-email/{{environment}}">
+                                    <span><i class="bi bi-globe2"></i>{{environment}}</span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    {% for realm in utils.getRealms(logger=logger, environment=environment, config=config) %}
+                                        <li><a class="dropdown-item" href="/change-email/{{environment}}/{{realm}}">{{realm}}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link sh-user-chip dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i>
+                        <span>{{ session.get('username', 'Not logged in') }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        {% if session.get('username') %}
+                            <li><a class="dropdown-item" href="/homeLogout"><i class="bi bi-box-arrow-right"></i>Logout</a></li>
+                        {% else %}
+                            <li><a class="dropdown-item" href="/login"><i class="bi bi-box-arrow-in-right"></i>Login</a></li>
                         {% endif %}
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.usersessions'] }}</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                        <div class="submenu-parent">
-                            <a href="/user-sessions/{{environment}}">{{environment}} &raquo;</a>
-                            <div class="dropdown-submenu">
-                                {% for realm in utils.getRealms(logger=logger, environment=environment, config=config) %}
-                                    <a href="/user-sessions/{{environment}}/{{realm}}">{{realm}}</a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </li>
-            <li class="dropdown">
-                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.changeemail'] }}</a>
-                <div class="dropdown-content">
-                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
-                        <div class="submenu-parent">
-                            <a href="/change-email/{{environment}}">{{environment}} &raquo;</a>
-                            <div class="dropdown-submenu">
-                                {% for realm in utils.getRealms(logger=logger, environment=environment, config=config) %}
-                                    <a href="/change-email/{{environment}}/{{realm}}">{{realm}}</a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </li>
-            {% endif %}
-        </ul>
-        <ul class="user-menu-right">
-            <li class="dropdown user-menu">
-                <a href="javascript:void(0)" class="dropbtn">👤 {{ session.get('username', 'Not logged in') }}</a>
-                <div class="dropdown-content">
-                    {% if session.get('username') %}
-                        <a href="/homeLogout">Logout</a>
-                    {% else %}
-                        <a href="/login">Login</a>
-                    {% endif %}
-                </div>
-            </li>
-        </ul>
-    </nav>
-</header>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

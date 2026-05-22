@@ -3,149 +3,212 @@
 {% block title %} Deployments for {{ environment }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 style="margin-bottom: 30px;">Deployments - {{ environment }}{% if artifact %} - {{ artifact }}{% endif %}</h1>
-    {% set deployment_nodes = deployment_reports.getDeploymentNodes(logger=logger, environment=environment, config=config) %}
-    {% set deployment_status = deployment_reports.getDeploymentStatus(logger=logger, environment=environment, artifact=artifact) %}
-    {% set is_all = (not artifact) %}
-    {% if is_all %}
-        {% set reports = deployment_reports.getDeploymentReports(logger=logger, environment=environment, artifact=None, include_logs=False) %}
-    {% else %}
-        {% set reports = deployment_reports.getDeploymentReports(logger=logger, environment=environment, artifact=artifact, include_logs=False) %}
-    {% endif %}
+{% set deployment_nodes = deployment_reports.getDeploymentNodes(logger=logger, environment=environment, config=config) %}
+{% set deployment_status = deployment_reports.getDeploymentStatus(logger=logger, environment=environment, artifact=artifact) %}
+{% set is_all = (not artifact) %}
+{% if is_all %}
+    {% set reports = deployment_reports.getDeploymentReports(logger=logger, environment=environment, artifact=None, include_logs=False) %}
+{% else %}
+    {% set reports = deployment_reports.getDeploymentReports(logger=logger, environment=environment, artifact=artifact, include_logs=False) %}
+{% endif %}
 
-    {% if artifact %}
-    <div style="margin-bottom: 30px;">
-        {% if deployment_status == 'available' %}
-            <form action="/deployments/{{ environment }}/execute" method="post" style="display: inline-flex; align-items: center; gap: 10px;">
-                <input type="hidden" name="artifact" value="{{ artifact }}">
-                <label style="margin-right: 5px;">Coordinator:</label>
-                <select name="node" id="node-select" class="form-select" style="width: auto; display: inline-block;" required>
-                    <option value="">Select a node</option>
-                    {% for node in deployment_nodes %}
-                        <option value="{{ node }}">Node {{ node }}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit" name="submit" class="btn btn-primary">Deploy Artifact</button>
-            </form>
-        {% elif deployment_status == 'execute' %}
-            <p>The deployment is currently scheduled for execution.</p>
-        {% elif deployment_status == 'running' %}
-            <p>The deployment is currently running.</p>
-        {% endif %}
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-rocket-takeoff"></i> Deployments</div>
+        <h1>{{ environment }}{% if artifact %} <span class="text-muted">/</span> {{ artifact }}{% endif %}</h1>
+        <p class="sh-subtitle">
+            {% if artifact %}
+                Trigger a deployment for this artifact or browse recent runs.
+            {% else %}
+                Last deployment reports and current artifact status.
+            {% endif %}
+        </p>
     </div>
-    {% endif %}
-
-    <h3 style="margin-top: 20px;">Last Deployment Reports</h3>
-    {% if reports and reports|length > 0 %}
-        <table class="admin-links-table" style="table-layout: fixed; width: 100%;">
-            <thead>
-                <tr>
-                    {% if is_all %}
-                        <th style="width: 38%;">Timestamp</th>
-                        <th style="width: 38%;">Artifact</th>
-                        <th style="width: 14%;">Status</th>
-                        <th style="width: 10%;">Download</th>
-                    {% else %}
-                        <th style="width: 45%;">Timestamp</th>
-                        <th style="width: 45%;">Status</th>
-                        <th style="width: 10%;">Download</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for timestamp, artifact_name, status in reports %}
-                <tr>
-                    {% set day = timestamp[6:8] %}
-                    {% set month = timestamp[4:6] %}
-                    {% set year = timestamp[2:4] %}
-                    {% set hour = timestamp[9:11]|int %}
-                    {% set minute = timestamp[11:13]|int %}
-                    {% if minute >= 60 %}
-                        {% set hour = hour + ((minute / 60)|int) %}
-                        {% set minute = minute % 60 %}
-                    {% endif %}
-                    {% if hour >= 24 %}
-                        {% set hour = hour % 24 %}
-                    {% endif %}
-                    {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
-                    {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
-                    {% if is_all %}
-                        <td style="width: 38%;"><a href="/deployments/{{ environment }}/{{ artifact_name }}/{{ timestamp }}?from={% if is_all %}all{% else %}{{ artifact }}{% endif %}">{{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}</a></td>
-                        <td style="width: 38%;">{{ artifact_name }}</td>
-                        <td style="width: 14%;">
-                    {% else %}
-                        <td style="width: 45%;"><a href="/deployments/{{ environment }}/{{ artifact_name }}/{{ timestamp }}?from={% if is_all %}all{% else %}{{ artifact }}{% endif %}">{{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}</a></td>
-                        <td style="width: 45%;">
-                    {% endif %}
-                        {% if status == 'success' %}
-                            <span class="badge bg-success">Success</span>
-                        {% elif status == 'failed' %}
-                            <span class="badge bg-danger">Failed</span>
-                        {% endif %}
-                    </td>
-                    <td style="width: 10%;">
-                        <a href="{{ url_for('deployments.deployment_log_download', environment=environment, artifact=artifact_name, timestamp=timestamp) }}" class="btn btn-sm btn-primary text-white text-decoration-none">Download .log</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {% if artifact %}
+        <a href="{{ url_for('deployments.deployments', environment=environment) }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to all artifacts</a>
     {% else %}
-        <p>No deployment reports found{% if not is_all %} for this artifact{% endif %}.</p>
-    {% endif %}
-
-    {% if is_all %}
-    <h3>Artifacts Status</h3>
-    {% set artifacts_status = deployment_reports.getArtifactsLastStatus(logger=logger, environment=environment, config=config) %}
-    {% if artifacts_status and artifacts_status|length > 0 %}
-        <table class="admin-links-table" style="table-layout: fixed; width: 100%;">
-            <thead>
-                <tr>
-                    <th style="width: 42%;">Artifact</th>
-                    <th style="width: 42%;">Last Deployment</th>
-                    <th style="width: 16%;">Last Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for artifact_name, timestamp, status in artifacts_status %}
-                <tr>
-                    <td style="width: 42%;"><a href="/deployments/{{ environment }}/{{ artifact_name }}">{{ artifact_name }}</a></td>
-                    <td style="width: 42%;">
-                        {% if timestamp %}
-                            {% set day = timestamp[6:8] %}
-                            {% set month = timestamp[4:6] %}
-                            {% set year = timestamp[2:4] %}
-                            {% set hour = timestamp[9:11]|int %}
-                            {% set minute = timestamp[11:13]|int %}
-                            {% if minute >= 60 %}
-                                {% set hour = hour + ((minute / 60)|int) %}
-                                {% set minute = minute % 60 %}
-                            {% endif %}
-                            {% if hour >= 24 %}
-                                {% set hour = hour % 24 %}
-                            {% endif %}
-                            {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
-                            {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
-                            {{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}
-                        {% else %}
-                            No deployments
-                        {% endif %}
-                    </td>
-                    <td style="width: 16%;">
-                        {% if status == 'success' %}
-                            <span class="badge bg-success">Success</span>
-                        {% elif status == 'failed' %}
-                            <span class="badge bg-danger">Failed</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No artifacts found.</p>
-    {% endif %}
+        <a href="{{ url_for('index') }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to home</a>
     {% endif %}
 </div>
+
+{% if artifact %}
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-cloud-upload text-primary"></i> Deploy artifact</h2>
+        {% if deployment_status == 'available' %}
+            <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Available</span>
+        {% elif deployment_status == 'execute' %}
+            <span class="sh-pill pill-warning"><i class="bi bi-clock"></i>Scheduled</span>
+        {% elif deployment_status == 'running' %}
+            <span class="sh-pill"><i class="bi bi-arrow-clockwise"></i>Running</span>
+        {% endif %}
+    </div>
+    <div class="sh-card-body">
+        {% if deployment_status == 'available' %}
+            <form action="/deployments/{{ environment }}/execute" method="post" class="sh-form">
+                <input type="hidden" name="artifact" value="{{ artifact }}">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label" for="node-select">Coordinator</label>
+                        <select name="node" id="node-select" class="form-select" required>
+                            <option value="">Select a node</option>
+                            {% for node in deployment_nodes %}
+                                <option value="{{ node }}">Node {{ node }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" name="submit" class="btn btn-primary">
+                            <i class="bi bi-rocket-takeoff me-1"></i>Deploy artifact
+                        </button>
+                    </div>
+                </div>
+            </form>
+        {% elif deployment_status == 'execute' %}
+            <div class="alert alert-warning mb-0" role="alert">
+                <i class="bi bi-clock me-1"></i>The deployment is currently scheduled for execution.
+            </div>
+        {% elif deployment_status == 'running' %}
+            <div class="alert alert-info mb-0" role="alert">
+                <i class="bi bi-arrow-clockwise me-1"></i>The deployment is currently running.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-clock-history text-primary"></i> Last deployment reports</h2>
+        {% if reports %}<span class="sh-pill pill-muted">{{ reports | length }} report{{ '' if reports | length == 1 else 's' }}</span>{% endif %}
+    </div>
+    <div class="sh-card-body no-pad">
+        {% if reports and reports|length > 0 %}
+            <table class="sh-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        {% if is_all %}<th>Artifact</th>{% endif %}
+                        <th>Status</th>
+                        <th class="text-end">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for timestamp, artifact_name, status in reports %}
+                    <tr>
+                        {% set day = timestamp[6:8] %}
+                        {% set month = timestamp[4:6] %}
+                        {% set year = timestamp[2:4] %}
+                        {% set hour = timestamp[9:11]|int %}
+                        {% set minute = timestamp[11:13]|int %}
+                        {% if minute >= 60 %}
+                            {% set hour = hour + ((minute / 60)|int) %}
+                            {% set minute = minute % 60 %}
+                        {% endif %}
+                        {% if hour >= 24 %}
+                            {% set hour = hour % 24 %}
+                        {% endif %}
+                        {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
+                        {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
+                        <td>
+                            <a href="/deployments/{{ environment }}/{{ artifact_name }}/{{ timestamp }}?from={% if is_all %}all{% else %}{{ artifact }}{% endif %}">
+                                <i class="bi bi-file-earmark-text me-1"></i>{{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}
+                            </a>
+                        </td>
+                        {% if is_all %}<td>{{ artifact_name }}</td>{% endif %}
+                        <td>
+                            {% if status == 'success' %}
+                                <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Success</span>
+                            {% elif status == 'failed' %}
+                                <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>Failed</span>
+                            {% else %}
+                                <span class="sh-pill pill-muted">{{ status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('deployments.deployment_log_download', environment=environment, artifact=artifact_name, timestamp=timestamp) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>.log
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="sh-empty">
+                <i class="bi bi-inbox"></i>
+                <p class="mb-0">No deployment reports found{% if not is_all %} for this artifact{% endif %}.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if is_all %}
+{% set artifacts_status = deployment_reports.getArtifactsLastStatus(logger=logger, environment=environment, config=config) %}
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-box-seam text-primary"></i> Artifacts status</h2>
+        {% if artifacts_status %}<span class="sh-pill pill-muted">{{ artifacts_status | length }} artifact{{ '' if artifacts_status | length == 1 else 's' }}</span>{% endif %}
+    </div>
+    <div class="sh-card-body no-pad">
+        {% if artifacts_status and artifacts_status|length > 0 %}
+            <table class="sh-table">
+                <thead>
+                    <tr>
+                        <th>Artifact</th>
+                        <th>Last deployment</th>
+                        <th>Last status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for artifact_name, timestamp, status in artifacts_status %}
+                    <tr>
+                        <td>
+                            <a href="/deployments/{{ environment }}/{{ artifact_name }}">
+                                <i class="bi bi-box me-1"></i>{{ artifact_name }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if timestamp %}
+                                {% set day = timestamp[6:8] %}
+                                {% set month = timestamp[4:6] %}
+                                {% set year = timestamp[2:4] %}
+                                {% set hour = timestamp[9:11]|int %}
+                                {% set minute = timestamp[11:13]|int %}
+                                {% if minute >= 60 %}
+                                    {% set hour = hour + ((minute / 60)|int) %}
+                                    {% set minute = minute % 60 %}
+                                {% endif %}
+                                {% if hour >= 24 %}
+                                    {% set hour = hour % 24 %}
+                                {% endif %}
+                                {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
+                                {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
+                                {{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}
+                            {% else %}
+                                <span class="text-muted">No deployments</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if status == 'success' %}
+                                <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Success</span>
+                            {% elif status == 'failed' %}
+                                <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>Failed</span>
+                            {% else %}
+                                <span class="sh-pill pill-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="sh-empty">
+                <i class="bi bi-inbox"></i>
+                <p class="mb-0">No artifacts found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

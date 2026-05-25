@@ -14,6 +14,9 @@ from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
 
 
+DEFAULT_TIMEOUT = float(os.environ.get("HTTP_DEFAULT_TIMEOUT", "30"))
+
+
 def load_messages():
     """
     Load messages from default.messages, optionally overridden by custom.messages

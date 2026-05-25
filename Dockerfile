@@ -14,6 +14,7 @@ ENV LOG_LEVEL="DEBUG" \
     APP_BASE_URL="http://localhost:5000" \
     SMTP_HOST="localhost" \
     SMTP_PORT="25" \
-    SMTP_FROM_ADDR="sherpa@localhost"
+    SMTP_FROM_ADDR="sherpa@localhost" \
+    HTTP_DEFAULT_TIMEOUT="30"
 
 COPY ./app/ /app

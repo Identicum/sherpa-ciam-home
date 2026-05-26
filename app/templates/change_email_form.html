@@ -1,20 +1,37 @@
 {% extends "index.html" %}
 {% block title %}{{ messages['changeemail.title'] }} - {{ environment }} (realm {{ realm }}){% endblock %}
 {% block content %}
-    <div class="container">
-        <h1>{{ messages['changeemail.title'] }} - {{ environment }} (realm {{ realm }})</h1>
-        <p>{{ messages['changeemail.subtitle'] }}</p>
-        <form method="post" action="{{ url_for('change-email.change_email_submit', environment=environment, realm=realm) }}">
-            <div class="form-group">
-                <label for="target_user">{{ messages['changeemail.target_user'] }}</label>
-                <input type="text" id="target_user" name="target_user" class="form-control" required value="{{ request.form.target_user or '' }}">
-            </div>
-            <div class="form-group">
-                <label for="new_email">{{ messages['changeemail.new_email'] }}</label>
-                <input type="email" id="new_email" name="new_email" class="form-control" required value="{{ request.form.new_email or '' }}">
-            </div>
-            <button type="submit" class="btn btn-primary">{{ messages['changeemail.submit'] }}</button>
-        </form>
-        <p><a href="{{ url_for('index') }}">{{ messages['back_home'] }}</a></p>
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-envelope-at"></i> {{ messages['changeemail.title'] }}</div>
+        <h1>{{ environment }} <span class="text-muted">/</span> {{ realm }}</h1>
+        <p class="sh-subtitle">{{ messages['changeemail.subtitle'] }}</p>
     </div>
+    <a href="{{ url_for('change-email.change_email_realms', environment=environment) }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to realms</a>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="sh-card">
+            <div class="sh-card-header">
+                <h2><i class="bi bi-pencil-square text-primary"></i> Change email</h2>
+            </div>
+            <div class="sh-card-body">
+                <form method="post" action="{{ url_for('change-email.change_email_submit', environment=environment, realm=realm) }}" class="sh-form">
+                    <div class="mb-3">
+                        <label for="target_user" class="form-label">{{ messages['changeemail.target_user'] }}</label>
+                        <input type="text" id="target_user" name="target_user" class="form-control" required value="{{ request.form.target_user or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_email" class="form-label">{{ messages['changeemail.new_email'] }}</label>
+                        <input type="email" id="new_email" name="new_email" class="form-control" required value="{{ request.form.new_email or '' }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-1"></i>{{ messages['changeemail.submit'] }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

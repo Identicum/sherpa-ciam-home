@@ -3,42 +3,83 @@
 {% block title %}Check Clients Warnings for {{environment}}, realm: {{realmName}}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Check Clients warnings. Environment: {{environment}}, realm: {{realmName}}</h1>
-    {% if errorMessage %}
-        <div class="alert alert-danger" role="alert">Error: {{ errorMessage }}</div>
-    {% endif %}
-    <p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
-    {% if warns and warns|length > 0 %}
-    <h2>{{warns|length}} warnings</h2>
-        <table class="admin-links-table">
-            <thead>
-                <tr>
-                    <th>Realm</th>
-                    <th>Client ID</th>
-                    <th>Tag</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Level</th>
-                    <th>Issue</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for warn in warns %}
-                    <tr>
-                        <td>{{warn.realmName}}</td>
-                        <td><a href="/clientinfo/{{environment}}/{{warn.realmName}}/{{warn.client_id}}">{{warn.client_id}}</a></td>
-                        <td>{{warn.tag}}</td>
-                        <td>{{warn.name}}</td>
-                        <td>{{warn.description}}</td>
-                        <td>{{warn.issueLevel}}</td>
-                        <td>{{warn.issueDescription}}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No warnings found.</p>
-    {% endif %}
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-clipboard-check"></i> Check clients</div>
+        <h1>{{ environment }}{% if realmName %} <span class="text-muted">/</span> {{ realmName }}{% endif %}</h1>
+        {% if metadata and metadata.timestamp %}
+            <p class="sh-subtitle"><i class="bi bi-clock-history me-1"></i>Report generated on <strong>{{ metadata.timestamp }}</strong></p>
+        {% else %}
+            <p class="sh-subtitle">Inspect client configuration warnings across realms.</p>
+        {% endif %}
+    </div>
+    <a href="{{ url_for('index') }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to home</a>
+</div>
+
+{% if errorMessage %}
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-octagon me-1"></i>Error: {{ errorMessage }}
+    </div>
+{% endif %}
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-exclamation-triangle text-warning"></i> Warnings</h2>
+        {% if warns %}
+            <span class="sh-pill pill-warning">{{ warns | length }} warning{{ '' if warns | length == 1 else 's' }}</span>
+        {% else %}
+            <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>No issues</span>
+        {% endif %}
+    </div>
+    <div class="sh-card-body no-pad">
+        {% if warns and warns|length > 0 %}
+            <div class="table-responsive">
+                <table class="sh-table">
+                    <thead>
+                        <tr>
+                            <th>Realm</th>
+                            <th>Client ID</th>
+                            <th>Tag</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Level</th>
+                            <th>Issue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for warn in warns %}
+                            <tr>
+                                <td><span class="sh-pill pill-muted">{{ warn.realmName }}</span></td>
+                                <td>
+                                    <a href="/clientinfo/{{ environment }}/{{ warn.realmName }}/{{ warn.client_id }}">
+                                        <i class="bi bi-box me-1"></i>{{ warn.client_id }}
+                                    </a>
+                                </td>
+                                <td>{{ warn.tag or '—' }}</td>
+                                <td>{{ warn.name or '—' }}</td>
+                                <td class="text-muted">{{ warn.description or '—' }}</td>
+                                <td>
+                                    {% set lvl = (warn.issueLevel or '')|lower %}
+                                    {% if lvl in ['error', 'critical', 'high'] %}
+                                        <span class="sh-pill pill-danger">{{ warn.issueLevel }}</span>
+                                    {% elif lvl in ['warning', 'warn', 'medium'] %}
+                                        <span class="sh-pill pill-warning">{{ warn.issueLevel }}</span>
+                                    {% else %}
+                                        <span class="sh-pill pill-muted">{{ warn.issueLevel }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ warn.issueDescription }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="sh-empty">
+                <i class="bi bi-check2-circle"></i>
+                <p class="mb-0">No warnings found.</p>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

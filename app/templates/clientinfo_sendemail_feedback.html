@@ -3,9 +3,32 @@
 {% block title %}Client Info for {{ environment }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Send email feedback for {{ environment }}</h1>
-    <h2>Email status: {{ email_status }}</h2>
-    <a href="/clientinfo/{{ environment }}/{{ realm.realm }}/{{ normalizedClient.client_id }}">Back to Client info.</a>
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-envelope"></i> Send email feedback</div>
+        <h1>{{ environment }}</h1>
+    </div>
+    <a href="/clientinfo/{{ environment }}/{{ realm.realm }}/{{ normalizedClient.client_id }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to client info</a>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-body">
+        <div class="d-flex align-items-start gap-3">
+            {% set is_ok = email_status and (email_status|string|lower).startswith('ok') %}
+            <div class="sh-status-icon {{ 'text-success' if is_ok else 'text-danger' }}">
+                <i class="bi {{ 'bi-check-circle-fill' if is_ok else 'bi-exclamation-octagon-fill' }}"></i>
+            </div>
+            <div>
+                <h2 class="h5 mb-1">Email status</h2>
+                <p class="mb-0">
+                    {% if is_ok %}
+                        <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>{{ email_status }}</span>
+                    {% else %}
+                        <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>{{ email_status }}</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -3,165 +3,348 @@
 {% block title %}Client Info for {{ environment }} - {{ realm.realm }} - {{ normalizedClient.client_id }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Client Info for {{ environment }} - {{ realm.realm }} - {{ normalizedClient.client_id }}</h1>
-    {% if normalizedClient %}
-    <table class="table table-bordered" style="max-width:700px;">
-        <tbody>
-            <tr><th class="w-25">client_id</th><td colspan="2">{{ normalizedClient.client_id }}</td></tr>
-            <tr>
-                <th>client_secret</th>
-                <td>
-                    <form action="/clientinfo/{{environment}}/{{realm.realm}}/{{normalizedClient.client_id}}" method="post">
-                        <input type="text" name="secret" id="secret" placeholder="Enter client secret">
-                        <button id="btn-form" style="margin: 0px;">Validate</button>
-                    </form>
-                </td>
-                <td>
-                    {% if secretVerification == "" %}
-                        <span class="text">Not verified</span>
-                    {% elif secretVerification == "OK" %}
-                        <span class="text-success">{{ secretVerification }}</span>
-                    {% else %}
-                        <span class="text-danger">{{ secretVerification }}</span>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr><th>Name</th><td colspan="2">{{ normalizedClient.name }}</td></tr>
-            <tr><th>Status</th>
-                <td colspan="2">
-                    {% if normalizedClient.enabled %}
-                        <span title="Enabled" class="text-success">&#x2714;</span>
-                    {% else %}
-                        <span title="Disabled" class="text-danger">&#x2716;</span>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr><th>Tag</th><td colspan="2">{{ normalizedClient.tag }}</td></tr>
-            <tr><th>Owner email</th>
-                <td>{{ normalizedClient.owner_email }}</td>
-                <td>
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-person-badge"></i> Client Info</div>
+        <h1>{{ normalizedClient.client_id if normalizedClient else 'Client not found' }}</h1>
+        <p class="sh-subtitle">
+            <span class="sh-pill"><i class="bi bi-globe2"></i>{{ environment }}</span>
+            <span class="sh-pill pill-muted"><i class="bi bi-folder2"></i>{{ realm.realm }}</span>
+            {% if normalizedClient %}
+                {% if normalizedClient.enabled %}
+                    <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Enabled</span>
+                {% else %}
+                    <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>Disabled</span>
+                {% endif %}
+            {% endif %}
+        </p>
+    </div>
+    <a href="/clientinfo/{{ environment }}/{{ realm.realm }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to clients</a>
+</div>
+
+{% if normalizedClient %}
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-info-square text-primary"></i> Identity</h2>
+    </div>
+    <div class="sh-card-body">
+        <dl class="sh-kv">
+            <dt>Client ID</dt>
+            <dd><code>{{ normalizedClient.client_id }}</code></dd>
+
+            <dt>Name</dt>
+            <dd>{{ normalizedClient.name or '—' }}</dd>
+
+            <dt>Tag</dt>
+            <dd>{% if normalizedClient.tag %}<span class="sh-pill">{{ normalizedClient.tag }}</span>{% else %}—{% endif %}</dd>
+
+            <dt>Description</dt>
+            <dd>{{ normalizedClient.description or '—' }}</dd>
+
+            <dt>Access type</dt>
+            <dd>{{ normalizedClient.access_type or '—' }}</dd>
+
+            <dt>Owner email</dt>
+            <dd>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span>{{ normalizedClient.owner_email or '—' }}</span>
                     {% if normalizedClient.owner_email %}
-                    <a href="/clientinfo/{{ environment }}/{{ realm.realm }}/{{ normalizedClient.client_id }}/sendclientinfo" class="btn btn-primary btn-sm">Send Client info</a>
+                        <a href="/clientinfo/{{ environment }}/{{ realm.realm }}/{{ normalizedClient.client_id }}/sendclientinfo" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-envelope me-1"></i>Send Client info
+                        </a>
                     {% endif %}
-                </td>
-            </tr>
-            <tr><th>Description</th><td colspan="2">{{ normalizedClient.description }}</td></tr>
-            <tr><th>Access Type</th><td colspan="2">{{ normalizedClient.access_type }}</td></tr>
-            <tr>
-                <th>Flows</th>
-                <td colspan="2">
-                    <table class="table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Standard Flow</td>
-                                <td>{% if normalizedClient.authorization_code_flow %}<span class="text-success">Enabled</span>{% else %}<span class="text-danger">Disabled</span>{% endif %}</td>
-                            </tr>
-                            <tr>
-                                <td>Implicit Flow</td>
-                                <td>{% if normalizedClient.implicit_flow %}<span class="text-success">Enabled</span>{% else %}<span class="text-danger">Disabled</span>{% endif %}</td>
-                            </tr>
-                            <tr>
-                                <td>Direct Access Grants (ROPC)</td>
-                                <td>{% if normalizedClient.ropc_flow %}<span class="text-success">Enabled</span>{% else %}<span class="text-danger">Disabled</span>{% endif %}</td>
-                            </tr>
-                            <tr>
-                                <td>Service Accounts (client_credentials)</td>
-                                <td>{% if normalizedClient.client_credentials_flow %}<span class="text-success">Enabled</span>{% else %}<span class="text-danger">Disabled</span>{% endif %}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-            <tr><th>Root URL</th><td colspan="2">{{ normalizedClient.root_url }}</td></tr>
-            <tr><th>Base URL</th><td colspan="2">{{ utils.formatUrl(logger=logger, url=normalizedClient.base_url, rootUrl=normalizedClient.root_url) }}</td></tr>
-            <tr>
-                <th>Redirect URIs</th>
-                <td colspan="2">
+                </div>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-key text-primary"></i> Client secret</h2>
+    </div>
+    <div class="sh-card-body">
+        <form action="/clientinfo/{{environment}}/{{realm.realm}}/{{normalizedClient.client_id}}" method="post" class="sh-form">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label for="secret" class="form-label">Enter client secret</label>
+                    <input type="text" name="secret" id="secret" class="form-control" placeholder="Paste a secret to validate">
+                </div>
+                <div class="col-md-auto">
+                    <button id="btn-form" class="btn btn-primary">
+                        <i class="bi bi-shield-check me-1"></i>Validate
+                    </button>
+                </div>
+                <div class="col-md-auto">
+                    {% if secretVerification == "" %}
+                        <span class="sh-pill pill-muted"><i class="bi bi-dash-circle"></i>Not verified</span>
+                    {% elif secretVerification == "OK" %}
+                        <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>{{ secretVerification }}</span>
+                    {% else %}
+                        <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>{{ secretVerification }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-diagram-3 text-primary"></i> Authentication flows</h2>
+    </div>
+    <div class="sh-card-body no-pad">
+        <table class="sh-table">
+            <thead>
+                <tr>
+                    <th>Flow</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Standard Flow</td>
+                    <td>{% if normalizedClient.authorization_code_flow %}<span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Enabled</span>{% else %}<span class="sh-pill pill-muted">Disabled</span>{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Implicit Flow</td>
+                    <td>{% if normalizedClient.implicit_flow %}<span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Enabled</span>{% else %}<span class="sh-pill pill-muted">Disabled</span>{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Direct Access Grants (ROPC)</td>
+                    <td>{% if normalizedClient.ropc_flow %}<span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Enabled</span>{% else %}<span class="sh-pill pill-muted">Disabled</span>{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Service Accounts (client_credentials)</td>
+                    <td>{% if normalizedClient.client_credentials_flow %}<span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Enabled</span>{% else %}<span class="sh-pill pill-muted">Disabled</span>{% endif %}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-link-45deg text-primary"></i> URLs</h2>
+    </div>
+    <div class="sh-card-body">
+        <dl class="sh-kv">
+            <dt>Root URL</dt>
+            <dd>{{ normalizedClient.root_url or '—' }}</dd>
+
+            <dt>Base URL</dt>
+            <dd>{{ utils.formatUrl(logger=logger, url=normalizedClient.base_url, rootUrl=normalizedClient.root_url) or '—' }}</dd>
+
+            <dt>Redirect URIs</dt>
+            <dd>
+                {% if normalizedClient.redirect_uris %}
                     <ul class="list-unstyled mb-0">
                         {% for url in normalizedClient.redirect_uris %}
-                        <li>{{ utils.formatUrl(logger=logger, url=url, rootUrl=normalizedClient.root_url) }}</li>
+                        <li><i class="bi bi-arrow-return-right text-muted me-1"></i>{{ utils.formatUrl(logger=logger, url=url, rootUrl=normalizedClient.root_url) }}</li>
                         {% endfor %}
                     </ul>
-                </td>
-            </tr>
-            <tr>
-                <th>Post Logout Redirect URIs</th>
-                <td colspan="2">
+                {% else %}—{% endif %}
+            </dd>
+
+            <dt>Post Logout Redirect URIs</dt>
+            <dd>
+                {% if normalizedClient.post_logout_redirect_uris %}
                     <ul class="list-unstyled mb-0">
                         {% for url in normalizedClient.post_logout_redirect_uris %}
-                        <li>{{ utils.formatUrl(logger=logger, url=url, rootUrl=normalizedClient.root_url) }}</li>
+                        <li><i class="bi bi-arrow-return-right text-muted me-1"></i>{{ utils.formatUrl(logger=logger, url=url, rootUrl=normalizedClient.root_url) }}</li>
                         {% endfor %}
                     </ul>
-                </td>
-            </tr>
-            <tr>
-                <th>Web Origins</th>
-                <td colspan="2">
+                {% else %}—{% endif %}
+            </dd>
+
+            <dt>Web origins</dt>
+            <dd>
+                {% if normalizedClient.web_origins %}
                     <ul class="list-unstyled mb-0">
                         {% for uri in normalizedClient.web_origins %}
-                        <li>{{ uri }}</li>
+                        <li><i class="bi bi-globe2 text-muted me-1"></i>{{ uri }}</li>
                         {% endfor %}
                     </ul>
-                </td>
-            </tr>
-            <tr class="table-group-divider"><th colspan="3"></th></tr>
-            <tr><th>Theme</th><th>Realm</th><th>Client</th></tr>
-            <tr><th>Login Theme</th><td>{{ normalizedClient.realm_login_theme }}</td><td><strong>{{ normalizedClient.client_login_theme }}</strong></td></tr>
-            <tr><th>Account Theme</th><td>{{ normalizedClient.realm_account_theme }}</td><td><strong>{{ normalizedClient.client_account_theme }}</strong></td></tr>
-            <tr><th>Email Theme</th><td>{{ normalizedClient.realm_email_theme }}</td><td><strong>{{ normalizedClient.client_email_theme }}</strong></td></tr>
-            <tr class="table-group-divider"><th colspan="3"></th></tr>
-            <tr><th>Authentication Flow</th><th>Realm</th><th>Client</th></tr>
-            <tr><th>Browser Flow</th><td>{{ normalizedClient.realm_browser_flow }}</td><td><strong>{{ normalizedClient.client_browser_flow }}</strong></td></tr>
-            <tr><th>Direct Grant Flow</th><td>{{ normalizedClient.realm_direct_grant_flow }}</td><td><strong>{{ normalizedClient.client_direct_grant_flow }}</strong></td></tr>
-            <tr><th>Registration Flow</th><td>{{ normalizedClient.realm_registration_flow }}</td><td><strong>{{ normalizedClient.client_registration_flow }}</strong></td></tr>
-            <tr><th>Reset Credentials</th><td>{{ normalizedClient.realm_reset_credentials_flow }}</td><td><strong>{{ normalizedClient.client_reset_credentials_flow }}</strong></td></tr>
-            <tr class="table-group-divider"><th colspan="3"></th></tr>
-            <tr><th></th><th>Realm</th><th>Client</th></tr>
-            <tr><th>Access Token Lifespan</th><td>{{normalizedClient.realm_access_token_lifespan}}</td><td><strong>{{normalizedClient.access_token_lifespan}}</strong></td></tr>
-            <tr><th>Client Session Idle</th><td>{{normalizedClient.realm_client_session_idle}}</td><td><strong>{{normalizedClient.client_session_idle}}</strong></td></tr>
-            <tr><th>Client Session Max</th><td>{{normalizedClient.realm_client_session_max}}</td><td><strong>{{normalizedClient.client_session_max}}</strong></td></tr>
-            <tr><th>SSO Session Idle Timeout</th><td colspan="2"><strong>{{realm.ssoSessionIdleTimeout}}</strong></td></tr>
-            <tr><th>SSO Session Max Lifespan</th><td colspan="2"><strong>{{realm.ssoSessionMaxLifespan}}</strong></td></tr>
-            <tr><th>Offline Session Idle</th><td>{{normalizedClient.realm_offline_session_idle}}</td><td><strong>{{normalizedClient.client_offline_session_idle}}</strong></td></tr>
-            <tr><th>Offline Session Max Lifespan Enabled</th><td colspan="2">{{normalizedClient.realm_offline_session_max_lifespan_enabled}}</td></tr>
-            <tr><th>Offline Session Max</th><td>{{normalizedClient.realm_offline_session_max}}</td><td><strong>{{normalizedClient.client_offline_session_max}}</strong></td></tr>
-            <tr class="table-group-divider"><th colspan="3"></th></tr>
-            {% if warns %}
-                <tr>
-                    <th>Warnings</th>
-                    <td colspan="2">
-                        {% if warns|length > 0 %}
-                            <ul class="list-unstyled mb-0">
-                                {% for warn in warns %}
-                                <li class="text-danger">&#8226; {{ warn.issueDescription }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p>No warnings found.</p>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endif %}
-            {% if normalizedClient.activity_url %}
-                <tr class="table-group-divider"><th colspan="3"></th></tr>
-                <tr>
-                    <th>Activity logs</th>
-                    <td colspan="2">
-                        <a href="{{ normalizedClient.activity_url }}" class="btn btn-secondary btn-sm" target="_blank">View Activity Logs</a>
-                    </td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
-    {% else %}
-        <p>No client data found.</p>
-    {% endif %}
+                {% else %}—{% endif %}
+            </dd>
+        </dl>
+    </div>
 </div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-palette text-primary"></i> Themes</h2>
+    </div>
+    <div class="sh-card-body no-pad">
+        <table class="sh-table">
+            <thead>
+                <tr>
+                    <th>Theme</th>
+                    <th>Realm</th>
+                    <th>Client</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Login Theme</td>
+                    <td class="text-muted">{{ normalizedClient.realm_login_theme or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_login_theme or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Account Theme</td>
+                    <td class="text-muted">{{ normalizedClient.realm_account_theme or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_account_theme or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Email Theme</td>
+                    <td class="text-muted">{{ normalizedClient.realm_email_theme or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_email_theme or '—' }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-shuffle text-primary"></i> Authentication flows configuration</h2>
+    </div>
+    <div class="sh-card-body no-pad">
+        <table class="sh-table">
+            <thead>
+                <tr>
+                    <th>Flow</th>
+                    <th>Realm</th>
+                    <th>Client</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Browser Flow</td>
+                    <td class="text-muted">{{ normalizedClient.realm_browser_flow or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_browser_flow or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Direct Grant Flow</td>
+                    <td class="text-muted">{{ normalizedClient.realm_direct_grant_flow or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_direct_grant_flow or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Registration Flow</td>
+                    <td class="text-muted">{{ normalizedClient.realm_registration_flow or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_registration_flow or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Reset Credentials</td>
+                    <td class="text-muted">{{ normalizedClient.realm_reset_credentials_flow or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_reset_credentials_flow or '—' }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-clock text-primary"></i> Sessions &amp; tokens</h2>
+    </div>
+    <div class="sh-card-body no-pad">
+        <table class="sh-table">
+            <thead>
+                <tr>
+                    <th>Setting</th>
+                    <th>Realm</th>
+                    <th>Client</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Access Token Lifespan</td>
+                    <td class="text-muted">{{ normalizedClient.realm_access_token_lifespan or '—' }}</td>
+                    <td><strong>{{ normalizedClient.access_token_lifespan or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Client Session Idle</td>
+                    <td class="text-muted">{{ normalizedClient.realm_client_session_idle or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_session_idle or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Client Session Max</td>
+                    <td class="text-muted">{{ normalizedClient.realm_client_session_max or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_session_max or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>SSO Session Idle Timeout</td>
+                    <td colspan="2"><strong>{{ realm.ssoSessionIdleTimeout or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>SSO Session Max Lifespan</td>
+                    <td colspan="2"><strong>{{ realm.ssoSessionMaxLifespan or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Offline Session Idle</td>
+                    <td class="text-muted">{{ normalizedClient.realm_offline_session_idle or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_offline_session_idle or '—' }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Offline Session Max Lifespan Enabled</td>
+                    <td colspan="2">{{ normalizedClient.realm_offline_session_max_lifespan_enabled }}</td>
+                </tr>
+                <tr>
+                    <td>Offline Session Max</td>
+                    <td class="text-muted">{{ normalizedClient.realm_offline_session_max or '—' }}</td>
+                    <td><strong>{{ normalizedClient.client_offline_session_max or '—' }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if warns %}
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-exclamation-triangle text-warning"></i> Warnings</h2>
+        <span class="sh-pill pill-warning">{{ warns | length }} issue{{ '' if warns | length == 1 else 's' }}</span>
+    </div>
+    <div class="sh-card-body">
+        {% if warns|length > 0 %}
+            <ul class="list-unstyled mb-0">
+                {% for warn in warns %}
+                <li class="d-flex align-items-start gap-2 mb-2">
+                    <i class="bi bi-exclamation-circle-fill text-danger mt-1"></i>
+                    <span>{{ warn.issueDescription }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted mb-0">No warnings found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if normalizedClient.activity_url %}
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-graph-up text-primary"></i> Activity</h2>
+    </div>
+    <div class="sh-card-body">
+        <a href="{{ normalizedClient.activity_url }}" class="btn btn-outline-primary" target="_blank" rel="noopener">
+            <i class="bi bi-box-arrow-up-right me-1"></i>View activity logs
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="sh-card">
+    <div class="sh-card-body">
+        <div class="sh-empty">
+            <i class="bi bi-inbox"></i>
+            <p class="mb-0">No client data found.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

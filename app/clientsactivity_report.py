@@ -30,11 +30,14 @@ def run(logger: Logger, properties: Properties, outputPath: str, environment: st
 		logger.debug("Getting Clients activity for realm: {}", realmName)
 		realm_activity = []
 		elastic = utils.getElastic(logger=logger, environment=environment, config=config)
-		if not elastic:
-			last_activity = "No Elastic configuration"
 		for client in utils.getClients(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config):
-			if elastic:
+			last_login_time = client["attributes"].get("last.login.time")
+			if last_login_time:
+				last_activity = last_login_time
+			elif elastic:
 				last_activity = utils.getClientLastActivity(logger=logger, elastic=elastic, realmName=realmName, client_id=client["clientId"])
+			else:
+				last_activity = "No Elastic configuration"
 			client_activity = {
 				"client_id": client["clientId"],
 				"name": client.get("name", ""),

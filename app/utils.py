@@ -724,6 +724,17 @@ def getReportTimestamp(ts_str):
     return int(dt.timestamp() * 1000)
 
 
+def getTimestampDisplay(timestamp):
+    """Convert a timestamp string (YYYYMMDD_HHMMSS) to a human-readable date (YYYY-MM-DD HH:MM)
+
+    Args:
+        timestamp (str): Timestamp string in format YYYYMMDD_HHMMSS
+    Returns:
+        str: Human-readable date string
+    """
+    return f"{timestamp[0:4]}-{timestamp[4:6]}-{timestamp[6:8]} {timestamp[9:11]}:{timestamp[11:13]}"
+
+
 def parse_test_report(logger: Logger, json_report: dict, environment: str, timestamp: str) -> list:
     """Normalize a pytest-json report into a flat list of test case dicts.
 

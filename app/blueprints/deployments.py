@@ -15,6 +15,7 @@ def check_deployments_role():
     if environment and not auth_utils.hasRole(logger=current_app.logger, required_role=auth_utils.buildRole(environment, 'deployments')):
         return render_template('403.html', logger=current_app.logger, config=current_app.json_config, utils=utils), 403
 
+
 def getDeploymentArtifacts(logger: Logger, config: dict) -> list:
     """Returns the list of deployment artifacts available from the configuration
 
@@ -125,9 +126,9 @@ def getDeploymentReports(logger: Logger, environment: str, artifact: str = None,
                                         log_content = f.read()
                                 except Exception as e:
                                     logger.warn(f"Could not read log content from {log_file_path}: {e}")
-                                REPORTS_LIST.append((timestamp, artifact_name, status, log_content))
+                                REPORTS_LIST.append((timestamp, utils.getTimestampDisplay(timestamp), artifact_name, status, log_content))
                             else:
-                                REPORTS_LIST.append((timestamp, artifact_name, status))
+                                REPORTS_LIST.append((timestamp, utils.getTimestampDisplay(timestamp), artifact_name, status))
                         except Exception as e:
                             logger.warn(f"Could not extract data from {log_file_path}: {e}")
                             continue
@@ -162,6 +163,7 @@ def extractDeploymentStatusFromLog(logger: Logger, log_file_path: str) -> str:
     else:
         logger.info("Deployment completed successfully: {}", log_file_path)
         return "success"
+
 
 def cleanupOldDeploymentReports(logger: Logger, environment: str, old_reports: list):
     """Remove old deployment reports, keeping only the 10 most recent
@@ -223,8 +225,7 @@ def getArtifactsLastStatus(logger: Logger, environment: str, config: dict):
                             except Exception as e:
                                 logger.warn(f"Could not extract status from {log_file_path}: {e}")
                                 last_status = "unknown"
-            
-            artifacts_status.append((artifact_name, last_timestamp, last_status))
+            artifacts_status.append((artifact_name, utils.getTimestampDisplay(last_timestamp), last_status))
         
         return sorted(artifacts_status, key=lambda x: x[0])
     except Exception as e:
@@ -232,49 +233,58 @@ def getArtifactsLastStatus(logger: Logger, environment: str, config: dict):
         return [(art, None, "unknown") for art in artifacts]
 
 
-class DeploymentReports:
-    getDeploymentArtifacts = staticmethod(getDeploymentArtifacts)
-    getDeploymentNodes = staticmethod(getDeploymentNodes)
-    getDeploymentStatus = staticmethod(getDeploymentStatus)
-    getDeploymentReports = staticmethod(getDeploymentReports)
-    getArtifactsLastStatus = staticmethod(getArtifactsLastStatus)
-
-deployment_reports = DeploymentReports()
-
 @deployments_bp.route('/deployments/<environment>', methods=["GET"])
-@deployments_bp.route('/deployments/<environment>/<artifact>', methods=["GET"])
 @utils.require_oidc_login
-def deployments(environment: str, artifact: str = None):
+def deployments_list(environment: str):
     """
     Show deployment interface with artifact selector, deploy button and reports
 
     Args:
         environment (str): Environment Name
-        artifact (str, optional): Artifact name
 
     Returns:
         Template: Deployment list Rendered HTML Page
     """
-    if environment == 'local':
-        current_app.logger.warn("Attempted access to local environment, redirecting to dev")
-        if artifact:
-            return redirect(url_for('deployments.deployments', environment='dev', artifact=artifact))
-        return redirect(url_for('deployments.deployments', environment='dev'))
-    
     return render_template(
-        'deployments.html',
+        'deployments_env.html',
         logger=current_app.logger,
         config=current_app.json_config,
         utils=utils,
-        deployment_reports=deployment_reports,
         environment=environment,
-        artifact=artifact
+        reports=getDeploymentReports(logger=current_app.logger, environment=environment, artifact=None, include_logs=False),
+        artifacts_status=getArtifactsLastStatus(logger=current_app.logger, environment=environment, config=current_app.json_config)
+    )
+
+
+@deployments_bp.route('/deployments/<environment>/<artifact>', methods=["GET"])
+@utils.require_oidc_login
+def deployments_artifact_list(environment: str, artifact: str):
+    """
+    Show deployment interface with artifact selector, deploy button and reports
+
+    Args:
+        environment (str): Environment Name
+        artifact (str): Artifact name
+
+    Returns:
+        Template: Deployment list Rendered HTML Page
+    """
+    return render_template(
+        'deployments_artifact.html',
+        logger=current_app.logger,
+        config=current_app.json_config,
+        utils=utils,
+        environment=environment,
+        artifact=artifact,
+        deployment_nodes=getDeploymentNodes(logger=current_app.logger, environment=environment, config=current_app.json_config),
+        deployment_status=getDeploymentStatus(logger=current_app.logger, environment=environment, artifact=artifact),
+        reports=getDeploymentReports(logger=current_app.logger, environment=environment, artifact=artifact, include_logs=False)
     )
 
 
 @deployments_bp.route('/deployments/<environment>/<artifact>/<timestamp>', methods=["GET"])
 @utils.require_oidc_login
-def deployment_report(environment: str, artifact: str, timestamp: str):
+def deployments_report(environment: str, artifact: str, timestamp: str):
     """
     Show detailed deployment report with logs for a specific deployment
 
@@ -286,38 +296,28 @@ def deployment_report(environment: str, artifact: str, timestamp: str):
     Returns:
         Template: Deployment report detail Rendered HTML Page
     """
-    if environment == 'local':
-        current_app.logger.warn("Attempted access to local environment, redirecting to dev")
-        return redirect(url_for('deployments.deployment_report', environment='dev', artifact=artifact, timestamp=timestamp))
-    
     log_file_path = f"/data/deployment_reports/{environment}/{artifact}/{timestamp}.log"
-    
-    from_artifact = request.args.get('from', 'all')
-    
     if not os.path.exists(log_file_path):
         current_app.logger.error("Deployment log not found: {}", log_file_path)
-        if from_artifact == 'all':
-            return redirect(url_for('deployments.deployments', environment=environment))
-        return redirect(url_for('deployments.deployments', environment=environment, artifact=from_artifact))
     try:
         with open(log_file_path, 'r', encoding='utf-8') as f:
             logs = f.read()
         status = extractDeploymentStatusFromLog(current_app.logger, log_file_path)
         return render_template(
-            'deployment_report.html',
+            'deployments_report.html',
             logger=current_app.logger,
             config=current_app.json_config,
             utils=utils,
             environment=environment,
             artifact=artifact,
             timestamp=timestamp,
+            timestamp_display=utils.getTimestampDisplay(timestamp),
             logs=logs,
-            status=status,
-            from_artifact=from_artifact
+            status=status
         )
     except Exception as e:
         current_app.logger.error("Error reading deployment log {}: {}", log_file_path, e)
-        return redirect(url_for('deployments.deployments', environment=environment, artifact=artifact))
+        return redirect(url_for('deployments.deployments_artifact_list', environment=environment, artifact=artifact))
 
 
 @deployments_bp.route('/deployments/<environment>/<artifact>/<timestamp>/download', methods=["GET"])
@@ -354,24 +354,20 @@ def deployments_execute(environment: str):
     Args:
         environment (str): Environment name
     """
-    if environment == 'local':
-        current_app.logger.warn("Attempted access to local environment, redirecting to dev")
-        return redirect(url_for('deployments.deployments', environment='dev'))
-    
     artifact = request.form.get('artifact')
     if not artifact:
         current_app.logger.error("No artifact provided for deployment")
-        return redirect(url_for('deployments.deployments', environment=environment))
-    
+        return redirect(url_for('deployments.deployments_list', environment=environment))
+
     selected_node = request.form.get('node')
     if not selected_node:
         current_app.logger.error("No node provided for deployment")
-        return redirect(url_for('deployments.deployments', environment=environment, artifact=artifact))
-    
+        return redirect(url_for('deployments.deployments_artifact_list', environment=environment, artifact=artifact))
+
     pid_file_path = f"/data/deployment_reports/{environment}/{artifact}/deploy.execute"
     os.makedirs(os.path.dirname(pid_file_path), exist_ok=True)
-    
+
     with open(pid_file_path, "w") as pid_file:
         pid_file.write(str(selected_node))
     current_app.logger.debug(f"Deployment execution PID File created at: {pid_file_path} with content: {selected_node}")
-    return redirect(url_for('deployments.deployments', environment=environment, artifact=artifact))
+    return redirect(url_for('deployments.deployments_artifact_list', environment=environment, artifact=artifact))

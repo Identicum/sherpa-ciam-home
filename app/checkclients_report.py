@@ -456,7 +456,7 @@ def checkClientInactivity(logger: Logger, normalizedClient: dict, environment: s
     last_login_time = normalizedClient["last_login_time"]
     if not last_login_time:
         return []
-    threshold_months = config["environments"][environment]["inactivity_months"]
+    threshold_months = config["environments"][environment].get("inactivity_months", 3)
     last_login_date = datetime.strptime(last_login_time, "%Y-%m-%d").date()
     months = (date.today().year - last_login_date.year) * 12 + date.today().month - last_login_date.month
     if date.today().day < last_login_date.day:

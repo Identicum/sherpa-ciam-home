@@ -8,6 +8,8 @@ tests_bp = Blueprint('tests', __name__)
 @tests_bp.before_request
 def check_tests_role():
     """Enforce role-based access for all deployments routes."""
+    if request.endpoint == 'tests.metrics':
+        return None
     environment = request.view_args.get('environment')
     if environment in current_app.unrestricted_environments:
         return None

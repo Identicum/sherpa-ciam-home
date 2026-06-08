@@ -3,30 +3,49 @@
 {% block title %}User Sessions Lookup for {{ environment }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>User Sessions Realm List for {{ environment }}</h1>
-    {% set realms = utils.getRealms(logger=logger, environment=environment, config=config) %}
-    {% if realms and realms|length > 0 %}
-    <table class="admin-links-table">
-        <thead>
-            <tr>
-                <th>Realm</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for realmName in realms %}
-            <tr>
-                <td>
-                    <a href="/user-sessions/{{ environment }}/{{ realmName }}">
-                        {{ realmName }}
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-        <p>No realms found for this environment.</p>
-    {% endif %}
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-people"></i> User Sessions</div>
+        <h1>Realms · {{ environment }}</h1>
+        <p class="sh-subtitle">Pick a realm to look up user sessions.</p>
+    </div>
+    <a href="{{ url_for('index') }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to home</a>
+</div>
+
+{% set realms = utils.getRealms(logger=logger, environment=environment, config=config) %}
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-collection text-primary"></i> Available realms</h2>
+        {% if realms %}<span class="sh-pill pill-muted">{{ realms | length }} realm{{ '' if realms | length == 1 else 's' }}</span>{% endif %}
+    </div>
+    <div class="sh-card-body no-pad">
+        {% if realms and realms|length > 0 %}
+        <table class="sh-table">
+            <thead>
+                <tr>
+                    <th>Realm</th>
+                    <th class="text-end"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for realmName in realms %}
+                <tr>
+                    <td>
+                        <a href="/user-sessions/{{ environment }}/{{ realmName }}">
+                            <i class="bi bi-folder2-open me-1"></i>{{ realmName }}
+                        </a>
+                    </td>
+                    <td class="text-end text-muted"><i class="bi bi-chevron-right"></i></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="sh-empty">
+            <i class="bi bi-inbox"></i>
+            <p class="mb-0">No realms found for this environment.</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

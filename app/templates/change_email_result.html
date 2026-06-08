@@ -1,21 +1,42 @@
 {% extends "index.html" %}
 {% block title %}{{ messages['changeemail.title'] }} - Resultado{% endblock %}
 {% block content %}
-    <div class="container">
-        <h1>{{ messages['changeemail.title'] }} - Resultado</h1>
-        {% if success %}
-            <div class="alert alert-success" role="alert">{{ message }}</div>
-        {% elif status_code is not none %}
-            <div class="alert alert-danger" role="alert">{{ message }}</div>
-            <p><small>{{ messages['changeemail.status_code'] }}: {{ status_code }}</small></p>
-        {% else %}
-            <div class="alert alert-info" role="alert">{{ message }}</div>
-        {% endif %}
-        {% if realm %}
-        <p><a href="{{ url_for('change-email.change_email_form', environment=environment, realm=realm) }}">{{ messages['changeemail.again'] }}</a></p>
-        {% else %}
-        <p><a href="{{ url_for('change-email.change_email_realms', environment=environment) }}">{{ messages['changeemail.again'] }}</a></p>
-        {% endif %}
-        <p><a href="{{ url_for('index') }}">{{ messages['back_home'] }}</a></p>
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-envelope-at"></i> {{ messages['changeemail.title'] }}</div>
+        <h1>Resultado</h1>
     </div>
+    <a href="{{ url_for('index') }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> {{ messages['back_home'] }}</a>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-body">
+        {% if success %}
+            <div class="alert alert-success mb-3" role="alert">
+                <i class="bi bi-check-circle-fill me-1"></i>{{ message }}
+            </div>
+        {% elif status_code is not none %}
+            <div class="alert alert-danger mb-3" role="alert">
+                <i class="bi bi-exclamation-octagon-fill me-1"></i>{{ message }}
+            </div>
+            <p class="text-muted small mb-3">{{ messages['changeemail.status_code'] }}: <code>{{ status_code }}</code></p>
+        {% else %}
+            <div class="alert alert-info mb-3" role="alert">
+                <i class="bi bi-info-circle me-1"></i>{{ message }}
+            </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 flex-wrap">
+            {% if realm %}
+            <a href="{{ url_for('change-email.change_email_form', environment=environment, realm=realm) }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>{{ messages['changeemail.again'] }}
+            </a>
+            {% else %}
+            <a href="{{ url_for('change-email.change_email_realms', environment=environment) }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>{{ messages['changeemail.again'] }}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

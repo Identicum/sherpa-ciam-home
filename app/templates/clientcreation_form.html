@@ -3,41 +3,53 @@
 {% block title %}{{ messages['clientcreation.title'] }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>{{ messages['clientcreation.title'] }}</h1>
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-plus-circle"></i> Request</div>
+        <h1>{{ messages['clientcreation.title'] }}</h1>
+    </div>
+    <a href="{{ url_for('index') }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> {{ messages['back_home'] }}</a>
+</div>
 
-    <form method="post" action="/clientcreation">
-        <div class="form-group">
-            <label for="integrationType">{{ messages['clientcreation.integration_type'] }}</label>
-            <select type="text" id="integrationType" name="integrationType" class="form-control" required>
-                {% for integrationType in [ "SPA_NGINX", "CLIENT_CREDENTIALS", "WEB_BACKEND" ] %}
-                <option value="{{integrationType}}">{{integrationType}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="realmType">{{ messages['clientcreation.realm_type'] }}:</label>
-            <select type="text" id="realmType" name="realmType" class="form-control" required>
-                {% for realmType in utils.getRealmTypes(logger=logger, config=config) %}
-                <option value="{{realmType}}">{{realmType}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="clientName">{{ messages['clientcreation.client_name'] }}:</label>
-            <input type="text" id="clientName" name="clientName" class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label for="clientDescription">{{ messages['clientcreation.client_description'] }}:</label>
-            <input type="text" id="clientDescription" name="clientDescription" class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label for="contactEmail">{{ messages['clientcreation.contact_email'] }}:</label>
-            <input type="email" id="contactEmail" name="contactEmail" class="form-control" required />
-        </div>
-        <button type="submit" class="btn btn-primary">{{ messages['clientcreation.submit_request'] }}</button>
-    </form>
-
-    <p><a href="{{ url_for('index') }}">{{ messages['back_home'] }}</a></p>
+<div class="sh-card">
+    <div class="sh-card-body">
+        <form method="post" action="/clientcreation" class="sh-form">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="integrationType" class="form-label">{{ messages['clientcreation.integration_type'] }}</label>
+                    <select id="integrationType" name="integrationType" class="form-select" required>
+                        {% for integrationType in [ "SPA_NGINX", "CLIENT_CREDENTIALS", "WEB_BACKEND" ] %}
+                        <option value="{{integrationType}}">{{integrationType}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="realmType" class="form-label">{{ messages['clientcreation.realm_type'] }}</label>
+                    <select id="realmType" name="realmType" class="form-select" required>
+                        {% for realmType in utils.getRealmTypes(logger=logger, config=config) %}
+                        <option value="{{realmType}}">{{realmType}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="clientName" class="form-label">{{ messages['clientcreation.client_name'] }}</label>
+                    <input type="text" id="clientName" name="clientName" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label for="contactEmail" class="form-label">{{ messages['clientcreation.contact_email'] }}</label>
+                    <input type="email" id="contactEmail" name="contactEmail" class="form-control" required />
+                </div>
+                <div class="col-12">
+                    <label for="clientDescription" class="form-label">{{ messages['clientcreation.client_description'] }}</label>
+                    <input type="text" id="clientDescription" name="clientDescription" class="form-control" required />
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send me-1"></i>{{ messages['clientcreation.submit_request'] }}
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

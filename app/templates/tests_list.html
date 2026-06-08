@@ -3,62 +3,113 @@
 {% block title %} Test Execution Suite for {{ environment }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Testing - {{ environment }}</h1>
-    {% set reports = utils.getTestReports(logger=logger, environment=environment) %}
-    {% set tests_scheduled = utils.checkTestsScheduled(logger, environment=environment) %}
+{% set reports = utils.getTestReports(logger=logger, environment=environment) %}
+{% set tests_scheduled = utils.checkTestsScheduled(logger, environment=environment) %}
 
-    <h3>{{ messages['tests.runner.title'] }}</h3>
-    {% if tests_scheduled == 'available' %}
-        <form action="/tests/{{ environment }}/execute" method="post">
-            <select name="execution_option" id="execution_option">
-                {% for execution_option in execution_options %}
-                <option value="{{ execution_option }}">{{ execution_option }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" name="submit" class="btn btn-primary">Schedule execution</button>
-        </form>
-    {% elif tests_scheduled == 'scheduled' %}
-        <p>The environment is currently scheduled for test execution.</p>
-    {% elif tests_scheduled == 'running' %}
-        <p>The environment is currently running tests.</p>
-    {% endif %}
-    <br>
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-check2-square"></i> Testing</div>
+        <h1>{{ environment }}</h1>
+        <p class="sh-subtitle">Schedule a test run or browse historical reports.</p>
+    </div>
+    <a href="{{ url_for('index') }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to home</a>
+</div>
 
-    <h3>{{ messages['tests.reports.list.title'] }}</h3>
-    {% if reports and reports|length > 0 %}
-        <table class="admin-links-table">
-            <thead>
-                <tr>
-                    <th>Execution</th>
-                    <th>Exec option</th>
-                    <th>Passed</th>
-                    <th>Failed</th>
-                    <th>Duration [secs]</th>
-                    <th>Download</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for timestamp, exec_option, passed, failed, num_tests, duration in reports %}
-                <tr>
-                    <td>
-                        <a href="/tests/{{ environment }}/report/{{ timestamp }}" target="_blank">{{ utils.getTimestampDisplay(timestamp) }}</a>
-                    </td>
-                    <td>{{exec_option}}</span></td>
-                    <td>{{passed}}</td>
-                    <td>{{failed}}</td>
-                    <td>{{duration}}</td>
-                    <td class="text-center">
-                        <a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary text-white" style="text-decoration: none;">
-                            Download JSON Report
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No reports found for this environment.</p>
-    {% endif %}
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-play-circle text-primary"></i> {{ messages['tests.runner.title'] }}</h2>
+        {% if tests_scheduled == 'available' %}
+            <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Available</span>
+        {% elif tests_scheduled == 'scheduled' %}
+            <span class="sh-pill pill-warning"><i class="bi bi-clock"></i>Scheduled</span>
+        {% elif tests_scheduled == 'running' %}
+            <span class="sh-pill"><i class="bi bi-arrow-clockwise"></i>Running</span>
+        {% endif %}
+    </div>
+    <div class="sh-card-body">
+        {% if tests_scheduled == 'available' %}
+            <form action="/tests/{{ environment }}/execute" method="post" class="sh-form">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label" for="execution_option">Execution option</label>
+                        <select name="execution_option" id="execution_option" class="form-select">
+                            {% for execution_option in execution_options %}
+                            <option value="{{ execution_option }}">{{ execution_option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" name="submit" class="btn btn-primary">
+                            <i class="bi bi-rocket-takeoff me-1"></i>Schedule execution
+                        </button>
+                    </div>
+                </div>
+            </form>
+        {% elif tests_scheduled == 'scheduled' %}
+            <div class="alert alert-warning mb-0" role="alert">
+                <i class="bi bi-clock me-1"></i>The environment is currently scheduled for test execution.
+            </div>
+        {% elif tests_scheduled == 'running' %}
+            <div class="alert alert-info mb-0" role="alert">
+                <i class="bi bi-arrow-clockwise me-1"></i>The environment is currently running tests.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-clock-history text-primary"></i> {{ messages['tests.reports.list.title'] }}</h2>
+        {% if reports %}<span class="sh-pill pill-muted">{{ reports | length }} report{{ '' if reports | length == 1 else 's' }}</span>{% endif %}
+    </div>
+    <div class="sh-card-body no-pad">
+        {% if reports and reports|length > 0 %}
+            <table class="sh-table">
+                <thead>
+                    <tr>
+                        <th>Execution</th>
+                        <th>Exec option</th>
+                        <th class="text-center">Passed</th>
+                        <th class="text-center">Failed</th>
+                        <th class="text-center">Duration</th>
+                        <th class="text-end">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for timestamp, exec_option, passed, failed, num_tests, duration in reports %}
+                    <tr>
+                        <td>
+                            <a href="/tests/{{ environment }}/report/{{ timestamp }}" target="_blank">
+                                <i class="bi bi-file-earmark-text me-1"></i>{{ utils.getTimestampDisplay(timestamp) }}
+                            </a>
+                        </td>
+                        <td><span class="sh-pill pill-muted">{{ exec_option }}</span></td>
+                        <td class="text-center">
+                            <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>{{ passed }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if failed and failed|int > 0 %}
+                                <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>{{ failed }}</span>
+                            {% else %}
+                                <span class="sh-pill pill-muted">{{ failed }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center text-muted">{{ duration }}s</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>JSON
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="sh-empty">
+                <i class="bi bi-inbox"></i>
+                <p class="mb-0">No reports found for this environment.</p>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

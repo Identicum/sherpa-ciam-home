@@ -3,164 +3,202 @@
 {% block title %}Terraform Check for {{ environment }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Terraform Check for {{ environment }}</h1>
-
-    {% if errorMessage %}
-        <div class="alert alert-danger" role="alert">Error: {{ errorMessage }}</div>
-    {% elif reportData %}
-        {% if reportData.metadata and reportData.metadata.timestamp %}
-            <p><strong>Report generated on:</strong> {{ reportData.metadata.timestamp }}</p>
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-diagram-3"></i> Terraform Check</div>
+        <h1>{{ environment }}</h1>
+        {% if reportData and reportData.metadata and reportData.metadata.timestamp %}
+            <p class="sh-subtitle"><i class="bi bi-clock-history me-1"></i>Report generated on <strong>{{ reportData.metadata.timestamp }}</strong></p>
         {% else %}
-            <p><em>Report metadata missing.</em></p>
+            <p class="sh-subtitle">Differences between Terraform plan and IDP state.</p>
         {% endif %}
-        <hr>
-        
-        {% if reportData.diff is mapping and reportData.diff %}
-            <table class="table table-bordered table-hover" style="margin-top: 10px; width: 100%;">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 5%;"></th> {# For expand/collapse icon #}
-                        <th style="width: 25%;">Realm</th>
-                        <th style="width: 15%;">Create</th>
-                        <th style="width: 15%;">Update</th>
-                        <th style="width: 15%;">Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for realm_key, changes_list in reportData.diff.items() %}
-                        {# Sanitize ID for use in HTML #}
-                        {% set detail_id = "details-" ~ realm_key | replace('.', '_') | replace('-', '_') %}
-
-                        {# Calculate counts for summary row #}
-                        {% set create_count = namespace(value=0) %}
-                        {% set update_count = namespace(value=0) %}
-                        {% set delete_count = namespace(value=0) %}
-                        {% if changes_list and changes_list is iterable %}
-                            {% for change in changes_list %}
-                                {% if change.actions %}
-                                    {% if 'create' in change.actions %}{% set create_count.value = create_count.value + 1 %}{% endif %}
-                                    {% if 'update' in change.actions %}{% set update_count.value = update_count.value + 1 %}{% endif %}
-                                    {% if 'delete' in change.actions %}{% set delete_count.value = delete_count.value + 1 %}{% endif %}
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-
-                        <tr class="expandable-summary-row" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
-                            <td class="text-center">
-                                {% if (create_count.value + update_count.value + delete_count.value) > 0 %}
-                                <span class="toggle-icon">&#9658;</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ realm_key }}</td>
-                            <td>{{ create_count.value }}</td>
-                            <td>{{ update_count.value }}</td>
-                            <td>{{ delete_count.value }}</td>
-                        </tr>
-                        <tr class="collapse" id="{{ detail_id }}">
-                            <td colspan="6" class="p-0">
-                                <div class="p-3">
-                                    {% if changes_list and changes_list is iterable and changes_list | length > 0 %}
-                                        <table class="table table-sm table-striped">
-                                            <thead class="table-dark">
-                                                <tr>
-                                                    <th style="width: 15%;">Change Type</th>
-                                                    <th style="width: 25%;">Object</th>
-                                                    <th style="width: 35%;">Attribute Details</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for change in changes_list %}
-                                                    {% set common_change_type = change.actions | join(', ') | upper %}
-                                                    {% set common_object_type = change.type %}
-                                                    {% set common_object_name = change.name %}
-                                                    <tr>
-                                                        <td style="vertical-align: top;">{{ common_change_type }}</td>
-                                                        <td style="vertical-align: top;">{{ common_object_type }} {{ common_object_name }}</td>
-                                                        <td class="p-0">
-                                                            {% if ('update' in change.actions and change.computed_diff is mapping and change.computed_diff | length > 0) or
-                                                                 ('create' in change.actions and change.after is mapping and change.after | length > 0) or
-                                                                 ('delete' in change.actions and change.before is mapping and change.before | length > 0) %}
-                                                                
-                                                                {% if 'update' in change.actions and change.computed_diff is mapping and change.computed_diff | length > 0 %}
-                                                                <table class="table table-sm mb-0">
-                                                                    <thead class="table-secondary">
-                                                                        <tr>
-                                                                            <th>Attribute</th>
-                                                                            <th>IDP Value</th>
-                                                                            <th>Terraform Value</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>    
-                                                                    {% for attr, diff_values in change.computed_diff.items() %}
-                                                                        <tr>
-                                                                            <td style="vertical-align: top;">{{ attr }}</td>
-                                                                            <td style="vertical-align: top;"><pre class="mb-0" style="white-space: pre-wrap; word-wrap: break-word;">{{ diff_values.before | tojson(indent=2) if diff_values.before is not none else '-' }}</pre></td>
-                                                                            <td style="vertical-align: top;"><pre class="mb-0" style="white-space: pre-wrap; word-wrap: break-word;">{{ diff_values.after | tojson(indent=2) if diff_values.after is not none else '-' }}</pre></td>
-                                                                        </tr>
-                                                                    {% endfor %}
-                                                                    </tbody>
-                                                                </table>
-                                                                {% elif 'create' in change.actions and change.after is mapping and change.after | length > 0 %}
-                                                                <table class="table table-sm mb-0">
-                                                                    <thead class="table-secondary">
-                                                                        <tr>
-                                                                            <th>Attribute</th>
-                                                                            <th>Value</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                    {% for attr, value in change.after.items() %}
-                                                                        <tr>
-                                                                            <td style="vertical-align: top;">{{ attr }}</td>
-                                                                            <td style="vertical-align: top;"><pre class="mb-0" style="white-space: pre-wrap; word-wrap: break-word;">{{ value | tojson(indent=2) if value is not none else '-' }}</pre></td>
-                                                                        </tr>
-                                                                    {% endfor %}
-                                                                    </tbody>
-                                                                </table>
-                                                                {% elif 'delete' in change.actions and change.before is mapping and change.before | length > 0 %}
-                                                                <table class="table table-sm mb-0">
-                                                                    <thead class="table-secondary">
-                                                                        <tr>
-                                                                            <th>Attribute</th>
-                                                                            <th>Value</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                    {% for attr, value in change.before.items() %}
-                                                                        <tr>
-                                                                            <td style="vertical-align: top;">{{ attr }}</td>
-                                                                            <td style="vertical-align: top;"><pre class="mb-0" style="white-space: pre-wrap; word-wrap: break-word;">{{ value | tojson(indent=2) if value is not none else '-' }}</pre></td>
-                                                                        </tr>
-                                                                    {% endfor %}
-                                                                    </tbody>
-                                                                </table>
-                                                                {% endif %}
-                                                            {% else %}
-                                                                <em class="p-2 d-block">No attribute details for this change.</em>
-                                                            {% endif %}
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    {% else %}
-                                        <p><em>No changes to display for this workspace.</em></p>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <div class="alert alert-info" role="alert">
-                No changes found in the report.
-            </div>
-        {% endif %}
-    {% else %}
-        <div class="alert alert-warning" role="alert">No report data available and no error message. This usually means the report file is empty or could not be processed.</div>
-    {% endif %}
+    </div>
+    <a href="{{ url_for('index') }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to home</a>
 </div>
+
+{% if errorMessage %}
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-octagon me-1"></i>Error: {{ errorMessage }}
+    </div>
+{% elif reportData %}
+    {% if reportData.diff is mapping and reportData.diff %}
+        <div class="sh-card">
+            <div class="sh-card-header">
+                <h2><i class="bi bi-list-columns text-primary"></i> Diff summary</h2>
+                <span class="sh-pill pill-muted">{{ reportData.diff | length }} realm{{ '' if reportData.diff | length == 1 else 's' }}</span>
+            </div>
+            <div class="sh-card-body no-pad">
+                <div class="table-responsive">
+                <table class="table table-hover mb-0 sh-table sh-tf-table">
+                    <thead>
+                        <tr>
+                            <th class="col-toggle"></th>
+                            <th class="col-realm">Realm</th>
+                            <th class="col-cud">Create</th>
+                            <th class="col-cud">Update</th>
+                            <th class="col-cud">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for realm_key, changes_list in reportData.diff.items() %}
+                            {% set detail_id = "details-" ~ realm_key | replace('.', '_') | replace('-', '_') %}
+
+                            {% set create_count = namespace(value=0) %}
+                            {% set update_count = namespace(value=0) %}
+                            {% set delete_count = namespace(value=0) %}
+                            {% if changes_list and changes_list is iterable %}
+                                {% for change in changes_list %}
+                                    {% if change.actions %}
+                                        {% if 'create' in change.actions %}{% set create_count.value = create_count.value + 1 %}{% endif %}
+                                        {% if 'update' in change.actions %}{% set update_count.value = update_count.value + 1 %}{% endif %}
+                                        {% if 'delete' in change.actions %}{% set delete_count.value = delete_count.value + 1 %}{% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+
+                            <tr class="expandable-summary-row" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}">
+                                <td class="text-center text-muted">
+                                    {% if (create_count.value + update_count.value + delete_count.value) > 0 %}
+                                    <span class="toggle-icon">&#9658;</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ realm_key }}</strong></td>
+                                <td>
+                                    {% if create_count.value > 0 %}<span class="sh-pill pill-success">+{{ create_count.value }}</span>{% else %}<span class="text-muted">0</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if update_count.value > 0 %}<span class="sh-pill pill-warning">~{{ update_count.value }}</span>{% else %}<span class="text-muted">0</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if delete_count.value > 0 %}<span class="sh-pill pill-danger">−{{ delete_count.value }}</span>{% else %}<span class="text-muted">0</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr class="collapse expandable-detail-row" id="{{ detail_id }}">
+                                <td colspan="6" class="p-0">
+                                    <div class="p-3">
+                                        {% if changes_list and changes_list is iterable and changes_list | length > 0 %}
+                                            <table class="table table-sm mb-0 sh-tf-inner">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th class="col-change">Change Type</th>
+                                                        <th class="col-object">Object</th>
+                                                        <th class="col-attrs">Attribute Details</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for change in changes_list %}
+                                                        {% set common_change_type = change.actions | join(', ') | upper %}
+                                                        {% set common_object_type = change.type %}
+                                                        {% set common_object_name = change.name %}
+                                                        <tr>
+                                                            <td class="sh-detail-cell-vtop">
+                                                                {% if 'create' in change.actions %}
+                                                                    <span class="sh-pill pill-success">{{ common_change_type }}</span>
+                                                                {% elif 'delete' in change.actions %}
+                                                                    <span class="sh-pill pill-danger">{{ common_change_type }}</span>
+                                                                {% elif 'update' in change.actions %}
+                                                                    <span class="sh-pill pill-warning">{{ common_change_type }}</span>
+                                                                {% else %}
+                                                                    <span class="sh-pill pill-muted">{{ common_change_type }}</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td class="sh-detail-cell-vtop"><code>{{ common_object_type }} {{ common_object_name }}</code></td>
+                                                            <td class="p-0">
+                                                                {% if ('update' in change.actions and change.computed_diff is mapping and change.computed_diff | length > 0) or
+                                                                     ('create' in change.actions and change.after is mapping and change.after | length > 0) or
+                                                                     ('delete' in change.actions and change.before is mapping and change.before | length > 0) %}
+
+                                                                    {% if 'update' in change.actions and change.computed_diff is mapping and change.computed_diff | length > 0 %}
+                                                                    <table class="table table-sm mb-0">
+                                                                        <thead class="table-light">
+                                                                            <tr>
+                                                                                <th>Attribute</th>
+                                                                                <th>IDP Value</th>
+                                                                                <th>Terraform Value</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        {% for attr, diff_values in change.computed_diff.items() %}
+                                                                            <tr>
+                                                                                <td class="sh-detail-cell-vtop"><strong>{{ attr }}</strong></td>
+                                                                                <td class="sh-detail-cell-vtop"><pre class="mb-0 small sh-pre-wrap">{{ diff_values.before | tojson(indent=2) if diff_values.before is not none else '-' }}</pre></td>
+                                                                                <td class="sh-detail-cell-vtop"><pre class="mb-0 small sh-pre-wrap">{{ diff_values.after | tojson(indent=2) if diff_values.after is not none else '-' }}</pre></td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                    {% elif 'create' in change.actions and change.after is mapping and change.after | length > 0 %}
+                                                                    <table class="table table-sm mb-0">
+                                                                        <thead class="table-light">
+                                                                            <tr>
+                                                                                <th>Attribute</th>
+                                                                                <th>Value</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        {% for attr, value in change.after.items() %}
+                                                                            <tr>
+                                                                                <td class="sh-detail-cell-vtop"><strong>{{ attr }}</strong></td>
+                                                                                <td class="sh-detail-cell-vtop"><pre class="mb-0 small sh-pre-wrap">{{ value | tojson(indent=2) if value is not none else '-' }}</pre></td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                    {% elif 'delete' in change.actions and change.before is mapping and change.before | length > 0 %}
+                                                                    <table class="table table-sm mb-0">
+                                                                        <thead class="table-light">
+                                                                            <tr>
+                                                                                <th>Attribute</th>
+                                                                                <th>Value</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        {% for attr, value in change.before.items() %}
+                                                                            <tr>
+                                                                                <td class="sh-detail-cell-vtop"><strong>{{ attr }}</strong></td>
+                                                                                <td class="sh-detail-cell-vtop"><pre class="mb-0 small sh-pre-wrap">{{ value | tojson(indent=2) if value is not none else '-' }}</pre></td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    <em class="p-2 d-block text-muted">No attribute details for this change.</em>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        {% else %}
+                                            <p class="text-muted mb-0"><em>No changes to display for this workspace.</em></p>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="sh-card">
+            <div class="sh-card-body">
+                <div class="alert alert-success mb-0" role="alert">
+                    <i class="bi bi-check-circle-fill me-1"></i>No changes found in the report.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="sh-card">
+        <div class="sh-card-body">
+            <div class="alert alert-warning mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle me-1"></i>No report data available and no error message. This usually means the report file is empty or could not be processed.
+            </div>
+        </div>
+    </div>
+{% endif %}
 <script src="{{ url_for('static', filename='js/terraformcheck.js') }}"></script>
 {% endblock %}

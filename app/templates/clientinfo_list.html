@@ -3,39 +3,56 @@
 {% block title %}Client Info for {{ environment }} - {{ realmName }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Client Info List for {{ environment }} - {{ realmName }}</h1>
-    {% if clients and clients|length > 0 %}
-    <table class="admin-links-table">
-        <thead>
-            <tr>
-                <th>Client ID</th>
-                <th>Client Name</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for client in clients %}
-            <tr>
-                <td>
-                    <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ client.clientId }}">
-                        {{ client.clientId }}
-                    </a>
-                </td>
-                <td>{{ client.name }}</td>
-                <td style="text-align:center;">
-                    {% if client.enabled %}
-                        <span title="Enabled" style="color:green;">&#x2714;</span>
-                    {% else %}
-                        <span title="Disabled" style="color:red;">&#x2716;</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-        <p>No clients found for this environment and realm.</p>
-    {% endif %}
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-person-badge"></i> Client Info</div>
+        <h1>Clients · {{ environment }} <span class="text-muted">/</span> {{ realmName }}</h1>
+        <p class="sh-subtitle">All clients registered in this realm.</p>
+    </div>
+    <a href="/clientinfo/{{ environment }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to realms</a>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-collection text-primary"></i> Clients</h2>
+        {% if clients %}<span class="sh-pill pill-muted">{{ clients | length }} client{{ '' if clients | length == 1 else 's' }}</span>{% endif %}
+    </div>
+    <div class="sh-card-body no-pad">
+        {% if clients and clients|length > 0 %}
+        <table class="sh-table">
+            <thead>
+                <tr>
+                    <th>Client ID</th>
+                    <th>Client Name</th>
+                    <th class="text-center">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                <tr>
+                    <td>
+                        <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ client.clientId }}">
+                            <i class="bi bi-box me-1"></i>{{ client.clientId }}
+                        </a>
+                    </td>
+                    <td>{{ client.name }}</td>
+                    <td class="text-center">
+                        {% if client.enabled %}
+                            <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Enabled</span>
+                        {% else %}
+                            <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>Disabled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="sh-empty">
+            <i class="bi bi-inbox"></i>
+            <p class="mb-0">No clients found for this environment and realm.</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

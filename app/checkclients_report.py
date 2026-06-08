@@ -117,8 +117,9 @@ def getClientWarns(logger: Logger, properties: Properties, environment: str, rea
         for warn in checkMappers(logger=logger, normalizedClient=normalizedClient):
                 clientWarns.append(warn)
 
-    for warn in checkClientInactivity(logger=logger, normalizedClient=normalizedClient, environment=environment, config=config):
-        clientWarns.append(warn)
+    if os.environ.get("FEATURE_FLAG_LAST_LOGIN_TIME") == "true":
+        for warn in checkClientInactivity(logger=logger, normalizedClient=normalizedClient, environment=environment, config=config):
+            clientWarns.append(warn)
 
     logger.trace("getClientWarns response. client_name: {}, response: {}", normalizedClient.get("client_name"), clientWarns)
     return clientWarns

@@ -485,7 +485,10 @@ def getNormalizedClient(logger: Logger, properties: Properties, environment: str
         response["client_reset_credentials_flow"] = flow_id_to_alias.get(overrides.get("reset_credentials"), overrides.get("reset_credentials")) or "(inherit)"
 
         # All Clients' Attributes
-        response["last_login_time"] = client["attributes"].get("last.login.time", "")
+        if os.environ.get("FEATURE_FLAG_LAST_LOGIN_TIME") == "true":
+            response["last_login_time"] = client["attributes"].get("last.login.time", "")
+        else:
+            response["last_login_time"] = ""
         response["root_url"] = client.get("rootUrl", "")
         response["admin_url"] = client.get("adminUrl", "")
         response["base_url"] = client.get("baseUrl", "")

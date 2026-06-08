@@ -27,3 +27,7 @@ Displays a realm-specific list of clients. The user may then select a client to 
 #### Terraform Check Diff Dashboard
 
 Runs `terraform plan` to gather current diff info and displays it in a detailed table.
+
+### Environment variables
+
+| `FEATURE_FLAG_LAST_LOGIN_TIME` | When set to `true`, enables client inactivity checks in Check Clients (`checkClientInactivity`) and prioritizes the Keycloak attribute `last.login.time` in Clients Activity. When `false` or unset, behavior matches the pre-CLR-845 default (no inactivity WARN, Elastic-only activity). |

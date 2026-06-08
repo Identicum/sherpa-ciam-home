@@ -25,7 +25,7 @@ app.unrestricted_environments = os.environ.get('UNRESTRICTED_ENVIRONMENTS', 'loc
 
 issuer = os.environ.get('IDP_BASE_URL') + '/realms/' + os.environ.get('OIDC_REALM')
 discovery_endpoint = issuer + '/.well-known/openid-configuration'
-response = requests.get(discovery_endpoint)
+response = requests.get(discovery_endpoint, timeout=utils.DEFAULT_TIMEOUT)
 response.raise_for_status()
 app.discovery_document = response.json()
 

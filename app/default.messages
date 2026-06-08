@@ -11,6 +11,12 @@ changeemail.new_email=New email
 changeemail.submit=Execute change
 changeemail.again=Perform another change
 changeemail.status_code=Response code
+changeemail.user_not_found=User not found
+changeemail.user_not_found_with_target=User "{0}" not found
+changeemail.missing_user_or_new_email=Missing user or new email.
+changeemail.iamcrud_not_configured=IAM CRUD API not configured.
+changeemail.session_token_error=Could not get session token. Please log in again.
+changeemail.success=Email updated successfully.
 
 clientcreation.title=Request Client
 clientcreation.integration_type=Integration type

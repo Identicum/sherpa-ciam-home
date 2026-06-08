@@ -3,17 +3,48 @@
 {% block title %}Clients activity for {{ environment }} - {{ realmName }}{% endblock %}
 
 {% block content %}
-<div class="sh-page-header">
-    <div>
-        <div class="sh-eyebrow"><i class="bi bi-activity"></i> Clients Activity</div>
-        <h1>{{ environment }} <span class="text-muted">/</span> {{ realmName }}</h1>
-        {% if metadata and metadata.timestamp %}
-            <p class="sh-subtitle"><i class="bi bi-clock-history me-1"></i>Report generated on <strong>{{ metadata.timestamp }}</strong></p>
-        {% else %}
-            <p class="sh-subtitle">Last seen activity for every client in this realm.</p>
-        {% endif %}
-    </div>
-    <a href="/clientsactivity/{{ environment }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to realms</a>
+<div class="container">
+    <h1>Clients activity list for {{ environment }} - {{ realmName }}</h1>
+    {% if errorMessage %}
+        <div class="alert alert-danger" role="alert">Error: {{ errorMessage }}</div>
+    {% endif %}
+    {% if metadata and metadata.timestamp %}
+        <p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
+    {% endif %}
+    {% if realmActivityData and realmActivityData|length > 0 %}
+    <table class="admin-links-table">
+        <thead>
+            <tr>
+                <th>Client ID</th>
+                <th>Client Name</th>
+                <th>Status</th>
+                <th>Last activity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in realmActivityData %}
+            <tr>
+                <td>
+                    <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ client.client_id }}">
+                        {{ client.client_id }}
+                    </a>
+                </td>
+                <td>{{ client.name }}</td>
+                <td style="text-align:center;">
+                    {% if client.enabled %}
+                        <span title="Enabled" style="color:green;">&#x2714;</span>
+                    {% else %}
+                        <span title="Disabled" style="color:red;">&#x2716;</span>
+                    {% endif %}
+                </td>
+                <td>{{ client.last_activity }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No clients found for this environment and realm.</p>
+    {% endif %}
 </div>
 
 {% if errorMessage %}

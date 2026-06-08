@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+from datetime import date, datetime
 from sherpa.utils.basics import Logger
 from sherpa.utils.basics import Properties
 import sys
@@ -115,6 +116,9 @@ def getClientWarns(logger: Logger, properties: Properties, environment: str, rea
                 clientWarns.append(warn)
         for warn in checkMappers(logger=logger, normalizedClient=normalizedClient):
                 clientWarns.append(warn)
+
+    for warn in checkClientInactivity(logger=logger, normalizedClient=normalizedClient, environment=environment, config=config):
+        clientWarns.append(warn)
 
     logger.trace("getClientWarns response. client_name: {}, response: {}", normalizedClient.get("client_name"), clientWarns)
     return clientWarns
@@ -444,6 +448,27 @@ def checkPostLogoutRedirectUrls(logger: Logger, normalizedClient: dict, environm
             elif client_post_logout_redirect_urls_count > 1:
                 return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have only one post_logout_redirect_url, but has {}.".format(client_post_logout_redirect_urls_count))]
     return []
+
+
+def checkClientInactivity(logger: Logger, normalizedClient: dict, environment: str, config: dict) -> list:
+    """Checks if a client exceeded the configured inactivity threshold based on lastLoginTime."""
+    logger.trace(f"checkClientInactivity({normalizedClient['client_id']})")
+    last_login_time = normalizedClient["last_login_time"]
+    if not last_login_time:
+        return []
+    threshold_months = config["environments"][environment].get("inactivity_months", 3)
+    last_login_date = datetime.strptime(last_login_time, "%Y-%m-%d").date()
+    months = (date.today().year - last_login_date.year) * 12 + date.today().month - last_login_date.month
+    if date.today().day < last_login_date.day:
+        months -= 1
+    if months < threshold_months:
+        return []
+    return [getWarn(
+        logger=logger,
+        normalizedClient=normalizedClient,
+        issueLevel="WARN",
+        issueDescription="This client hasn't shown any activity since {}".format(last_login_time)
+    )]
 
 
 def checkSessionTimeout(logger: Logger, normalizedClient: str, realm: str) -> list:

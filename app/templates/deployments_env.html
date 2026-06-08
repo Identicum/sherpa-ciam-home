@@ -1,0 +1,84 @@
+{% extends "index.html" %}
+
+{% block title %} Deployments for {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 30px;">Deployments - {{ environment }}{% if artifact %} - {{ artifact }}{% endif %}</h1>
+
+    <h3 style="margin-top: 20px;">Last Deployment Reports</h3>
+    {% if reports and reports|length > 0 %}
+        <table class="admin-links-table" style="table-layout: fixed; width: 100%;">
+            <thead>
+                <tr>
+                    <th style="width: 38%;">Timestamp</th>
+                    <th style="width: 38%;">Artifact</th>
+                    <th style="width: 14%;">Status</th>
+                    <th style="width: 10%;">Download</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for timestamp, timestamp_display, artifact_name, status in reports %}
+                <tr>
+                    <td style="width: 38%;">
+                        <a href="/deployments/{{ environment }}/{{ artifact_name }}/{{ timestamp }}">{{ timestamp_display }}</a>
+                    </td>
+                    <td style="width: 38%;">{{ artifact_name }}</td>
+                    <td style="width: 14%;">
+
+                    {% if status == 'success' %}
+                        <span class="badge bg-success">Success</span>
+                    {% elif status == 'failed' %}
+                        <span class="badge bg-danger">Failed</span>
+                    {% endif %}
+                    </td>
+                    <td style="width: 10%;">
+                        <a href="{{ url_for('deployments.deployment_log_download', environment=environment, artifact=artifact_name, timestamp=timestamp) }}" class="btn btn-sm btn-primary text-white text-decoration-none">Download .log</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No deployment reports found.</p>
+    {% endif %}
+
+    <h3>Artifacts Status</h3>
+    {% if artifacts_status and artifacts_status|length > 0 %}
+        <table class="admin-links-table" style="table-layout: fixed; width: 100%;">
+            <thead>
+                <tr>
+                    <th style="width: 42%;">Artifact</th>
+                    <th style="width: 42%;">Last Deployment</th>
+                    <th style="width: 16%;">Last Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for artifact_name, timestamp_display, status in artifacts_status %}
+                <tr>
+                    <td style="width: 42%;">
+                        <a href="/deployments/{{ environment }}/{{ artifact_name }}">{{ artifact_name }}</a>
+                    </td>
+                    <td style="width: 42%;">
+                        {% if timestamp_display %}
+                            {{ timestamp_display }}
+                        {% else %}
+                            No deployments
+                        {% endif %}
+                    </td>
+                    <td style="width: 16%;">
+                        {% if status == 'success' %}
+                            <span class="badge bg-success">Success</span>
+                        {% elif status == 'failed' %}
+                            <span class="badge bg-danger">Failed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No artifacts found.</p>
+    {% endif %}
+</div>
+{% endblock %}

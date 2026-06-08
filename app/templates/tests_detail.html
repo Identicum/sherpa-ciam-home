@@ -3,50 +3,35 @@
 {% block title %}sherpa-ciam-home - Test report{% endblock %}
 
 {% block content %}
-<div class="sh-page-header" data-environment="{{ environment }}" data-timestamp="{{ timestamp }}">
-    <div>
-        <div class="sh-eyebrow"><i class="bi bi-check2-square"></i> Test report</div>
-        <h1>{{ environment }}</h1>
-        <p class="sh-subtitle">
-            <span class="sh-pill"><i class="bi bi-globe2"></i>{{ environment }}</span>
-            <span class="sh-pill pill-muted"><i class="bi bi-hash"></i>{{ timestamp }}</span>
-        </p>
-    </div>
-    <a href="/tests/{{ environment }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to reports</a>
-</div>
+<div class="container" data-environment="{{ environment }}" data-timestamp="{{ timestamp }}">
+    <h1>Test report for {{ environment }}</h1>
 
-<div class="sh-page-container-inner" data-environment="{{ environment }}" data-timestamp="{{ timestamp }}">
-{% if error_message %}
-    <div class="alert alert-danger" role="alert">
-        <i class="bi bi-exclamation-octagon me-1"></i>Error: {{ error_message }}
-    </div>
-{% elif raw_report %}
-    {% set report_header = raw_report.data[0] if raw_report.data else None %}
-    <div class="sh-card">
-        <div class="sh-card-header">
-            <h2><i class="bi bi-info-square text-primary"></i> Report metadata</h2>
-            {% if report_header %}
-                <div class="d-flex gap-2 flex-wrap align-items-center">
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#env-details" aria-expanded="false" aria-controls="env-details">
-                        <i class="bi bi-gear me-1"></i>Environment &amp; dependencies
-                    </button>
-                    <a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-download me-1"></i>Download JSON
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-        <div class="sh-card-body">
+    {% if error_message %}
+        <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
+    {% elif raw_report %}
+        {% set report_header = raw_report.data[0] if raw_report.data else None %}
+        <div class="mb-3">
             {% if report_header %}
                 {% set env_meta = report_header.attributes.get('environment', {}) %}
                 {% set dependencies = env_meta.get('dependencies', {}) %}
-                <p class="mb-0"><i class="bi bi-clock-history me-1 text-muted"></i>Generated on <strong>{{ report_header.attributes.get('created_at', 'N/A') }}</strong></p>
-                <div id="env-details" class="collapse mt-3">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="sh-info-block">
-                                <h6 class="text-uppercase text-muted small fw-semibold">Environment</h6>
-                                <ul class="list-unstyled mb-0 small">
+                <table class="table table-bordered equal-width-columns" style="width: 100%;">
+                    <tr>
+                        <td>Generated on:<strong> {{ report_header.attributes.get('created_at', 'N/A') }}</strong></td>
+                        <td>
+                            <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#env-details" aria-expanded="false" aria-controls="env-details">
+                                Environment &amp; dependencies
+                            </button>
+                        </td>
+                        <td><a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary">Download JSON</a></td>
+                    </tr>
+                </table>
+
+                <div id="env-details" class="collapse mb-3">
+                    <div class="card card-body small">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Environment</strong>
+                                <ul class="list-unstyled mb-0">
                                     <li>Playwright: <code>{{ env_meta.get('playwright_version', 'N/A') }}</code></li>
                                     <li>Image SHA: <code>{{ env_meta.get('image_sha', 'N/A') }}</code></li>
                                     <li>Build date: {{ env_meta.get('image_build_date', 'N/A') }}</li>
@@ -55,236 +40,229 @@
                                     {% endif %}
                                 </ul>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="sh-info-block">
-                                <h6 class="text-uppercase text-muted small fw-semibold">Dependencies</h6>
+                            <div class="col-md-6">
+                                <strong>Dependencies</strong>
                                 {% if dependencies %}
-                                <ul class="list-unstyled mb-0 small">
+                                <ul class="list-unstyled mb-0">
                                     {% for name, info in dependencies.items() %}
                                     <li>{{ name }}: <code>{{ info.version if info is mapping else info }}</code></li>
                                     {% endfor %}
                                 </ul>
                                 {% else %}
-                                <p class="text-muted mb-0 small">No dependency info in report.</p>
+                                <p class="text-muted mb-0">No dependency info in report.</p>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
             {% else %}
-                <p class="text-muted mb-0"><em>Report data missing.</em></p>
+                <p><em>Report data missing.</em></p>
             {% endif %}
         </div>
-    </div>
-
-    {% if cases %}
-        <div class="sh-card">
-            <div class="sh-card-header">
-                <h2><i class="bi bi-funnel text-primary"></i> Filters</h2>
-                <span class="sh-card-meta">
-                    Showing <span id="visible-count">{{ cases | length }}</span> of {{ cases | length }} tests
-                </span>
-            </div>
-            <div class="sh-card-body">
-                <div class="row g-2 sh-toolbar">
-                    <div class="col-md-3">
-                        <input id="filter-search" type="search" class="form-control form-control-sm" placeholder="Search name, function, use case or description…" autocomplete="off">
-                    </div>
-                    <div class="col-md">
-                        <select id="filter-folder" class="form-select form-select-sm" aria-label="Filter by folder">
-                            <option value="">All folders</option>
-                        </select>
-                    </div>
-                    <div class="col-md">
-                        <select id="filter-realm-type" class="form-select form-select-sm" aria-label="Filter by realm type">
-                            <option value="">All realm types</option>
-                        </select>
-                    </div>
-                    <div class="col-md">
-                        <select id="filter-use-case" class="form-select form-select-sm" aria-label="Filter by use case">
-                            <option value="">All use cases</option>
-                        </select>
-                    </div>
-                    <div class="col-md">
-                        <select id="filter-outcome" class="form-select form-select-sm" aria-label="Filter by outcome">
-                            <option value="">All outcomes</option>
-                        </select>
-                    </div>
+        <hr>
+        {% if cases %}
+            {# Filter toolbar #}
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <input id="filter-search" type="search" class="form-control form-control-sm" placeholder="Search name, function, use case or description…" autocomplete="off">
+                </div>
+                <div class="col-md">
+                    <select id="filter-folder" class="form-select form-select-sm" aria-label="Filter by folder">
+                        <option value="">All folders</option>
+                    </select>
+                </div>
+                <div class="col-md">
+                    <select id="filter-realm-type" class="form-select form-select-sm" aria-label="Filter by realm type">
+                        <option value="">All realm types</option>
+                    </select>
+                </div>
+                <div class="col-md">
+                    <select id="filter-use-case" class="form-select form-select-sm" aria-label="Filter by use case">
+                        <option value="">All use cases</option>
+                    </select>
+                </div>
+                <div class="col-md">
+                    <select id="filter-outcome" class="form-select form-select-sm" aria-label="Filter by outcome">
+                        <option value="">All outcomes</option>
+                    </select>
                 </div>
             </div>
-        </div>
 
-        <div class="sh-card">
-            <div class="sh-card-header">
-                <h2><i class="bi bi-list-check text-primary"></i> Test cases</h2>
+            <div class="small text-muted mb-2">
+                Showing <span id="visible-count">{{ cases | length }}</span> of {{ cases | length }} tests.
             </div>
-            <div class="sh-card-body no-pad">
-                <div class="table-responsive">
-                <table id="test-results-table" class="table table-hover sh-table sh-table-fixed">
-                    <thead>
-                        <tr>
-                            <th data-sort-column="id">ID</th>
-                            <th data-sort-column="folder" class="d-none">Folder</th>
-                            <th data-sort-column="display_name">Name</th>
-                            <th data-sort-column="realm_type" class="d-none">Realm type</th>
-                            <th data-sort-column="use_case" class="d-none">Use case</th>
-                            <th data-sort-column="function_name" class="d-none">Function</th>
-                            <th data-sort-column="outcome">Outcome</th>
-                            <th data-sort-column="duration">Duration</th>
+
+            <div class="table-responsive">
+            <table id="test-results-table" class="table table-bordered table-hover" style="width: 100%;">
+                <thead class="table-light">
+                    <tr>
+                        <th data-sort-column="id">ID</th>
+                        <th data-sort-column="folder" class="d-none">Folder</th>
+                        <th data-sort-column="display_name">Name</th>
+                        <th data-sort-column="realm_type" class="d-none">Realm type</th>
+                        <th data-sort-column="use_case" class="d-none">Use case</th>
+                        <th data-sort-column="function_name" class="d-none">Function</th>
+                        <th data-sort-column="outcome">Outcome</th>
+                        <th data-sort-column="duration">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in cases %}
+                        {% set detail_id = "test-detail-" ~ case.id %}
+
+                        <tr class="expandable-summary-row" data-test-id="{{ case.id }}" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}" style="cursor: pointer;">
+                            <td>{{ case.id }}</td>
+                            <td class="d-none">{{ case.folder or '—' }}</td>
+                            <td>{{ case.display_name or '—' }}</td>
+                            <td class="d-none">{{ case.realm_type or '—' }}</td>
+                            <td class="d-none">{{ case.use_case or '—' }}</td>
+                            <td class="d-none">{{ case.function_name or '—' }}</td>
+                            <td>
+                                {% if case.outcome == 'passed' %}
+                                    <span class="badge bg-success">{{ case.outcome | upper }}</span>
+                                {% elif case.outcome == 'failed' %}
+                                    <span class="badge bg-danger">{{ case.outcome | upper }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ case.outcome | upper }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.2f"|format(case.duration) }}s</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for case in cases %}
-                            {% set detail_id = "test-detail-" ~ case.id %}
 
-                            <tr class="expandable-summary-row" data-test-id="{{ case.id }}" data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false" aria-controls="{{ detail_id }}">
-                                <td>{{ case.id }}</td>
-                                <td class="d-none">{{ case.folder or '—' }}</td>
-                                <td>{{ case.display_name or '—' }}</td>
-                                <td class="d-none">{{ case.realm_type or '—' }}</td>
-                                <td class="d-none">{{ case.use_case or '—' }}</td>
-                                <td class="d-none">{{ case.function_name or '—' }}</td>
-                                <td>
-                                    {% if case.outcome == 'passed' %}
-                                        <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>{{ case.outcome | upper }}</span>
-                                    {% elif case.outcome == 'failed' %}
-                                        <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>{{ case.outcome | upper }}</span>
-                                    {% else %}
-                                        <span class="sh-pill pill-warning"><i class="bi bi-exclamation-circle-fill"></i>{{ case.outcome | upper }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ "%.2f"|format(case.duration) }}s</td>
-                            </tr>
-
-                            <tr class="collapse expandable-detail-row" id="{{ detail_id }}">
-                                <td colspan="8" class="p-0">
-                                    <div class="p-3">
-                                        {# ── Metadata ── #}
-                                        <div class="sh-meta mb-3">
-                                            {% for icon, label, value in [
-                                                ('bi-folder2',           'Folder',     case.folder),
-                                                ('bi-file-earmark-code', 'File',       case.filename),
-                                                ('bi-braces',            'Function',   case.function_name),
-                                                ('bi-box',               'Class',      case.class_name),
-                                                ('bi-diagram-3',         'Realm type', case.realm_type),
-                                                ('bi-globe2',            'Realm',      case.realm),
-                                                ('bi-bookmark-star',     'Use case',   case.use_case),
-                                                ('bi-images',            'Media dir',  case.media_dir),
-                                            ] %}
-                                            <div class="sh-meta-item">
-                                                <span class="sh-meta-label"><i class="bi {{ icon }}"></i>{{ label }}</span>
-                                                <span class="sh-meta-value">{{ value or '—' }}</span>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-
-                                        {% if case.description %}
-                                        <h6 class="text-uppercase small text-muted fw-semibold">{{ messages['tests.detail.description'] }}</h6>
-                                        <p class="mb-3">{{ case.description }}</p>
-                                        {% endif %}
-
-                                        <h6 class="text-uppercase small text-muted fw-semibold">Test phases</h6>
-                                        <table class="table table-sm mb-3 sh-phases-table">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th class="col-phase">Phase</th>
-                                                    <th class="col-outcome">Outcome</th>
-                                                    <th class="col-duration">Duration</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for phase_name, phase in [('Setup', case.setup), ('Call', case.call), ('Teardown', case.teardown)] if phase %}
-                                                <tr>
-                                                    <td>{{ phase_name }}</td>
-                                                    <td>
-                                                        {% if phase.outcome == 'passed' %}
-                                                            <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>{{ phase.outcome | upper }}</span>
-                                                        {% elif phase.outcome == 'failed' %}
-                                                            <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>{{ phase.outcome | upper }}</span>
-                                                        {% else %}
-                                                            <span class="sh-pill pill-warning">{{ phase.outcome | upper }}</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>{{ "%.2f"|format(phase.duration or 0) }}s</td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-
-                                        {% if case.captured_logs %}
-                                        <h6 class="text-uppercase small text-muted fw-semibold">Captured logs</h6>
-                                        <pre class="sh-log mb-3">{% for log in case.captured_logs %}{{ log }}
-{% endfor %}</pre>
-                                        {% endif %}
-
-                                        {% if case.longrepr %}
-                                        <h6 class="text-uppercase small text-muted fw-semibold">Error details</h6>
-                                        <pre class="sh-log sh-log-error mb-3">{{ case.longrepr }}</pre>
-                                        {% endif %}
-
-                                        {% if case.failed_images %}
-                                        <h6 class="text-uppercase small text-muted fw-semibold">Screenshots ({{ case.failed_images | length }})</h6>
-                                        {% if case.media_dir %}
-                                            {% if case.failed_images | length > 1 %}
-                                                {% set carousel_id = "carousel-" ~ case.id | string | replace('.', '_') | replace('-', '_') %}
-                                                <div id="{{ carousel_id }}" class="carousel slide" data-bs-ride="false" data-bs-wrap="true">
-                                                    <div class="carousel-inner rounded overflow-hidden border">
-                                                        {% for image in case.failed_images %}
-                                                        <div class="carousel-item {% if loop.first %}active{% endif %}">
-                                                            <img class="d-block w-100" src="{{ url_for('tests.tests_report_image', environment=environment, timestamp=timestamp, test_media_dir=case.media_dir, filename=image) }}" alt="Screenshot {{ loop.index }}">
-                                                        </div>
-                                                        {% endfor %}
-                                                    </div>
-                                                    <button class="carousel-control-prev" type="button" data-bs-target="#{{ carousel_id }}" data-bs-slide="prev">
-                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Previous</span>
-                                                    </button>
-                                                    <button class="carousel-control-next" type="button" data-bs-target="#{{ carousel_id }}" data-bs-slide="next">
-                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Next</span>
-                                                    </button>
+                        <tr class="collapse" id="{{ detail_id }}">
+                            <td colspan="8" class="p-0">
+                                <div class="p-3">
+                                    <div class="card mb-3">
+                                        <div class="card-body small">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <strong>Test info</strong>
+                                                    <ul class="list-unstyled mb-0 mt-1">
+                                                        <li>Folder: <code>{{ case.folder or '—' }}</code></li>
+                                                        <li>File: <code>{{ case.filename or '—' }}</code></li>
+                                                        <li>Function: <code>{{ case.function_name or '—' }}</code></li>
+                                                        <li>Class: <code>{{ case.class_name or '—' }}</code></li>
+                                                    </ul>
                                                 </div>
-                                            {% else %}
-                                                <img class="d-block w-100 rounded border sh-img-fit" src="{{ url_for('tests.tests_report_image', environment=environment, timestamp=timestamp, test_media_dir=case.media_dir, filename=case.failed_images[0]) }}" alt="Screenshot">
-                                            {% endif %}
-                                        {% else %}
-                                            <div class="alert alert-warning small">media_dir missing — cannot render screenshots.</div>
-                                        {% endif %}
-                                        {% endif %}
+                                                <div class="col-md-6">
+                                                    <strong>Classification</strong>
+                                                    <ul class="list-unstyled mb-0 mt-1">
+                                                        <li>Realm type: <code>{{ case.realm_type or '—' }}</code></li>
+                                                        <li>Realm: <code>{{ case.realm or '—' }}</code></li>
+                                                        <li>Use case: <code>{{ case.use_case or '—' }}</code></li>
+                                                        <li>Media dir: <code>{{ case.media_dir or '—' }}</code></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                </div>
 
-                <div id="no-results" class="alert alert-info d-none m-3" role="alert">
-                    <i class="bi bi-info-circle me-1"></i>No tests match the current filters.
-                </div>
+                                    {% if case.description %}
+                                    <h6>{{ messages['tests.detail.description'] }}</h6>
+                                    <p class="text-muted mb-3">{{ case.description }}</p>
+                                    {% endif %}
+
+                                    <h6>Test Phases</h6>
+                                    <table class="table table-sm table-striped mb-3">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th style="width: 20%;">Phase</th>
+                                                <th style="width: 15%;">Outcome</th>
+                                                <th style="width: 15%;">Duration</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for phase_name, phase in [('Setup', case.setup), ('Call', case.call), ('Teardown', case.teardown)] if phase %}
+                                            <tr>
+                                                <td>{{ phase_name }}</td>
+                                                <td>
+                                                    {% if phase.outcome == 'passed' %}
+                                                        <span class="badge bg-success">{{ phase.outcome | upper }}</span>
+                                                    {% elif phase.outcome == 'failed' %}
+                                                        <span class="badge bg-danger">{{ phase.outcome | upper }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">{{ phase.outcome | upper }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ "%.2f"|format(phase.duration or 0) }}s</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+
+                                    {% if case.captured_logs %}
+                                    <h6>Captured Logs</h6>
+                                    <div class="card mb-3">
+                                        <div class="card-body bg-light">
+                                            <pre class="mb-0 small" style="white-space: pre-wrap; word-wrap: break-word;">{% for log in case.captured_logs %}{{ log }}
+{% endfor %}</pre>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if case.longrepr %}
+                                    <h6>Error Details</h6>
+                                    <div class="card mb-3">
+                                        <div class="card-body bg-danger bg-opacity-10">
+                                            <pre class="mb-0 text-danger small" style="white-space: pre-wrap; word-wrap: break-word;">{{ case.longrepr }}</pre>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if case.failed_images %}
+                                    <h6>Screenshots ({{ case.failed_images | length }})</h6>
+                                    {% if case.media_dir %}
+                                        {% if case.failed_images | length > 1 %}
+                                            {% set carousel_id = "carousel-" ~ case.id | string | replace('.', '_') | replace('-', '_') %}
+                                            <div id="{{ carousel_id }}" class="carousel slide" data-bs-ride="false" data-bs-wrap="true">
+                                                <div class="carousel-inner">
+                                                    {% for image in case.failed_images %}
+                                                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                                        <img class="d-block w-100" src="{{ url_for('tests.tests_report_image', environment=environment, timestamp=timestamp, test_media_dir=case.media_dir, filename=image) }}" alt="Screenshot {{ loop.index }}">
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                                <button class="carousel-control-prev" type="button" data-bs-target="#{{ carousel_id }}" data-bs-slide="prev">
+                                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Previous</span>
+                                                </button>
+                                                <button class="carousel-control-next" type="button" data-bs-target="#{{ carousel_id }}" data-bs-slide="next">
+                                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Next</span>
+                                                </button>
+                                            </div>
+                                        {% else %}
+                                            <img class="d-block w-100" src="{{ url_for('tests.tests_report_image', environment=environment, timestamp=timestamp, test_media_dir=case.media_dir, filename=case.failed_images[0]) }}" alt="Screenshot" style="max-width: 100%; height: auto;">
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="alert alert-warning small">media_dir missing — cannot render screenshots.</div>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             </div>
-        </div>
+
+            <div id="no-results" class="alert alert-info d-none" role="alert">
+                No tests match the current filters.
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">No tests found in the report.</div>
+        {% endif %}
     {% else %}
-        <div class="sh-card">
-            <div class="sh-card-body">
-                <div class="alert alert-info mb-0" role="alert">
-                    <i class="bi bi-info-circle me-1"></i>No tests found in the report.
-                </div>
-            </div>
-        </div>
+        <div class="alert alert-warning" role="alert">No test report data available and no error message. This usually means the report file could not be processed.</div>
     {% endif %}
-{% else %}
-    <div class="sh-card">
-        <div class="sh-card-body">
-            <div class="alert alert-warning mb-0" role="alert">
-                <i class="bi bi-exclamation-triangle me-1"></i>No test report data available and no error message. This usually means the report file could not be processed.
-            </div>
-        </div>
-    </div>
-{% endif %}
 </div>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
 <script src="{{ url_for('static', filename='js/tests_report.js') }}"></script>
+
+<style>
+    th[data-sort-column] { cursor: pointer; }
+    th.sort-asc::after { content: " ▲"; font-size: 0.75em; color: #0d6efd; }
+    th.sort-desc::after { content: " ▼"; font-size: 0.75em; color: #0d6efd; }
+</style>
 {% endblock %}

@@ -9,12 +9,11 @@
 const FILTER_CONFIG = [
     { id: 'filter-folder',      field: 'folder',      labelAll: 'All folders' },
     { id: 'filter-realm-type',  field: 'realm_type',  labelAll: 'All realm types' },
-    { id: 'filter-realm',       field: 'realm',       labelAll: 'All realms' },
-    { id: 'filter-class-name',  field: 'class_name',  labelAll: 'All classes' },
+    { id: 'filter-use-case',    field: 'use_case',    labelAll: 'All use cases' },
     { id: 'filter-outcome',     field: 'outcome',     labelAll: 'All outcomes', format: v => v.charAt(0).toUpperCase() + v.slice(1) },
 ];
 
-const SEARCH_FIELDS = ['name', 'class_name', 'function_name', 'display_name', 'description'];
+const SEARCH_FIELDS = ['name', 'function_name', 'display_name', 'description', 'use_case'];
 
 class TestReportTable {
     constructor(environment, timestamp) {

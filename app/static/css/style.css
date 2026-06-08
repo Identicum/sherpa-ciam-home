@@ -1,21 +1,709 @@
-/* Basic CSS for the application */
-body {
-    font-family: sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
+/* ============================================================
+   Sherpa CIAM Home - Identicum theme
+   ============================================================ */
+
+:root {
+    --sh-primary: #4FB23A;
+    --sh-primary-dark: #3a8a2a;
+    --sh-primary-soft: #ecf8e8;
+    --sh-primary-border: #c8e9bf;
+    --sh-accent: #5A5A5A;
+    --sh-bg: #f5f7fa;
+    --sh-surface: #ffffff;
+    --sh-text: #2c2c2c;
+    --sh-muted: #6b7280;
+    --sh-border: #e3e6eb;
+    --sh-navbar-bg: #2c2c2c;
+    --sh-navbar-bg-2: #3d3d3d;
+    --sh-radius: 12px;
+    --sh-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
+    --sh-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+    --sh-shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
-.container {
-    width: 80%;
-    margin: auto;
-    overflow: hidden;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--sh-bg);
+    color: var(--sh-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
+
+a { color: var(--sh-primary-dark); }
+a:hover { color: var(--sh-primary); }
+
+/* ===============================
+   Navbar
+   =============================== */
+.sh-navbar {
+    background: linear-gradient(135deg, var(--sh-navbar-bg) 0%, var(--sh-navbar-bg-2) 100%);
+    box-shadow: var(--sh-shadow-md);
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 3px solid var(--sh-primary);
+}
+
+.sh-navbar .container-fluid {
+    flex-wrap: nowrap;
+}
+
+.sh-navbar .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.2px;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.sh-navbar .navbar-brand img {
+    height: 28px;
+    width: auto;
+}
+
+.sh-navbar .navbar-nav {
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.sh-navbar .nav-item {
+    flex-shrink: 0;
+}
+
+.sh-navbar .nav-link {
+    color: rgba(255, 255, 255, 0.88) !important;
+    font-weight: 500;
+    font-size: 0.82rem;
+    padding: 0.35rem 0.6rem !important;
+    border-radius: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+}
+
+.sh-navbar .nav-link:hover,
+.sh-navbar .nav-link:focus,
+.sh-navbar .nav-link.show {
+    background: rgba(79, 178, 58, 0.18);
+    color: #fff !important;
+}
+
+.sh-navbar .nav-link i {
+    font-size: 0.95rem;
+}
+
+.sh-navbar .nav-link.dropdown-toggle::after {
+    margin-left: 0.3rem;
+    vertical-align: 0.15em;
+    border-top-color: rgba(255, 255, 255, 0.7);
+}
+
+.sh-navbar .dropdown-menu {
+    border: 1px solid var(--sh-border);
+    border-radius: 10px;
+    box-shadow: var(--sh-shadow-lg);
+    padding: 0.35rem;
+    min-width: 200px;
+    margin-top: 0.35rem;
+}
+
+.sh-navbar .dropdown-item {
+    border-radius: 6px;
+    padding: 0.42rem 0.7rem;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--sh-text);
+}
+
+.sh-navbar .dropdown-item:hover,
+.sh-navbar .dropdown-item:focus {
+    background: var(--sh-primary-soft);
+    color: var(--sh-primary-dark);
+}
+
+/* Nested submenus */
+.sh-navbar .dropdown-submenu {
+    position: relative;
+}
+
+.sh-navbar .dropdown-submenu > .dropdown-toggle-sub {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.sh-navbar .dropdown-submenu > .dropdown-toggle-sub::after {
+    content: "›";
+    font-size: 1.1rem;
+    margin-left: 0.5rem;
+    color: var(--sh-muted);
+}
+
+@media (min-width: 1200px) {
+    .sh-navbar .dropdown-submenu > .dropdown-menu {
+        display: none;
+        top: 0;
+        left: 100%;
+        margin-top: -0.35rem;
+        margin-left: 0.1rem;
+    }
+    .sh-navbar .dropdown-submenu:hover > .dropdown-menu,
+    .sh-navbar .dropdown-submenu:focus-within > .dropdown-menu {
+        display: block;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .sh-navbar .dropdown-menu {
+        border: none;
+        box-shadow: none;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 0.25rem 0;
+    }
+    .sh-navbar .dropdown-item {
+        color: rgba(255, 255, 255, 0.85);
+    }
+    .sh-navbar .dropdown-item:hover,
+    .sh-navbar .dropdown-item:focus {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+    .sh-navbar .dropdown-submenu > .dropdown-menu {
+        display: block;
+        position: static;
+        padding-left: 1rem;
+        background: transparent;
+    }
+    .sh-navbar .dropdown-submenu > .dropdown-toggle-sub::after { display: none; }
+    .sh-navbar .navbar-nav { padding-top: 0.5rem; align-items: stretch; }
+}
+
+.sh-user-chip {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem !important;
+    gap: 0.4rem;
+}
+
+/* ===============================
+   Page layout
+   =============================== */
+.sh-page {
+    flex: 1;
+    padding: 2rem 0 3rem;
+}
+
+.sh-page-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.sh-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.sh-page-header h1 {
+    font-size: 1.65rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--sh-text);
+    letter-spacing: -0.01em;
+}
+
+.sh-page-header .sh-subtitle {
+    color: var(--sh-muted);
+    font-size: 0.92rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.sh-page-header .sh-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--sh-primary-dark);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* ===============================
+   Card surface
+   =============================== */
+.sh-card {
+    background: var(--sh-surface);
+    border: 1px solid var(--sh-border);
+    border-radius: var(--sh-radius);
+    box-shadow: var(--sh-shadow-sm);
+    overflow: hidden;
+}
+
+.sh-card + .sh-card {
+    margin-top: 1.25rem;
+}
+
+.sh-card-header {
+    padding: 0.9rem 1.15rem;
+    border-bottom: 1px solid var(--sh-border);
+    background: #fbfcfd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.sh-card-header h2,
+.sh-card-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--sh-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sh-card-header .sh-card-meta {
+    font-size: 0.85rem;
+    color: var(--sh-muted);
+}
+
+.sh-card-body {
+    padding: 1.15rem;
+}
+
+.sh-card-body.no-pad { padding: 0; }
+
+/* ===============================
+   Tables
+   =============================== */
+.sh-table {
+    margin: 0;
+    width: 100%;
+    color: var(--sh-text);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.sh-table thead th {
+    background: #f7f9fb;
+    color: var(--sh-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
+    border-bottom: 1px solid var(--sh-border);
+    padding: 0.7rem 1rem;
+    text-align: left;
+}
+
+.sh-table tbody td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--sh-border);
+    vertical-align: middle;
+    font-size: 0.92rem;
+}
+
+.sh-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.sh-table tbody tr:hover {
+    background: #fafbfc;
+}
+
+.sh-table a {
+    color: var(--sh-primary-dark);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.sh-table a:hover {
+    color: var(--sh-primary);
+    text-decoration: underline;
+}
+
+/* ===============================
+   Buttons
+   =============================== */
+.btn { border-radius: 8px; font-weight: 500; }
+
+.btn-primary {
+    background: var(--sh-primary);
+    border-color: var(--sh-primary);
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background: var(--sh-primary-dark) !important;
+    border-color: var(--sh-primary-dark) !important;
+    box-shadow: 0 0 0 3px rgba(79, 178, 58, 0.18);
+}
+
+.btn-outline-primary {
+    color: var(--sh-primary-dark);
+    border-color: var(--sh-primary);
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+    background: var(--sh-primary) !important;
+    border-color: var(--sh-primary) !important;
+    color: #fff !important;
+}
+
+.btn-link, a.btn-link {
+    color: var(--sh-primary-dark);
+}
+
+/* ===============================
+   Forms
+   =============================== */
+.sh-form .form-label {
+    font-weight: 500;
+    color: var(--sh-text);
+    margin-bottom: 0.35rem;
+    font-size: 0.88rem;
+}
+
+.sh-form .form-control,
+.sh-form .form-select {
+    border-radius: 8px;
+    border-color: var(--sh-border);
+    padding: 0.55rem 0.85rem;
+    font-size: 0.95rem;
+}
+
+.sh-form .form-control:focus,
+.sh-form .form-select:focus {
+    border-color: var(--sh-primary);
+    box-shadow: 0 0 0 3px rgba(79, 178, 58, 0.18);
+}
+
+.sh-form .form-text {
+    font-size: 0.8rem;
+    color: var(--sh-muted);
+}
+
+/* ===============================
+   Pills / badges
+   =============================== */
+.sh-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    background: var(--sh-primary-soft);
+    color: var(--sh-primary-dark);
+    border: 1px solid var(--sh-primary-border);
+    line-height: 1.3;
+}
+
+.sh-pill.pill-muted {
+    background: #f1f3f6;
+    color: var(--sh-muted);
+    border-color: var(--sh-border);
+}
+
+.sh-pill.pill-success {
+    background: var(--sh-primary-soft);
+    color: var(--sh-primary-dark);
+    border-color: var(--sh-primary-border);
+}
+
+.sh-pill.pill-danger {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.sh-pill.pill-warning {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+/* ===============================
+   Back link
+   =============================== */
+.sh-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--sh-muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.sh-back-link:hover {
+    color: var(--sh-primary-dark);
+}
+
+/* ===============================
+   Detail key/value
+   =============================== */
+.sh-kv {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) 1fr;
+    gap: 0.75rem 1.25rem;
+    font-size: 0.93rem;
+    margin: 0;
+}
+
+.sh-kv dt {
+    color: var(--sh-muted);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.sh-kv dd {
+    margin: 0;
+    word-break: break-word;
+}
+
+/* ===============================
+   Hero (welcome)
+   =============================== */
+.sh-hero {
+    background: linear-gradient(135deg, #2c2c2c 0%, #3a8a2a 60%, #4FB23A 100%);
+    border-radius: var(--sh-radius);
+    color: #fff;
+    padding: 2.25rem 2rem;
+    box-shadow: var(--sh-shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.sh-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 55%);
+    pointer-events: none;
+}
+
+.sh-hero h1 {
+    font-size: 1.85rem;
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+    position: relative;
+}
+
+.sh-hero p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    position: relative;
+}
+
+/* ===============================
+   Code / log block
+   =============================== */
+.sh-log {
+    background: #1f2126;
+    color: #e5e7eb;
+    border-radius: var(--sh-radius);
+    padding: 1rem 1.1rem;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    max-height: 520px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+}
+
+.sh-log.sh-log-error {
+    background: #2a0f10;
+    color: #fecaca;
+    border: 1px solid #7f1d1d;
+}
+
+/* ===============================
+   Empty state
+   =============================== */
+.sh-empty {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    color: var(--sh-muted);
+}
+
+.sh-empty i {
+    font-size: 2.25rem;
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--sh-border);
+}
+
+/* ===============================
+   Toolbar
+   =============================== */
+.sh-toolbar {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.sh-toolbar .form-control,
+.sh-toolbar .form-select {
+    border-radius: 8px;
+}
+
+/* ===============================
+   Misc
+   =============================== */
+.container {
+    max-width: 1200px;
+}
+
+code {
+    color: var(--sh-primary-dark);
+    background: var(--sh-primary-soft);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+/* Sortable column indicators (tests_detail) */
+th[data-sort-column] { cursor: pointer; user-select: none; }
+th.sort-asc::after { content: " ▲"; font-size: 0.75em; color: var(--sh-primary-dark); }
+th.sort-desc::after { content: " ▼"; font-size: 0.75em; color: var(--sh-primary-dark); }
+
+/* ===============================
+   Expandable rows (terraformcheck, tests_detail)
+   =============================== */
+.expandable-summary-row { cursor: pointer; }
+.expandable-detail-row { background: #fbfcfd; }
+.sh-detail-cell-vtop { vertical-align: top; }
+.sh-pre-wrap { white-space: pre-wrap; word-wrap: break-word; margin-bottom: 0; }
+.sh-table-fixed { width: 100%; }
+.sh-img-fit { max-width: 100%; height: auto; }
+
+/* Meta info card (tests_detail env details) */
+.sh-info-block {
+    background: #f7f9fb;
+    border: 1px solid var(--sh-border);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+}
+.sh-info-block h6 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--sh-muted);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.sh-info-block ul { font-size: 0.85rem; line-height: 1.6; }
+
+/* Status icons (feedback pages) */
+.sh-status-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+/* 403 page */
+.sh-error-page {
+    min-height: 60vh;
+}
+.sh-error-page .sh-error-icon {
+    font-size: 4rem;
+    color: #b91c1c;
+    margin-bottom: 0.25rem;
+}
+.sh-error-page .sh-error-text {
+    max-width: 480px;
+}
+
+/* Diff table column widths */
+.sh-tf-table th.col-toggle { width: 5%; }
+.sh-tf-table th.col-realm { width: 35%; }
+.sh-tf-table th.col-cud { width: 20%; }
+.sh-tf-inner th.col-change { width: 15%; }
+.sh-tf-inner th.col-object { width: 25%; }
+.sh-tf-inner th.col-attrs { width: 60%; }
+
+/* Test phases table */
+.sh-phases-table th.col-phase { width: 20%; }
+.sh-phases-table th.col-outcome { width: 15%; }
+.sh-phases-table th.col-duration { width: 15%; }
+
+/* Compact metadata chips (tests_detail expanded row) */
+.sh-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.4rem;
+}
+.sh-meta-item {
+    background: var(--sh-primary-soft);
+    border: 1px solid var(--sh-primary-border);
+    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    line-height: 1.2;
+    min-width: 0;
+}
+.sh-meta-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sh-primary-dark);
+}
+.sh-meta-label i { font-size: 0.7rem; }
+.sh-meta-value {
+    display: block;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.76rem;
+    color: var(--sh-text);
+    word-break: break-all;
+    margin-top: 0.1rem;
+}
+
+@media (max-width: 768px) {
+    .sh-page { padding: 1.25rem 0 2rem; }
+    .sh-page-container { padding: 0 1rem; }
+    .sh-page-header h1 { font-size: 1.35rem; }
+    .sh-kv { grid-template-columns: 1fr; gap: 0.35rem; }
+    .sh-kv dt { margin-top: 0.5rem; }
+}
+
+
+/* ============================================================
+   Legacy components (old <header> nav / dropdowns / link tables)
+   Kept because header.html still uses the classic markup.
+   TODO: remove this whole block once header.html is ported to the
+   .sh-navbar markup from the refactor/change-app-ux-ui branch.
+   ============================================================ */
 
 /* Add styles for the header */
 
@@ -209,4 +897,3 @@ nav ul.user-menu-right {
 
 nav ul.user-menu-right li {
     list-style: none;
-}

@@ -64,7 +64,7 @@
             {# Filter toolbar #}
             <div class="row g-2 mb-3">
                 <div class="col-md-3">
-                    <input id="filter-search" type="search" class="form-control form-control-sm" placeholder="Search name, class, function or description…" autocomplete="off">
+                    <input id="filter-search" type="search" class="form-control form-control-sm" placeholder="Search name, function, use case or description…" autocomplete="off">
                 </div>
                 <div class="col-md">
                     <select id="filter-folder" class="form-select form-select-sm" aria-label="Filter by folder">
@@ -77,13 +77,8 @@
                     </select>
                 </div>
                 <div class="col-md">
-                    <select id="filter-realm" class="form-select form-select-sm" aria-label="Filter by realm">
-                        <option value="">All realms</option>
-                    </select>
-                </div>
-                <div class="col-md">
-                    <select id="filter-class-name" class="form-select form-select-sm" aria-label="Filter by class">
-                        <option value="">All classes</option>
+                    <select id="filter-use-case" class="form-select form-select-sm" aria-label="Filter by use case">
+                        <option value="">All use cases</option>
                     </select>
                 </div>
                 <div class="col-md">
@@ -105,8 +100,7 @@
                         <th data-sort-column="folder" class="d-none">Folder</th>
                         <th data-sort-column="display_name">Name</th>
                         <th data-sort-column="realm_type" class="d-none">Realm type</th>
-                        <th data-sort-column="realm" class="d-none">Realm</th>
-                        <th data-sort-column="class_name" class="d-none">Class</th>
+                        <th data-sort-column="use_case" class="d-none">Use case</th>
                         <th data-sort-column="function_name" class="d-none">Function</th>
                         <th data-sort-column="outcome">Outcome</th>
                         <th data-sort-column="duration">Duration</th>
@@ -121,8 +115,7 @@
                             <td class="d-none">{{ case.folder or '—' }}</td>
                             <td>{{ case.display_name or '—' }}</td>
                             <td class="d-none">{{ case.realm_type or '—' }}</td>
-                            <td class="d-none">{{ case.realm or '—' }}</td>
-                            <td class="d-none">{{ case.class_name or '—' }}</td>
+                            <td class="d-none">{{ case.use_case or '—' }}</td>
                             <td class="d-none">{{ case.function_name or '—' }}</td>
                             <td>
                                 {% if case.outcome == 'passed' %}
@@ -137,8 +130,33 @@
                         </tr>
 
                         <tr class="collapse" id="{{ detail_id }}">
-                            <td colspan="9" class="p-0">
+                            <td colspan="8" class="p-0">
                                 <div class="p-3">
+                                    <div class="card mb-3">
+                                        <div class="card-body small">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <strong>Test info</strong>
+                                                    <ul class="list-unstyled mb-0 mt-1">
+                                                        <li>Folder: <code>{{ case.folder or '—' }}</code></li>
+                                                        <li>File: <code>{{ case.filename or '—' }}</code></li>
+                                                        <li>Function: <code>{{ case.function_name or '—' }}</code></li>
+                                                        <li>Class: <code>{{ case.class_name or '—' }}</code></li>
+                                                    </ul>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>Classification</strong>
+                                                    <ul class="list-unstyled mb-0 mt-1">
+                                                        <li>Realm type: <code>{{ case.realm_type or '—' }}</code></li>
+                                                        <li>Realm: <code>{{ case.realm or '—' }}</code></li>
+                                                        <li>Use case: <code>{{ case.use_case or '—' }}</code></li>
+                                                        <li>Media dir: <code>{{ case.media_dir or '—' }}</code></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {% if case.description %}
                                     <h6>{{ messages['tests.detail.description'] }}</h6>
                                     <p class="text-muted mb-3">{{ case.description }}</p>

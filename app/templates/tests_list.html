@@ -15,41 +15,46 @@
     <a href="{{ url_for('index') }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to home</a>
 </div>
 
-    <h3>{{ messages['tests.reports.list.title'] }}</h3>
-    {% if reports and reports|length > 0 %}
-        <table class="admin-links-table">
-            <thead>
-                <tr>
-                    <th>Execution</th>
-                    <th>Exec option</th>
-                    <th>Passed</th>
-                    <th>Failed</th>
-                    <th>Duration [secs]</th>
-                    <th>Download</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for timestamp, exec_option, passed, failed, num_tests, duration in reports %}
-                <tr>
-                    <td>
-                        <a href="/tests/{{ environment }}/report/{{ timestamp }}" target="_blank">{{ utils.getTimestampDisplay(timestamp) }}</a>
-                    </td>
-                    <td>{{exec_option}}</span></td>
-                    <td>{{passed}}</td>
-                    <td>{{failed}}</td>
-                    <td>{{duration}}</td>
-                    <td class="text-center">
-                        <a href="{{ url_for('tests.tests_report_download', environment=environment, timestamp=timestamp) }}" class="btn btn-sm btn-primary text-white" style="text-decoration: none;">
-                            Download JSON Report
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No reports found for this environment.</p>
-    {% endif %}
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-play-circle text-primary"></i> {{ messages['tests.runner.title'] }}</h2>
+        {% if tests_scheduled == 'available' %}
+            <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Available</span>
+        {% elif tests_scheduled == 'scheduled' %}
+            <span class="sh-pill pill-warning"><i class="bi bi-clock"></i>Scheduled</span>
+        {% elif tests_scheduled == 'running' %}
+            <span class="sh-pill"><i class="bi bi-arrow-clockwise"></i>Running</span>
+        {% endif %}
+    </div>
+    <div class="sh-card-body">
+        {% if tests_scheduled == 'available' %}
+            <form action="/tests/{{ environment }}/execute" method="post" class="sh-form">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label" for="execution_option">Execution option</label>
+                        <select name="execution_option" id="execution_option" class="form-select">
+                            {% for execution_option in execution_options %}
+                            <option value="{{ execution_option }}">{{ execution_option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" name="submit" class="btn btn-primary">
+                            <i class="bi bi-rocket-takeoff me-1"></i>Schedule execution
+                        </button>
+                    </div>
+                </div>
+            </form>
+        {% elif tests_scheduled == 'scheduled' %}
+            <div class="alert alert-warning mb-0" role="alert">
+                <i class="bi bi-clock me-1"></i>The environment is currently scheduled for test execution.
+            </div>
+        {% elif tests_scheduled == 'running' %}
+            <div class="alert alert-info mb-0" role="alert">
+                <i class="bi bi-arrow-clockwise me-1"></i>The environment is currently running tests.
+            </div>
+        {% endif %}
+    </div>
 </div>
 
 <div class="sh-card">
@@ -73,23 +78,9 @@
                 <tbody>
                     {% for timestamp, exec_option, passed, failed, num_tests, duration in reports %}
                     <tr>
-                        {% set day = timestamp[6:8] %}
-                        {% set month = timestamp[4:6] %}
-                        {% set year = timestamp[2:4] %}
-                        {% set hour = timestamp[9:11]|int %}
-                        {% set minute = timestamp[11:13]|int %}
-                        {% if minute >= 60 %}
-                            {% set hour = hour + ((minute / 60)|int) %}
-                            {% set minute = minute % 60 %}
-                        {% endif %}
-                        {% if hour >= 24 %}
-                            {% set hour = hour % 24 %}
-                        {% endif %}
-                        {% set hour_str = ("0" + hour|string) if hour < 10 else hour|string %}
-                        {% set minute_str = ("0" + minute|string) if minute < 10 else minute|string %}
                         <td>
                             <a href="/tests/{{ environment }}/report/{{ timestamp }}" target="_blank">
-                                <i class="bi bi-file-earmark-text me-1"></i>{{ day }}/{{ month }}/{{ year }} {{ hour_str }}:{{ minute_str }}
+                                <i class="bi bi-file-earmark-text me-1"></i>{{ utils.getTimestampDisplay(timestamp) }}
                             </a>
                         </td>
                         <td><span class="sh-pill pill-muted">{{ exec_option }}</span></td>

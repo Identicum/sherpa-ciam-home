@@ -3,20 +3,31 @@
 {% block title %} Deployment Report - {{ artifact }} - {{ timestamp }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Deployment Report - {{ artifact }} ({{ environment }})</h1>
-    <p><strong>Timestamp:</strong> {{ timestamp_display }}</p>
-    
-    <div class="mb-3">
-        <a href="{{ url_for('deployments.deployment_log_download', environment=environment, artifact=artifact, timestamp=timestamp) }}" class="btn btn-sm btn-primary">
-            Download .log
+<div class="sh-page-header">
+    <div>
+        <div class="sh-eyebrow"><i class="bi bi-rocket-takeoff"></i> Deployment report</div>
+        <h1>{{ artifact }} <span class="text-muted">·</span> {{ environment }}</h1>
+        <p class="sh-subtitle">
+            <span class="sh-pill"><i class="bi bi-clock-history"></i>{{ timestamp_display }}</span>
+            {% if status == 'success' %}
+                <span class="sh-pill pill-success"><i class="bi bi-check-circle-fill"></i>Success</span>
+            {% elif status == 'failed' %}
+                <span class="sh-pill pill-danger"><i class="bi bi-x-circle-fill"></i>Failed</span>
+            {% endif %}
+        </p>
+    </div>
+    <a href="{{ url_for('deployments.deployments_artifact_list', environment=environment, artifact=artifact) }}" class="sh-back-link"><i class="bi bi-arrow-left"></i> Back to reports</a>
+</div>
+
+<div class="sh-card">
+    <div class="sh-card-header">
+        <h2><i class="bi bi-terminal text-primary"></i> Deployment logs</h2>
+        <a href="{{ url_for('deployments.deployment_log_download', environment=environment, artifact=artifact, timestamp=timestamp) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-download me-1"></i>Download .log
         </a>
     </div>
-    <h3>Deployment Logs</h3>
-    <div class="card mb-3">
-        <div class="card-body {% if status == 'failed' %}bg-danger bg-opacity-10{% else %}bg-light{% endif %}">
-            <pre class="mb-0 {% if status == 'failed' %}text-danger{% endif %}" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.875rem; max-height: 500px; overflow-y: auto;">{{ logs }}</pre>
-        </div>
+    <div class="sh-card-body">
+        <pre class="sh-log {% if status == 'failed' %}sh-log-error{% endif %}">{{ logs }}</pre>
     </div>
 </div>
 {% endblock %}

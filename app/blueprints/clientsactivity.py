@@ -39,6 +39,7 @@ def clientsactivity_generate_report(environment: str):
     """
     processOutput = clientsactivity_report.run(
         logger=current_app.logger,
+        properties=current_app.properties,
         outputPath="/data",
         environment=environment,
         config=current_app.json_config

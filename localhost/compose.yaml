@@ -24,6 +24,7 @@ services:
     idp:
         container_name: idp
         image: ghcr.io/identicum/keycloak:26.6
+        pull_policy: always
         restart: always
         environment:
             KC_BOOTSTRAP_ADMIN_USERNAME: admin

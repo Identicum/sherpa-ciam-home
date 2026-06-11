@@ -455,7 +455,14 @@ def checkClientInactivity(logger: Logger, normalizedClient: dict, environment: s
     logger.trace(f"checkClientInactivity({normalizedClient['client_id']})")
     last_login_time = normalizedClient["last_login_time"]
     if not last_login_time:
-        return []
+        return [
+            getWarn(
+                logger=logger,
+                normalizedClient=normalizedClient,
+                issueLevel="WARN",
+                issueDescription="No activity has been recorded for this client"
+            )
+        ]
     threshold_months = config["environments"][environment].get("inactivity_months", 3)
     last_login_date = datetime.strptime(last_login_time, "%Y-%m-%d").date()
     months = (date.today().year - last_login_date.year) * 12 + date.today().month - last_login_date.month

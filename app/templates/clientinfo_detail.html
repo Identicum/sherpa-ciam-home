@@ -47,6 +47,15 @@
                 </td>
             </tr>
             <tr><th>Description</th><td colspan="2">{{ normalizedClient.description }}</td></tr>
+            <tr><th>Last activity</th>
+                <td colspan="2">
+                    {% if normalizedClient.last_login_time %}
+                        {{ normalizedClient.last_login_time }}
+                    {% else %}
+                        <span class="text-muted">Not available</span>
+                    {% endif %}
+                </td>
+            </tr>
             <tr><th>Access Type</th><td colspan="2">{{ normalizedClient.access_type }}</td></tr>
             <tr>
                 <th>Flows</th>

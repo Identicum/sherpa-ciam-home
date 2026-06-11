@@ -395,17 +395,12 @@ def getNormalizedClient(logger: Logger, properties: Properties, environment: str
         client_attributes = client.get("attributes") or {}
         client_description = client.get("description", "")
 
-        if client_attributes.get("custom_type") or client_attributes.get("owner.email"):
-            # Nuevo formato: la metadata viene en client attributes.
-            response["tag"] = getClientTag(logger=logger, description=client_description, client_id=client["clientId"], client_type=response["type"], custom_type=client_attributes.get("custom_type", ""))
-            response["owner_email"] = client_attributes.get("owner.email", "")
-            response["description"] = client_description
-        else:
-            # Formato anterior: la metadata se parsea desde la description.
-            # TODO: Deprecar el parseo de la description cuando se termine de definir la nomenclatura y se carguen los atributos en los clients.
-            response["tag"] = getClientTag(logger=logger, description=client_description, client_id=client["clientId"], client_type=response["type"])
-            response["owner_email"] = splitDescription(logger=logger, description=client_description, position=1, defaultValue="")
-            response["description"] = splitDescription(logger=logger, description=client_description, position=2, defaultValue=client_description)
+        # TODO: Deprecar el parseo de la description cuando se termine de definir la nomenclatura y se carguen los atributos en los clients.
+        custom_type_attr = client_attributes.get("custom_type", "")
+        owner_email_attr = client_attributes.get("owner.email", "")
+        response["tag"] = getClientTag(logger=logger, description=client_description, client_id=client["clientId"], client_type=response["type"], custom_type=custom_type_attr)
+        response["owner_email"] = owner_email_attr if owner_email_attr else splitDescription(logger=logger, description=client_description, position=1, defaultValue="")
+        response["description"] = splitDescription(logger=logger, description=client_description, position=2, defaultValue=client_description)
 
         if response["type"] == "realm":
             response["enabled"] = True

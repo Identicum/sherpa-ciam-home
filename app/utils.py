@@ -392,10 +392,20 @@ def getNormalizedClient(logger: Logger, properties: Properties, environment: str
         else:
             response["type"] = client["protocol"]
 
+        client_attributes = client.get("attributes") or {}
         client_description = client.get("description", "")
-        response["tag"] = getClientTag(logger=logger, description=client_description, client_id=client["clientId"], client_type=response["type"])
-        response["owner_email"] = splitDescription(logger=logger, description=client_description, position=1, defaultValue="")
-        response["description"] = splitDescription(logger=logger, description=client_description, position=2, defaultValue=client_description)
+
+        if client_attributes.get("custom_type") or client_attributes.get("owner.email"):
+            # Nuevo formato: la metadata viene en client attributes.
+            response["tag"] = getClientTag(logger=logger, description=client_description, client_id=client["clientId"], client_type=response["type"], custom_type=client_attributes.get("custom_type", ""))
+            response["owner_email"] = client_attributes.get("owner.email", "")
+            response["description"] = client_description
+        else:
+            # Formato anterior: la metadata se parsea desde la description.
+            # TODO: Deprecar el parseo de la description cuando se termine de definir la nomenclatura y se carguen los atributos en los clients.
+            response["tag"] = getClientTag(logger=logger, description=client_description, client_id=client["clientId"], client_type=response["type"])
+            response["owner_email"] = splitDescription(logger=logger, description=client_description, position=1, defaultValue="")
+            response["description"] = splitDescription(logger=logger, description=client_description, position=2, defaultValue=client_description)
 
         if response["type"] == "realm":
             response["enabled"] = True
@@ -533,8 +543,8 @@ def splitDescription(logger: Logger, description: str, position: int, defaultVal
         return defaultValue
 
 
-def getClientTag(logger: Logger, description: str, client_id: str, client_type: str) -> str:
-    """Extracts a client tag from a provided description (Custom Syntax) \n
+def getClientTag(logger: Logger, description: str, client_id: str, client_type: str, custom_type: str = "") -> str:
+    """Extracts a client tag from the `custom_type` client attribute, falling back to the description (Custom Syntax) when the attribute is absent. \n
     Will automatically filter Native keycloak client tags using the provided client_id and mark unsupported tags as [TAG_INVALID]
 
     Args:
@@ -542,6 +552,7 @@ def getClientTag(logger: Logger, description: str, client_id: str, client_type: 
         description (str): _description_
         client_id (str): _description_
         client_type (str): realm / openid-connect / saml
+        custom_type (str): Value of the `custom_type` client attribute (e.g. "MOBILE"). Takes precedence over the description when present.
 
     Returns:
         str: Client Tag - Example: [SPA_PUBLIC]
@@ -551,7 +562,12 @@ def getClientTag(logger: Logger, description: str, client_id: str, client_type: 
         return "[KEYCLOAK_NATIVE]"
 
     valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[PROXY]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]
-    tag = splitDescription(logger=logger, description=description, position=0, defaultValue="")
+    if custom_type:
+        tag = custom_type if custom_type.startswith("[") else "[{}]".format(custom_type)
+        logger.trace("Using custom_type attribute '{}', resolved tag: '{}'", custom_type, tag)
+    else:
+        # TODO: Deprecar el parseo de la description cuando se termine de definir la nomenclatura y se carguen los atributos en los clients.
+        tag = splitDescription(logger=logger, description=description, position=0, defaultValue="")
     if tag == "":
         return "[TAG_MISSING]"
     if tag not in valid_client_types:

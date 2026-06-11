@@ -3,7 +3,7 @@ resource "keycloak_openid_client" "demoapp11" {
   client_id                       = "demoapp11_client_id"
   client_secret                   = "demoapp11_client_secret"
   name                            = "demoapp11"
-  description                     = "[MOBILE]##idp@identicum.com##Mobile confidential"
+  description                     = "Mobile confidential"
   enabled                         = true
   access_type                     = "CONFIDENTIAL"
   standard_flow_enabled           = true
@@ -14,6 +14,10 @@ resource "keycloak_openid_client" "demoapp11" {
   base_url                        = "/"
   valid_redirect_uris             = [ "/private/redirect_uri", "/private/info" ]
   frontchannel_logout_enabled     = false
+  extra_config = {
+    (module.constants.owner_email) = "idp@identicum.com",
+    (module.constants.type) = (module.constants.clientType_mobile)
+  }
 }
 
 resource "keycloak_openid_client_optional_scopes" "demoapp11" {

@@ -3,42 +3,91 @@
 {% block title %}Check Clients Warnings for {{environment}}, realm: {{realmName}}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Check Clients warnings. Environment: {{environment}}, realm: {{realmName}}</h1>
-    {% if errorMessage %}
-        <div class="alert alert-danger" role="alert">Error: {{ errorMessage }}</div>
-    {% endif %}
-    <p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
-    {% if warns and warns|length > 0 %}
-    <h2>{{warns|length}} warnings</h2>
-        <table class="admin-links-table">
-            <thead>
-                <tr>
-                    <th>Realm</th>
-                    <th>Client ID</th>
-                    <th>Tag</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Level</th>
-                    <th>Issue</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for warn in warns %}
-                    <tr>
-                        <td>{{warn.realmName}}</td>
-                        <td><a href="/clientinfo/{{environment}}/{{warn.realmName}}/{{warn.client_id}}">{{warn.client_id}}</a></td>
-                        <td>{{warn.tag}}</td>
-                        <td>{{warn.name}}</td>
-                        <td>{{warn.description}}</td>
-                        <td>{{warn.issueLevel}}</td>
-                        <td>{{warn.issueDescription}}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No warnings found.</p>
-    {% endif %}
+<h1>Check Clients warnings. Environment: {{environment}}, realm: {{realmName}}</h1>
+{% if errorMessage %}
+    <div class="alert alert-danger" role="alert">Error: {{ errorMessage }}</div>
+{% endif %}
+<p><strong>Report generated on:</strong> {{ metadata.timestamp }}</p>
+{% if warns and warns|length > 0 %}
+<h2>{{warns|length}} warnings</h2>
+<div class="row g-2 align-items-center mb-2">
+    <div class="col-sm-6 col-md-4">
+        <input type="search" id="warnsFilter" class="form-control" placeholder="Filter by realm, client, tag, name or issue...">
+    </div>
+    <div class="col-sm-4 col-md-3">
+        <select id="levelFilter" class="form-select">
+            <option value="">All levels</option>
+            {% for level in warns | map(attribute='issueLevel') | unique | sort %}
+                <option value="{{ level }}">{{ level }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-auto text-muted">
+        Showing <span id="warnsCount">{{warns|length}}</span> of {{warns|length}} warnings
+    </div>
 </div>
+<div class="table-responsive">
+    <table class="table table-bordered table-hover table-warning align-middle" id="warnsTable">
+        <thead class="table-light">
+            <tr>
+                <th>Realm</th>
+                <th>Client ID</th>
+                <th>Tag</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Level</th>
+                <th>Issue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for warn in warns %}
+                <tr data-level="{{warn.issueLevel}}">
+                    <td>{{warn.realmName}}</td>
+                    <td><a href="/clientinfo/{{environment}}/{{warn.realmName}}/{{warn.client_id}}">{{warn.client_id}}</a></td>
+                    <td>{{warn.tag}}</td>
+                    <td>{{warn.name}}</td>
+                    <td>{{warn.description}}</td>
+                    <td>
+                        {% if warn.issueLevel == "ERROR" %}
+                            <span class="badge text-bg-danger">{{warn.issueLevel}}</span>
+                        {% elif warn.issueLevel == "WARN" %}
+                            <span class="badge text-bg-warning">{{warn.issueLevel}}</span>
+                        {% else %}
+                            <span class="badge text-bg-secondary">{{warn.issueLevel}}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{warn.issueDescription}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+(function () {
+    var filterInput = document.getElementById('warnsFilter');
+    var levelSelect = document.getElementById('levelFilter');
+    var countEl = document.getElementById('warnsCount');
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#warnsTable tbody tr'));
+
+    function applyFilters() {
+        var text = filterInput.value.trim().toLowerCase();
+        var level = levelSelect.value;
+        var visible = 0;
+        rows.forEach(function (row) {
+            var matchesText = !text || row.textContent.toLowerCase().indexOf(text) !== -1;
+            var matchesLevel = !level || row.dataset.level === level;
+            var show = matchesText && matchesLevel;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        countEl.textContent = visible;
+    }
+
+    filterInput.addEventListener('input', applyFilters);
+    levelSelect.addEventListener('change', applyFilters);
+})();
+</script>
+{% else %}
+    <p>No warnings found.</p>
+{% endif %}
 {% endblock %}

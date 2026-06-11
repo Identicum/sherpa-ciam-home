@@ -100,7 +100,8 @@
                         <th data-sort-column="folder" class="d-none">Folder</th>
                         <th data-sort-column="display_name">Name</th>
                         <th data-sort-column="realm_type" class="d-none">Realm type</th>
-                        <th data-sort-column="use_case" class="d-none">Use case</th>
+                        <th data-sort-column="realm">Realm</th>
+                        <th data-sort-column="use_case">Use case</th>
                         <th data-sort-column="function_name" class="d-none">Function</th>
                         <th data-sort-column="outcome">Outcome</th>
                         <th data-sort-column="duration">Duration</th>
@@ -115,7 +116,8 @@
                             <td class="d-none">{{ case.folder or '—' }}</td>
                             <td>{{ case.display_name or '—' }}</td>
                             <td class="d-none">{{ case.realm_type or '—' }}</td>
-                            <td class="d-none">{{ case.use_case or '—' }}</td>
+                            <td>{{ case.realm or '—' }}</td>
+                            <td>{{ case.use_case or '—' }}</td>
                             <td class="d-none">{{ case.function_name or '—' }}</td>
                             <td>
                                 {% if case.outcome == 'passed' %}
@@ -130,7 +132,7 @@
                         </tr>
 
                         <tr class="collapse" id="{{ detail_id }}">
-                            <td colspan="8" class="p-0">
+                            <td colspan="9" class="p-0">
                                 <div class="p-3">
                                     <div class="card mb-3">
                                         <div class="card-body small">

@@ -66,3 +66,5 @@ security.access_denied.back_button=Back to Home
 welcome_message=Welcome to Sherpa CIAM Home!
 client_created=Client has been successfully created.
 error_generic=An error has occurred. Please try again.
+
+clientinfo.last_activity.not_available=Not available

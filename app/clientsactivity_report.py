@@ -9,7 +9,7 @@ from sherpa.utils.basics import Properties
 import utils
 
 
-def run(logger: Logger, properties: Properties, outputPath: str, environment: str, config: dict) -> list:
+def run(logger: Logger, properties: Properties, outputPath: str, environment: str, config: dict, messages: dict) -> list:
 	"""Runs Clients activity report generation
 
 	Args:
@@ -34,7 +34,7 @@ def run(logger: Logger, properties: Properties, outputPath: str, environment: st
 			if last_login_time:
 				last_activity = last_login_time
 			else:
-				last_activity = "No last.login.time attribute configured"
+				last_activity = messages["clientsactivity.last_activity.not_available"]
 			client_activity = {
 				"client_id": client["clientId"],
 				"name": client.get("name", ""),
@@ -56,8 +56,9 @@ def main(arguments):
 	parser.add_argument('outputPath', type=str, help="Path to clientsactivity_*.json files.")
 	args = parser.parse_args(arguments)
 	config = utils.getConfig(logger=logger)
+	messages = utils.load_messages()
 	for environment in utils.getEnvironments(logger=logger, config=config):
-		run(logger=logger, properties=properties, outputPath=args.outputPath, environment=environment, config=config)
+		run(logger=logger, properties=properties, outputPath=args.outputPath, environment=environment, config=config, messages=messages)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

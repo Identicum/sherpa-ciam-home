@@ -597,9 +597,12 @@ def getTestReports(logger: Logger, environment: str):
                     with open(report_json_path, 'r') as f:
                         data = json.load(f)["data"]
                     custom_test_env_name = data[0].get("attributes", {}).get("environment", {}).get("custom_test_env_name", "N/A")
-                    passed = int(data[0].get("attributes", {}).get("summary", {}).get("passed", 0))
-                    failed = int(data[0].get("attributes", {}).get("summary", {}).get("failed", 0))
-                    num_tests = int(data[0].get("attributes", {}).get("summary", {}).get("num_tests", 0))
+                    summary = data[0].get("attributes", {}).get("summary", {})
+                    passed = int(summary.get("passed", 0))
+                    # Tests with an "error" outcome (setup/teardown errors) are reported by
+                    # pytest-json-report under a separate "error" key; count them as failed.
+                    failed = int(summary.get("failed", 0)) + int(summary.get("error", 0))
+                    num_tests = int(summary.get("num_tests", 0))
                     duration = round(float(data[0].get("attributes", {}).get("summary", {}).get("duration", 0)))
                     REPORTS_LIST.append((directory_name, custom_test_env_name, passed, failed, num_tests, duration))
                 except (KeyError) as e:

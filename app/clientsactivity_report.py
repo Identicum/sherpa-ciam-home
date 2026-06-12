@@ -9,7 +9,7 @@ from sherpa.utils.basics import Properties
 import utils
 
 
-def run(logger: Logger, properties: Properties, outputPath: str, environment: str, config: dict) -> list:
+def run(logger: Logger, properties: Properties, outputPath: str, environment: str, config: dict, messages: dict) -> list:
 	"""Runs Clients activity report generation
 
 	Args:
@@ -29,15 +29,12 @@ def run(logger: Logger, properties: Properties, outputPath: str, environment: st
 	for realmName in utils.getRealms(logger=logger, environment=environment, config=config):
 		logger.debug("Getting Clients activity for realm: {}", realmName)
 		realm_activity = []
-		elastic = utils.getElastic(logger=logger, environment=environment, config=config)
 		for client in utils.getClients(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config):
-			last_login_time = client["attributes"].get("last.login.time")
+			last_login_time = (client.get("attributes") or {}).get("last.login.time")
 			if last_login_time:
 				last_activity = last_login_time
-			elif elastic:
-				last_activity = utils.getClientLastActivity(logger=logger, elastic=elastic, realmName=realmName, client_id=client["clientId"])
 			else:
-				last_activity = "No Elastic configuration"
+				last_activity = messages["clientsactivity.last_activity.not_available"]
 			client_activity = {
 				"client_id": client["clientId"],
 				"name": client.get("name", ""),
@@ -59,8 +56,9 @@ def main(arguments):
 	parser.add_argument('outputPath', type=str, help="Path to clientsactivity_*.json files.")
 	args = parser.parse_args(arguments)
 	config = utils.getConfig(logger=logger)
+	messages = utils.load_messages()
 	for environment in utils.getEnvironments(logger=logger, config=config):
-		run(logger=logger, properties=properties, outputPath=args.outputPath, environment=environment, config=config)
+		run(logger=logger, properties=properties, outputPath=args.outputPath, environment=environment, config=config, messages=messages)
 	logger.info("{} finished.".format(os.path.basename(__file__)))
 
 

@@ -3,7 +3,6 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from elasticsearch import Elasticsearch
 import json
 import mimetypes
 import os
@@ -222,32 +221,6 @@ def getRealmWorkspaces(logger: Logger, realmType: str, environment: str, config:
     return list(config.get("realms").get(realmType).get("environments").get(environment, {}).keys())
 
 
-def getElastic(logger: Logger, environment: str, config: dict):
-    """Returns ElasticSearch connection
-
-    Args:
-        logger: Logger instance
-        environment (str): Environment
-        config (dict): JSON configuration
-
-    Returns:
-        Elasticsearch: ElasticSeach connection
-    """
-    urls = config.get("environments", {}).get(environment, {}).get("elastic_urls", [])
-    if urls:
-        username = config.get("environments", {}).get(environment, {}).get("elastic_username", "")
-        password = config.get("environments", {}).get(environment, {}).get("elastic_password", "")
-        if username and password:
-            logger.debug("Connecting to urls: {}, username: {}", urls, username)
-            return Elasticsearch(urls, http_auth=(username, password))
-        else:
-            logger.debug("Connecting to urls: {}", urls)
-            return Elasticsearch(urls)
-    else:
-        logger.debug("No Elastic URLs provided.")
-        return None
-
-
 def getKibanaUrl(logger: Logger, environment: str, config: dict, realmName: str, client_id: str) -> str:
     """Returns Kibana URL connection
 
@@ -321,40 +294,6 @@ def getClients(logger: Logger, properties: Properties, environment: str, realmNa
     except Exception as e:
         logger.error("Error fetching clients for {}/{}: {}", environment, realmName, e)
         return []
-
-
-def getClientLastActivity(logger: Logger, elastic: Elasticsearch, realmName: str, client_id: str) -> list:
-    """List Clients including last activity.
-
-    Args:
-        logger: Logger instance
-        elastic (Elasticsearch): ElasticSearch connection
-        realmName (str): Realm name
-        client_id (str): client_id
-
-    Returns:
-        str: Date of last activity of the client, or "No activity"
-    """
-    activityQueryResponse = elastic.search(index="", body={
-        "size": 1,
-        "query": {
-            "bool": {
-                "must": [
-                    {"match": {"idp.realm": realmName}},
-                    {"match": {"idp.client_id": client_id}}
-                ]
-            }
-        },
-    })
-    logger.debug("activityQueryResponse: {}", activityQueryResponse)
-    hits_list = activityQueryResponse.get("hits", {}).get("hits", [])
-    if hits_list:
-        timestamp = hits_list[0].get("_source", {}).get("@timestamp", "")
-        dt_utc = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-        dt_local = dt_utc.astimezone()
-        return dt_local.strftime("%Y-%m-%d %H:%M")
-    else:
-        return "No activity"
 
 
 def getNormalizedClient(logger: Logger, properties: Properties, environment: str, realmName: str, client_id: str, config: dict, kcAdmin: SherpaKeycloakAdmin = None) -> dict:

@@ -42,7 +42,8 @@ def clientsactivity_generate_report(environment: str):
         properties=current_app.properties,
         outputPath="/data",
         environment=environment,
-        config=current_app.json_config
+        config=current_app.json_config,
+        messages=current_app.messages
     )
     return render_template(
         'terraformcheck_output.html',

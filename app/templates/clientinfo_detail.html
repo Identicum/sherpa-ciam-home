@@ -52,7 +52,7 @@
                     {% if normalizedClient.last_login_time %}
                         {{ normalizedClient.last_login_time }}
                     {% else %}
-                        <span class="text-muted">Not available</span>
+                        <span class="text-muted">{{ messages['clientinfo.last_activity.not_available'] }}</span>
                     {% endif %}
                 </td>
             </tr>

@@ -245,7 +245,7 @@ def getKibanaUrl(logger: Logger, environment: str, config: dict, realmName: str,
         return None
 
 
-def getKeycloakAdmin(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict) -> SherpaKeycloakAdmin:
+def getKeycloakAdmin(logger: Logger, properties: Properties, environment: str, realmName: str, config: dict, override_server_url: str = None) -> SherpaKeycloakAdmin:
     """Creates an instance of SherpaKeycloakAdmin
     See in [sherpa-py-keycloak](https://github.com/Identicum/sherpa-py-keycloak/blob/main/sherpa/keycloak/keycloak_lib.py)
 
@@ -257,10 +257,11 @@ def getKeycloakAdmin(logger: Logger, properties: Properties, environment: str, r
     Returns:
         SherpaKeycloakAdmin: SherpaKeycloakAdmin instance
     """
+    server_url = override_server_url or config.get("environments", {}).get(environment, {}).get("keycloak_url", "")
     kcAdmin = SherpaKeycloakAdmin(
             logger=logger, 
             properties=properties, 
-            server_url=config.get("environments", {}).get(environment, {}).get("keycloak_url", ""), 
+            server_url=server_url, 
             username=config.get("environments", {}).get(environment, {}).get("keycloak_username", ""), 
             password=config.get("environments", {}).get(environment, {}).get("keycloak_password", ""), 
             user_realm_name="master",

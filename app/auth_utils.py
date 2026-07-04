@@ -134,7 +134,7 @@ def isRefreshTokenExpired() -> bool:
 def refreshToken(logger: Logger, discovery_document: dict) -> bool:
     """
     Attempt to renew the access token using the refresh token (RFC 6749 §6).
-    Clears cached userinfo on success so it is re-fetched with the new token.
+    Re-derives username/roles from the refreshed tokens on success.
     Returns True on success, False on any failure.
     """
     logger.trace("Starting token refresh.")
@@ -159,9 +159,10 @@ def refreshToken(logger: Logger, discovery_document: dict) -> bool:
         if token_response.status_code >= 400:
             logger.debug("Token refresh rejected by IdP (HTTP {}).", token_response.status_code)
             return False
-        storeTokensInSession(logger=logger, token_response=token_response.json())
-        session.pop('username', None)
-        session.pop('userinfo', None)
+        token_response_json = token_response.json()
+        storeTokensInSession(logger=logger, token_response=token_response_json)
+        storeUsernameInSession(logger=logger, token_response=token_response_json)
+        storeRolesInSession(logger=logger, token_response=token_response_json)
         logger.debug("Token refreshed successfully.")
         return True
     except Exception as e:

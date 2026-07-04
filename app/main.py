@@ -53,7 +53,7 @@ def _idp_logout(refresh_token: str) -> None:
     try:
         SherpaKeycloakOpenID(
             logger=app.logger,
-            properties=utils.properties,
+            properties=app.properties,
             server_url=os.environ.get('IDP_BASE_URL'),
             realm_name=os.environ.get('OIDC_REALM'),
             client_id=os.environ.get('OIDC_CLIENT_ID'),

@@ -55,6 +55,7 @@ usersesssions.error=An error occurred
 
 tests.runner.title=Schedule tests execution
 tests.reports.list.title=Test reports
+tests.detail.display_name=Display name
 tests.detail.description=Description
 
 back_home=Back home

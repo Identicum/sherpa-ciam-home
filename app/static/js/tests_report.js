@@ -7,9 +7,9 @@
  */
 
 const FILTER_CONFIG = [
-    { id: 'filter-folder',      field: 'folder',      labelAll: 'All folders' },
-    { id: 'filter-realm-type',  field: 'realm_type',  labelAll: 'All realm types' },
+    { id: 'filter-realm',  field: 'realm',  labelAll: 'All realms' },
     { id: 'filter-use-case',    field: 'use_case',    labelAll: 'All use cases' },
+    { id: 'filter-sub-case',    field: 'sub_case',    labelAll: 'All sub cases' },
     { id: 'filter-outcome',     field: 'outcome',     labelAll: 'All outcomes', format: v => v.charAt(0).toUpperCase() + v.slice(1) },
 ];
 

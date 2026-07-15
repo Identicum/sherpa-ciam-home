@@ -722,6 +722,7 @@ def parse_test_report(logger: Logger, json_report: dict, environment: str, times
             "realm_type": md.get("realm_type"),
             "realm": md.get("realm"),
             "use_case": md.get("use_case"),
+            "sub_case": md.get("sub_case", ""),
             "description": md.get("description"),
             # Backwards compatibility: older reports used the "test_display_name" metadata key,
             # and if that was also missing the template fell back to the test nodeid.

@@ -54,7 +54,7 @@ def _idp_logout(refresh_token: str) -> None:
         SherpaKeycloakOpenID(
             logger=app.logger,
             properties=app.properties,
-            server_url=os.environ.get('IDP_BASE_URL'),
+            server_url=os.environ.get('IDP_BASE_URL').rstrip('/') + '/',
             realm_name=os.environ.get('OIDC_REALM'),
             client_id=os.environ.get('OIDC_CLIENT_ID'),
             client_secret_key=os.environ.get('OIDC_CLIENT_SECRET'),

@@ -229,7 +229,7 @@ def checkRedirectUrls(logger: Logger, normalizedClient: dict, environment: str, 
     tag = normalizedClient["tag"]
     if normalizedClient["tag"] == "[IDP_INTERNAL]":
         return []
-    if normalizedClient["tag"] in [ "[CLIENT_CREDENTIALS]", "[ROPC]" ]:
+    if normalizedClient["tag"] in [ "[CLIENT_CREDENTIALS]", "[JWT_BEARER]", "[ROPC]" ]:
         if redirectUrlsCount > 0:
             issueDescription = "This client should not have redirect_url values, but has {}.".format(redirectUrlsCount)
             logger.trace("Returning issue '{}' for client '{}'", issueDescription, normalizedClient["client_id"])
@@ -341,6 +341,13 @@ def checkGrants(logger: Logger, normalizedClient: dict) -> list:
                 warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have direct access grants enabled."))
             if normalizedClient["client_credentials_flow"]:
                 warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have service accounts disabled."))
+        case "[JWT_BEARER]":
+            if normalizedClient["authorization_code_flow"]:
+                warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have standard flow disabled."))
+            if normalizedClient["ropc_flow"]:
+                warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have direct access grants disabled."))
+            if normalizedClient["client_credentials_flow"]:
+                warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have service accounts disabled."))
         case _:
             if not normalizedClient["authorization_code_flow"]:
                 warns.append(getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should have standard flow enabled."))
@@ -437,7 +444,7 @@ def checkPostLogoutRedirectUrls(logger: Logger, normalizedClient: dict, environm
         logger.debug("No controls for IDP_INTERNAL.")
         return []
     
-    if normalizedClient["tag"] in [ "[CLIENT_CREDENTIALS]", "[MOBILE]", "[ROPC]" ]:
+    if normalizedClient["tag"] in [ "[CLIENT_CREDENTIALS]", "[JWT_BEARER]", "[MOBILE]", "[ROPC]" ]:
         if client_post_logout_redirect_urls_count > 0:
             return [getWarn(logger=logger, normalizedClient=normalizedClient, issueLevel="WARN", issueDescription="This client should not have post_logout_redirect_url, but has {}.".format(client_post_logout_redirect_urls_count))]
     else:

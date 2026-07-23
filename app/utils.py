@@ -496,7 +496,7 @@ def getClientTag(logger: Logger, description: str, client_id: str, client_type: 
     if client_type=="realm" or client_id in native_clients:
         return "[KEYCLOAK_NATIVE]"
 
-    valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[PROXY]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]"]
+    valid_client_types = ["[SPA_NGINX]", "[MOBILE]", "[WEB_BACKEND]", "[PROXY]", "[CLIENT_CREDENTIALS]", "[SPA_PUBLIC]", "[ROPC]", "[IDP_INTERNAL]", "[SAML]", "[JWT_BEARER]"]
     if custom_type:
         tag = custom_type if custom_type.startswith("[") else "[{}]".format(custom_type)
         logger.trace("Using custom_type attribute '{}', resolved tag: '{}'", custom_type, tag)

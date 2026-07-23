@@ -30,15 +30,22 @@ def run(logger: Logger, properties: Properties, outputPath: str, environment: st
 		logger.debug("Getting Clients activity for realm: {}", realmName)
 		realm_activity = []
 		for client in utils.getClients(logger=logger, properties=properties, environment=environment, realmName=realmName, config=config):
-			last_login_time = (client.get("attributes") or {}).get("last.login.time")
+			client_keycloak_id = client["id"]
+			client_id = client["clientId"]
+			logger.debug("Processing Client with internal id: {}, clientId: {}", client_keycloak_id, client_id)
+			normalized_client = utils.getNormalizedClient(logger=logger, properties=properties, environment=environment, realmName=realmName, client_id=client_id, config=config)
+			if normalized_client["tag"]=="[KEYCLOAK_NATIVE]":
+				logger.debug("Skipping Client with internal id: {}, clientId: {}", client_keycloak_id, client_id)
+				continue
+			last_login_time = normalized_client.get("last_login_time")
 			if last_login_time:
 				last_activity = last_login_time
 			else:
 				last_activity = messages["clientsactivity.last_activity.not_available"]
 			client_activity = {
-				"client_id": client["clientId"],
-				"name": client.get("name", ""),
-				"enabled": client["enabled"],
+				"client_id": client_id,
+				"name": normalized_client["name"],
+				"enabled": normalized_client["enabled"],
 				"last_activity": last_activity
 			}
 			realm_activity.append(client_activity)

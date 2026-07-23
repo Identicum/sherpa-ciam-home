@@ -14,7 +14,10 @@ output "category" {
   value       = "category"
   description = "Categoria a la que pertenece."
 }
-
+output "client_last_login_time" {
+  value       = "last.login.time"
+  description = "Fecha de ultima actividad de un Client (formato yyyy-MM-dd)."
+}
 output "disabledDate" {
   value       = "disabled_date"
   description = "Fecha de deshabilitacion (formato yyyy-MM-dd)."

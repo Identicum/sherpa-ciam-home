@@ -15,8 +15,9 @@ resource "keycloak_openid_client" "demoapp11" {
   valid_redirect_uris             = [ "/private/redirect_uri", "/private/info" ]
   frontchannel_logout_enabled     = false
   extra_config = {
-    (module.constants.owner_email) = "idp@identicum.com",
-    (module.constants.type) = (module.constants.clientType_mobile)
+    (module.constants.owner_email)            = "idp@identicum.com",
+    (module.constants.type)                   = (module.constants.clientType_mobile),
+    (module.constants.client_last_login_time) = "2026-06-01"
   }
 }
 

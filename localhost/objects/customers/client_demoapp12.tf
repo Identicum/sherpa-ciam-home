@@ -2,7 +2,7 @@ resource "keycloak_openid_client" "demoapp12" {
   realm_id                        = resource.keycloak_realm.realm.id
   client_id                       = "demoapp12_client_id"
   name                            = "demoapp12"
-  description                     = "[SPA_PUBLIC]##idp@identicum.com##Public SPA, no PKCE. Multiple web_origins."
+  description                     = "Public SPA, no PKCE. Multiple web_origins."
   enabled                         = true
   access_type                     = "PUBLIC"
   standard_flow_enabled           = true
@@ -15,6 +15,11 @@ resource "keycloak_openid_client" "demoapp12" {
   valid_post_logout_redirect_uris = [ "/logoutSuccess.html" ]
   web_origins                     = [ "https://demoapp12.example.com", "https://demoapp12.identicum.com" ]
   frontchannel_logout_enabled     = false
+  extra_config = {
+    (module.constants.owner_email)            = "idp@identicum.com",
+    (module.constants.type)                   = (module.constants.clientType_spaPublic),
+    (module.constants.client_last_login_time) = "2026-06-02"
+  }
 }
 
 resource "keycloak_openid_client_optional_scopes" "demoapp12" {

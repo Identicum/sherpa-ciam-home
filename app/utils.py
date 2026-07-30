@@ -407,7 +407,7 @@ def getNormalizedClient(logger: Logger, properties: Properties, environment: str
         response["realm_login_theme"] = realm.get("loginTheme") or ""
         response["realm_account_theme"] = realm.get("accountTheme") or ""
         response["realm_email_theme"] = realm.get("emailTheme") or ""
-        response["client_login_theme"] = client.get("loginTheme") or "(inherit)"
+        response["client_login_theme"] = client_attributes.get("login_theme") or "(inherit)"
         response["client_account_theme"] = client.get("accountTheme") or "(inherit)"
         response["client_email_theme"] = client.get("emailTheme") or "(inherit)"
 

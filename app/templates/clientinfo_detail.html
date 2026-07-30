@@ -12,7 +12,7 @@
             <tr>
                 <th>{{ messages['clientinfo.client_secret'] }}</th>
                 <td>
-                    <form action="/clientinfo/{{environment}}/{{realm.realm}}/{{normalizedClient.client_id}}" method="post">
+                    <form action="/clientinfo/{{environment}}/{{realm.realm}}/{{utils.urlEncodeString(normalizedClient.client_id)}}" method="post">
                         <input type="text" name="secret" id="secret" placeholder="{{ messages['clientinfo.secret_placeholder'] }}">
                         <button id="btn-form" style="margin: 0px;">{{ messages['clientinfo.validate'] }}</button>
                     </form>
@@ -42,7 +42,7 @@
                 <td>{{ normalizedClient.owner_email }}</td>
                 <td>
                     {% if normalizedClient.owner_email %}
-                    <a href="/clientinfo/{{ environment }}/{{ realm.realm }}/{{ normalizedClient.client_id }}/sendclientinfo" class="btn btn-primary btn-sm">{{ messages['clientinfo.send_client_info'] }}</a>
+                    <a href="/clientinfo/{{ environment }}/{{ realm.realm }}/{{ utils.urlEncodeString(normalizedClient.client_id) }}/sendclientinfo" class="btn btn-primary btn-sm">{{ messages['clientinfo.send_client_info'] }}</a>
                     {% endif %}
                 </td>
             </tr>

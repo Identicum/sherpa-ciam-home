@@ -25,7 +25,7 @@
             {% for client in realmActivityData %}
             <tr>
                 <td>
-                    <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ client.client_id }}">
+                    <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ utils.urlEncodeString(client.client_id) }}">
                         {{ client.client_id }}
                     </a>
                 </td>

@@ -43,7 +43,7 @@
             {% for warn in warns %}
                 <tr data-level="{{warn.issueLevel}}">
                     <td>{{warn.realmName}}</td>
-                    <td><a href="/clientinfo/{{environment}}/{{warn.realmName}}/{{warn.client_id}}">{{warn.client_id}}</a></td>
+                    <td><a href="/clientinfo/{{environment}}/{{warn.realmName}}/{{utils.urlEncodeString(warn.client_id)}}">{{warn.client_id}}</a></td>
                     <td>{{warn.tag}}</td>
                     <td>{{warn.name}}</td>
                     <td>{{warn.description}}</td>

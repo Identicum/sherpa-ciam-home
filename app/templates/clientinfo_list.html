@@ -18,7 +18,7 @@
             {% for client in clients %}
             <tr>
                 <td>
-                    <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ client.clientId }}">
+                    <a href="/clientinfo/{{ environment }}/{{ realmName }}/{{ utils.urlEncodeString(client.clientId) }}">
                         {{ client.clientId }}
                     </a>
                 </td>

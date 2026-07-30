@@ -11,10 +11,19 @@ from sherpa.utils.basics import Logger
 from sherpa.utils.basics import Properties
 from sherpa.keycloak.keycloak_lib import SherpaKeycloakAdmin
 import smtplib
+import urllib.parse
 
 
 DEFAULT_TIMEOUT = float(os.environ.get("HTTP_DEFAULT_TIMEOUT", "30"))
 
+
+def urlEncodeString(input: str) -> str:
+    """URL encode a string"""
+    return urllib.parse.quote(input, safe='')
+
+def urlDecodeString(input: str) -> str:
+    """URL decode a string"""
+    return urllib.parse.unquote(input)
 
 def load_messages():
     """

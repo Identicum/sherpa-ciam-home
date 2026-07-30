@@ -49,7 +49,7 @@ def clientinfo_list(environment: str, realmName: str):
     )
 
 
-@clientinfo_bp.route('/clientinfo/<environment>/<realmName>/<client_id>', methods=["GET", "POST"])
+@clientinfo_bp.route('/clientinfo/<environment>/<realmName>/<path:client_id>', methods=["GET", "POST"])
 def clientinfo_detail(environment: str, realmName: str, client_id: str):
     """Renders 'Client Info' Client Detail Page
  
@@ -61,6 +61,7 @@ def clientinfo_detail(environment: str, realmName: str, client_id: str):
     Returns:
         Template: 'Client Info' Client Detail Rendered HTML Page
     """
+    client_id = utils.urlDecodeString(client_id)
     normalizedClient = utils.getNormalizedClient(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, client_id=client_id, config=current_app.json_config)
     current_app.logger.trace("client: {}", normalizedClient)
     realm = utils.getRealm(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, config=current_app.json_config)
@@ -88,7 +89,7 @@ def clientinfo_detail(environment: str, realmName: str, client_id: str):
     )
 
 
-@clientinfo_bp.route('/clientinfo/<environment>/<realmName>/<client_id>/sendclientinfo', methods=["GET"])
+@clientinfo_bp.route('/clientinfo/<environment>/<realmName>/<path:client_id>/sendclientinfo', methods=["GET"])
 def clientinfo_send(environment: str, realmName: str, client_id: str):
     """Send Client information to owner
  
@@ -100,6 +101,7 @@ def clientinfo_send(environment: str, realmName: str, client_id: str):
     Returns:
         Feedback page once email was sent.
     """
+    client_id = utils.urlDecodeString(client_id)
     normalizedClient = utils.getNormalizedClient(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, client_id=client_id, config=current_app.json_config)
     current_app.logger.trace("client: {}", normalizedClient)
     realm = utils.getRealm(logger=current_app.logger, properties=current_app.properties, environment=environment, realmName=realmName, config=current_app.json_config)

@@ -2,7 +2,7 @@ FROM ghcr.io/identicum/python-flask:latest
 
 RUN python3 -m pip install --upgrade --no-cache git+https://github.com/Identicum/sherpa-py-utils.git@main && \
     python3 -m pip install --upgrade --no-cache git+https://github.com/Identicum/sherpa-py-keycloak.git@main && \
-    python3 -m pip install --upgrade --no-cache elasticsearch flask-oidc
+    python3 -m pip install --upgrade --no-cache elasticsearch flask-oidc oracledb
 
 ENV TERRAFORM_VERSION="1.14.7"
 ARG BUILDARCH

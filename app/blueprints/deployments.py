@@ -31,24 +31,6 @@ def getDeploymentArtifacts(logger: Logger, config: dict) -> list:
     return artifacts
 
 
-def getDeploymentNodes(logger: Logger, environment: str, config: dict) -> list:
-    """Returns the list of deployment node numbers (1, 2, ..., n) for the given environment
-
-    Args:
-        logger (Logger): Sherpa Logger Instance
-        environment (str): Environment name
-        config (dict): JSON configuration
-
-    Returns:
-        list: List of deployment node numbers (1, 2, ..., n)
-    """
-    env_config = config.get("environments", {}).get(environment, {})
-    count = env_config.get("deployment_nodes", 1)
-    nodes = list(range(1, count + 1))
-    logger.trace("Deployment nodes for {}: {}", environment, nodes)
-    return nodes
-
-
 def getDeploymentStatus(logger: Logger, environment: str, artifact: str = None) -> str:
     """Get the deployment status for the provided environment and artifact
 
@@ -276,7 +258,6 @@ def deployments_artifact_list(environment: str, artifact: str):
         utils=utils,
         environment=environment,
         artifact=artifact,
-        deployment_nodes=getDeploymentNodes(logger=current_app.logger, environment=environment, config=current_app.json_config),
         deployment_status=getDeploymentStatus(logger=current_app.logger, environment=environment, artifact=artifact),
         reports=getDeploymentReports(logger=current_app.logger, environment=environment, artifact=artifact, include_logs=False)
     )
@@ -359,15 +340,15 @@ def deployments_execute(environment: str):
         current_app.logger.error("No artifact provided for deployment")
         return redirect(url_for('deployments.deployments_list', environment=environment))
 
-    selected_node = request.form.get('node')
-    if not selected_node:
-        current_app.logger.error("No node provided for deployment")
+    version = (request.form.get('version') or "").strip()
+    if not version:
+        current_app.logger.error("No version provided for deployment")
         return redirect(url_for('deployments.deployments_artifact_list', environment=environment, artifact=artifact))
 
     pid_file_path = f"/data/deployment_reports/{environment}/{artifact}/deploy.execute"
     os.makedirs(os.path.dirname(pid_file_path), exist_ok=True)
 
     with open(pid_file_path, "w") as pid_file:
-        pid_file.write(str(selected_node))
-    current_app.logger.debug(f"Deployment execution PID File created at: {pid_file_path} with content: {selected_node}")
+        pid_file.write(f"version={version}\n")
+    current_app.logger.debug(f"Deployment execution PID File created at: {pid_file_path} with version: {version}")
     return redirect(url_for('deployments.deployments_artifact_list', environment=environment, artifact=artifact))

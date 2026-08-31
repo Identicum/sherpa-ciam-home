@@ -10,13 +10,8 @@
         {% if deployment_status == 'available' %}
             <form action="/deployments/{{ environment }}/execute" method="post" style="display: inline-flex; align-items: center; gap: 10px;">
                 <input type="hidden" name="artifact" value="{{ artifact }}">
-                <label style="margin-right: 5px;">Coordinator:</label>
-                <select name="node" id="node-select" class="form-select" style="width: auto; display: inline-block;" required>
-                    <option value="">Select a node</option>
-                    {% for node in deployment_nodes %}
-                        <option value="{{ node }}">Node {{ node }}</option>
-                    {% endfor %}
-                </select>
+                <label style="margin-right: 5px;">Version:</label>
+                <input type="text" name="version" id="version-input" class="form-control" style="width: auto; display: inline-block;" placeholder="e.g. 1.0.0" required>
                 <button type="submit" name="submit" class="btn btn-primary">Deploy Artifact</button>
             </form>
         {% elif deployment_status == 'execute' %}

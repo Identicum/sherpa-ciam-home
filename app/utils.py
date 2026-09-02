@@ -703,8 +703,8 @@ def parse_test_report(logger: Logger, json_report: dict, environment: str, times
     """Normalize a pytest-json report into a flat list of test case dicts.
 
     Reads the standardized metadata fields emitted by the playwright conftest:
-    folder, filename, class_name, function_name, realm_type, realm, description,
-    media_dir, captured_logs. For failed tests, resolves failed_images against
+    folder, filename, class_name, function_name, product, realm_type, realm,
+    description, media_dir, captured_logs. For failed tests, resolves failed_images against
     the media directory on disk.
     """
     cases = []
@@ -728,6 +728,7 @@ def parse_test_report(logger: Logger, json_report: dict, environment: str, times
             "filename": md.get("filename", ""),
             "class_name": md.get("class_name"),
             "function_name": md.get("function_name", ""),
+            "product": md.get("product", ""),
             "realm_type": md.get("realm_type"),
             "realm": md.get("realm"),
             "use_case": md.get("use_case"),

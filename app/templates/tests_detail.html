@@ -67,6 +67,11 @@
                     <input id="filter-search" type="search" class="form-control form-control-sm" placeholder="Search name, function, use case or description…" autocomplete="off">
                 </div>
                 <div class="col-md">
+                    <select id="filter-product" class="form-select form-select-sm" aria-label="Filter by product">
+                        <option value="">All products</option>
+                    </select>
+                </div>
+                <div class="col-md">
                     <select id="filter-realm" class="form-select form-select-sm" aria-label="Filter by realm">
                         <option value="">All realms</option>
                     </select>
@@ -99,6 +104,7 @@
                         <th data-sort-column="id">ID</th>
                         <th data-sort-column="folder" class="d-none">Folder</th>
                         <th data-sort-column="display_name" class="d-none">Name</th>
+                        <th data-sort-column="product">Product</th>
                         <th data-sort-column="realm_type" class="d-none">Realm type</th>
                         <th data-sort-column="realm">Realm</th>
                         <th data-sort-column="use_case">Use case</th>
@@ -116,6 +122,7 @@
                             <td title="{{ case.display_name or '-'}}">{{ case.id }}</td>
                             <td class="d-none">{{ case.folder or '—' }}</td>
                             <td class="d-none">{{ case.display_name or '—' }}</td>
+                            <td>{{ case.product or '—' }}</td>
                             <td class="d-none">{{ case.realm_type or '—' }}</td>
                             <td>{{ case.realm or '—' }}</td>
                             <td>{{ case.use_case or '—' }}</td>
@@ -134,7 +141,7 @@
                         </tr>
 
                         <tr class="collapse" id="{{ detail_id }}">
-                            <td colspan="9" class="p-0">
+                            <td colspan="11" class="p-0">
                                 <div class="p-3">
                                     <div class="card mb-3">
                                         <div class="card-body small">
@@ -152,6 +159,7 @@
                                                 <div class="col-md-6">
                                                     <strong>Classification</strong>
                                                     <ul class="list-unstyled mb-0 mt-1">
+                                                        <li>Product: <code>{{ case.product or '—' }}</code></li>
                                                         <li>Realm type: <code>{{ case.realm_type or '—' }}</code></li>
                                                         <li>Realm: <code>{{ case.realm or '—' }}</code></li>
                                                         <li>Use case: <code>{{ case.use_case or '—' }}</code></li>

@@ -7,13 +7,14 @@
  */
 
 const FILTER_CONFIG = [
+    { id: 'filter-product',     field: 'product',     labelAll: 'All products' },
     { id: 'filter-realm',  field: 'realm',  labelAll: 'All realms' },
     { id: 'filter-use-case',    field: 'use_case',    labelAll: 'All use cases' },
     { id: 'filter-sub-case',    field: 'sub_case',    labelAll: 'All sub cases' },
     { id: 'filter-outcome',     field: 'outcome',     labelAll: 'All outcomes', format: v => v.charAt(0).toUpperCase() + v.slice(1) },
 ];
 
-const SEARCH_FIELDS = ['name', 'function_name', 'display_name', 'description', 'use_case'];
+const SEARCH_FIELDS = ['name', 'function_name', 'display_name', 'description', 'product', 'use_case'];
 
 class TestReportTable {
     constructor(environment, timestamp) {

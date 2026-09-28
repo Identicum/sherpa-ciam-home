@@ -3,6 +3,7 @@ menu.usersessions=User sessions
 menu.tests=Tests
 menu.deployments=Deployments
 menu.changeemail=Change Email
+menu.status=Status
 
 changeemail.title=Email change
 changeemail.subtitle=Enter the user to modify and the new email.
@@ -57,6 +58,30 @@ tests.runner.title=Schedule tests execution
 tests.reports.list.title=Test reports
 tests.detail.display_name=Display name
 tests.detail.description=Description
+
+status.title=IDP Status
+status.last_update=Last update
+status.ok=OK
+status.warn=Warning
+status.crit=Critical
+status.unknown=Unknown
+status.error=Could not build the status of this environment.
+status.grafana_not_configured=Grafana is not configured for this environment, only tests results are shown.
+status.grafana_error=Could not get the Grafana alerts, infrastructure status is unknown.
+status.no_alert_rules=There are no Grafana alert rules for this environment.
+status.alerted_nodes=alerted nodes
+status.no_data=No data
+status.tests.title=Automated functional tests
+status.tests.by_realm=By realm
+status.tests.by_product=By product
+status.tests.failed_short=failed
+status.tests.dimensions_error=Could not break down the tests results.
+status.tests.passed=Passed
+status.tests.failed=Failed
+status.tests.no_runs=No test reports found for this environment.
+status.tests.report_error=Could not read the latest test report.
+status.tests.scheduled=A tests execution is scheduled.
+status.tests.running=Tests are running, showing the previous execution.
 
 back_home=Back home
 

@@ -27,6 +27,14 @@
                     {% endfor %}
                 </div>
             </li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropbtn">{{ messages['menu.status'] }}</a>
+                <div class="dropdown-content">
+                    {% for environment in utils.getEnvironments(logger=logger, config=config) %}
+                        <a href="/status/{{environment}}">{{environment}}</a>
+                    {% endfor %}
+                </div>
+            </li>
             <li>
                 <a href="/clientcreation">{{ messages['menu.clientcreation'] }}</a>
             </li>

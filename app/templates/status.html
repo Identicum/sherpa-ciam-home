@@ -19,6 +19,8 @@
     <h1>{{ messages['status.title'] }} - {{ environment }}</h1>
     <p><small>{{ messages['status.last_update'] }}: {{ status.generated_at }}</small></p>
 
+    <h4 class="mb-3">{{ messages['status.alerts.title'] }}</h4>
+
     {% if not status.grafana.configured %}
         <div class="alert alert-info" role="alert">{{ messages['status.grafana_not_configured'] }}</div>
     {% elif status.grafana.error %}

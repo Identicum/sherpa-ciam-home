@@ -1,0 +1,97 @@
+{% extends "index.html" %}
+
+{% block title %}{{ messages['status.title'] }} - {{ environment }}{% endblock %}
+
+{% macro status_class(value) -%}
+    {{ {'ok': 'bg-success', 'warn': 'bg-warning', 'crit': 'bg-danger'}.get(value, 'bg-secondary') }}
+{%- endmacro %}
+
+{% macro status_light(value, size=64) -%}
+    <div class="rounded-circle flex-shrink-0 {{ status_class(value) }}{{ ' mx-auto mb-2' if size == 64 else '' }}" style="width: {{ size }}px; height: {{ size }}px;" title="{{ messages['status.' + value] }}"></div>
+{%- endmacro %}
+
+{% block content %}
+<div class="container">
+    {% if error_message %}
+    <h1>{{ messages['status.title'] }} - {{ environment }}</h1>
+    <div class="alert alert-danger" role="alert">Error: {{ error_message }}</div>
+    {% else %}
+    <h1>{{ messages['status.title'] }} - {{ environment }}</h1>
+    <p><small>{{ messages['status.last_update'] }}: {{ status.generated_at }}</small></p>
+
+    {% if not status.grafana.configured %}
+        <div class="alert alert-info" role="alert">{{ messages['status.grafana_not_configured'] }}</div>
+    {% elif status.grafana.error %}
+        <div class="alert alert-danger" role="alert">{{ messages['status.grafana_error'] }}</div>
+    {% elif not status.alerts %}
+        <div class="alert alert-info" role="alert">{{ messages['status.no_alert_rules'] }}</div>
+    {% endif %}
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 mb-4">
+        {% for alert in status.alerts %}
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    {{ status_light(alert.status) }}
+                    <h5 class="card-title">{{ alert.name }}</h5>
+                    {% if alert.alerted or (alert.nodes and alert.status != 'unknown') %}
+                        <p class="card-text mb-0"><strong>{{ alert.alerted }} / {{ alert.nodes }}</strong> {{ messages['status.alerted_nodes'] }}</p>
+                    {% else %}
+                        <p class="card-text mb-0">{{ messages['status.no_data'] }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    {% set run = status.tests.run %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                {{ status_light(status.tests.status, 48) }}
+                <div>
+                    <h4 class="mb-1">{{ messages['status.tests.title'] }}</h4>
+                    {% if run %}
+                        <div>{{ run.display }} ({{ run.exec_option }}) - {{ messages['status.tests.passed'] }}: {{ run.passed }}, {{ messages['status.tests.failed'] }}: {{ run.failed }}, Total: {{ run.total }}</div>
+                    {% elif status.tests.report_error %}
+                        <div>{{ messages['status.tests.report_error'] }}</div>
+                    {% else %}
+                        <div>{{ messages['status.tests.no_runs'] }}</div>
+                    {% endif %}
+                    {% if status.tests.execution == 'scheduled' %}
+                        <small>{{ messages['status.tests.scheduled'] }}</small>
+                    {% elif status.tests.execution == 'running' %}
+                        <small>{{ messages['status.tests.running'] }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            {% if run and run.dimensions_error %}
+                <div class="alert alert-warning mb-0" role="alert">{{ messages['status.tests.dimensions_error'] }}</div>
+            {% endif %}
+            {% if run %}
+                {% for dimension, items in run.dimensions.items() %}
+                    <h6 class="mt-3">{{ messages['status.tests.by_' ~ dimension] }}</h6>
+                    <div class="row row-cols-2 row-cols-md-4 row-cols-xl-6 g-2">
+                        {% for item in items %}
+                        <div class="col">
+                            <div class="border rounded d-flex align-items-center gap-2 p-2 h-100">
+                                {{ status_light(item.status, 20) }}
+                                <div class="small lh-sm">
+                                    <div class="fw-semibold text-break">{{ item.name }}</div>
+                                    <div>{{ item.failed }} / {{ item.total }} {{ messages['status.tests.failed_short'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <p><a href="{{ url_for('index') }}">{{ messages['back_home'] }}</a></p>
+</div>
+{% endblock %}

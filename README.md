@@ -27,3 +27,21 @@ Displays a realm-specific list of clients. The user may then select a client to 
 #### Terraform Check Diff Dashboard
 
 Runs `terraform plan` to gather current diff info and displays it in a detailed table.
+
+#### IDP Status
+
+Public traffic-light page (`/status/<environment>`) with the health of the IDP of each environment:
+
+- **Grafana alerts**: the alerting criteria live in Grafana. The page reads the state of the Grafana-managed alert rules (`/api/prometheus/grafana/api/v1/rules`) and shows one item per rule (worst first) with how many nodes are alerted (firing; pending alerts are not counted): green with no alerted nodes, yellow with alerted nodes, red from 50% of the nodes. The item name is the rule annotation `status_title` when present (e.g. a user friendly name in the site language), otherwise the rule title.
+- **Automated functional tests**: summary of the latest tests execution, overall and by realm / product, with the same gradient: green with no failed tests, yellow with failed tests, red from 50% of failed tests.
+
+Environments without Grafana only show tests results. Grafana is configured per environment in `home.json`:
+
+```json
+"prod": {
+    "grafana_url": "http://grafana.example.com:3000",
+    "grafana_token": "$env:PROD_GRAFANA_TOKEN"
+}
+```
+
+- `grafana_token`: Grafana service account token (`Viewer` role is enough to read the alert rules).
